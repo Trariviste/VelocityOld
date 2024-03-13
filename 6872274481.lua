@@ -1,19 +1,3 @@
---[[
-
-    Velocity/Dream/Portal | Bedwars                                           
-    Velocity Unpatched, modded by Copium. Made by Lucius
-
-    Features:
-         + Velocity
-
-    Soon:
-         + Beta Testing
-
-    Version: 1.0
-    discord.gg/render
-
-]]
-
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
