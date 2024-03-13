@@ -1,3 +1,4 @@
+game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "[Velocity] Unpatched!", Color = Color3.fromRGB(123, 0, 123), Font = Enum.Font.Merriweather, FontSize = Enum.FontSize.Size24 } )
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
