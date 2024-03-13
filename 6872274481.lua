@@ -3269,16 +3269,15 @@ runFunction(function()
 	})
 end)
 
-local vapeOriginalRoot
 runFunction(function()
-	local InfiniteFly = {}
-	local InfiniteFlyMode = {Value = 'CFrame'}
+	local InfiniteFly = {Enabled = false}
+	local InfiniteFlyMode = {Value = "CFrame"}
 	local InfiniteFlySpeed = {Value = 23}
 	local InfiniteFlyVerticalSpeed = {Value = 40}
-	local InfiniteFlyVertical = {}
+	local InfiniteFlyVertical = {Enabled = true}
 	local InfiniteFlyUp = false
 	local InfiniteFlyDown = false
-	local alternatelist = {'Normal', 'AntiCheat A', 'AntiCheat B'}
+	local alternatelist = {"Normal", "AntiCheat A", "AntiCheat B"}
 	local clonesuccess = false
 	local disabledproper = true
 	local oldcloneroot
@@ -3292,35 +3291,31 @@ runFunction(function()
 
 	local function disablefunc()
 		if bodyvelo then bodyvelo:Destroy() end
-		RunLoops:UnbindFromHeartbeat('InfiniteFlyOff')
+		RunLoops:UnbindFromHeartbeat("InfiniteFlyOff")
 		disabledproper = true
 		if not oldcloneroot or not oldcloneroot.Parent then return end
 		lplr.Character.Parent = game
-		vapeOriginalRoot = nil
 		oldcloneroot.Parent = lplr.Character
 		lplr.Character.PrimaryPart = oldcloneroot
 		lplr.Character.Parent = workspace
 		oldcloneroot.CanCollide = true
-		for i,v in next, (lplr.Character:GetDescendants()) do 
-			pcall(function()
-				if v:IsA('Weld') or v:IsA('Motor6D') then 
-					if v.Part0 == clone then v.Part0 = oldcloneroot end
-					if v.Part1 == clone then v.Part1 = oldcloneroot end
-				end
-				if v:IsA('BodyVelocity') then 
-					v:Destroy()
-				end 
-			end)
+		for i,v in pairs(lplr.Character:GetDescendants()) do 
+			if v:IsA("Weld") or v:IsA("Motor6D") then 
+				if v.Part0 == clone then v.Part0 = oldcloneroot end
+				if v.Part1 == clone then v.Part1 = oldcloneroot end
+			end
+			if v:IsA("BodyVelocity") then 
+				v:Destroy()
+			end
 		end
-		for i,v in next, (oldcloneroot:GetChildren()) do 
-			if v:IsA('BodyVelocity') then 
-				pcall(function() v:Destroy() end)
+		for i,v in pairs(oldcloneroot:GetChildren()) do 
+			if v:IsA("BodyVelocity") then 
+				v:Destroy()
 			end
 		end
 		local oldclonepos = clone.Position.Y
 		if clone then 
 			clone:Destroy()
-			bedwarsStore.infiniteflyclone = nil
 			clone = nil
 		end
 		lplr.Character.Humanoid.HipHeight = hip or 2
@@ -3331,14 +3326,14 @@ runFunction(function()
 	end
 
 	InfiniteFly = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = 'InfiniteFly',
-		Function = function(calling)
-			if calling then
+		Name = "InfiniteFly",
+		Function = function(callback)
+			if callback then
 				if not entityLibrary.isAlive then 
 					disabledproper = true
 				end
 				if not disabledproper then 
-					warningNotification('InfiniteFly', 'Wait for the last fly to finish', 3)
+					warningNotification("InfiniteFly", "Wait for the last fly to finish", 3)
 					InfiniteFly.ToggleButton(false)
 					return 
 				end
@@ -3363,7 +3358,7 @@ runFunction(function()
 				if inputService.TouchEnabled then
 					pcall(function()
 						local jumpButton = lplr.PlayerGui.TouchGui.TouchControlFrame.JumpButton
-						table.insert(InfiniteFly.Connections, jumpButton:GetPropertyChangedSignal('ImageRectOffset'):Connect(function()
+						table.insert(InfiniteFly.Connections, jumpButton:GetPropertyChangedSignal("ImageRectOffset"):Connect(function()
 							InfiniteFlyUp = jumpButton.ImageRectOffset.X == 146
 						end))
 						InfiniteFlyUp = jumpButton.ImageRectOffset.X == 146
@@ -3385,21 +3380,18 @@ runFunction(function()
 					clone.CFrame = oldcloneroot.CFrame
 					lplr.Character.PrimaryPart = clone
 					lplr.Character.Parent = workspace
-					bedwarsStore.infiniteflyclone = clone
-					for i,v in next, (lplr.Character:GetDescendants()) do 
-						pcall(function()
-							if v:IsA('Weld') or v:IsA('Motor6D') then 
-								if v.Part0 == oldcloneroot then v.Part0 = clone end
-								if v.Part1 == oldcloneroot then v.Part1 = clone end
-							end
-							if v:IsA('BodyVelocity') then 
-								v:Destroy()
-							end 
-						end)
+					for i,v in pairs(lplr.Character:GetDescendants()) do 
+						if v:IsA("Weld") or v:IsA("Motor6D") then 
+							if v.Part0 == oldcloneroot then v.Part0 = clone end
+							if v.Part1 == oldcloneroot then v.Part1 = clone end
+						end
+						if v:IsA("BodyVelocity") then 
+							v:Destroy()
+						end
 					end
-					for i,v in next, (oldcloneroot:GetChildren()) do 
-						if v:IsA('BodyVelocity') then 
-							pcall(function() v:Destroy() end)
+					for i,v in pairs(oldcloneroot:GetChildren()) do 
+						if v:IsA("BodyVelocity") then 
+							v:Destroy()
 						end
 					end
 					if hip then 
@@ -3409,29 +3401,29 @@ runFunction(function()
 					clonesuccess = true
 				end
 				if not clonesuccess then 
-					warningNotification('InfiniteFly', 'Character missing', 3)
+					warningNotification("InfiniteFly", "Character missing", 3)
 					InfiniteFly.ToggleButton(false)
 					return 
 				end
 				local goneup = false
-				RunLoops:BindToHeartbeat('InfiniteFly', function(delta) 
-					if GuiLibrary.ObjectsThatCanBeSaved['Lobby CheckToggle'].Api.Enabled then 
+				RunLoops:BindToHeartbeat("InfiniteFly", function(delta) 
+					if GuiLibrary.ObjectsThatCanBeSaved["Lobby CheckToggle"].Api.Enabled then 
 						if bedwarsStore.matchState == 0 then return end
 					end
 					if entityLibrary.isAlive then
 						if isnetworkowner(oldcloneroot) then 
 							local playerMass = (entityLibrary.character.HumanoidRootPart:GetMass() - 1.4) * (delta * 100)
 							
-							local flyVelocity = entityLibrary.character.Humanoid.MoveDirection * (InfiniteFlyMode.Value == 'Normal' and InfiniteFlySpeed.Value or 20)
+							local flyVelocity = entityLibrary.character.Humanoid.MoveDirection * (InfiniteFlyMode.Value == "Normal" and InfiniteFlySpeed.Value or 20)
 							entityLibrary.character.HumanoidRootPart.Velocity = flyVelocity + (Vector3.new(0, playerMass + (InfiniteFlyUp and InfiniteFlyVerticalSpeed.Value or 0) + (InfiniteFlyDown and -InfiniteFlyVerticalSpeed.Value or 0), 0))
-							if InfiniteFlyMode.Value ~= 'Normal' then
+							if InfiniteFlyMode.Value ~= "Normal" then
 								entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + (entityLibrary.character.Humanoid.MoveDirection * ((InfiniteFlySpeed.Value + getSpeed()) - 20)) * delta
 							end
 
 							local speedCFrame = {oldcloneroot.CFrame:GetComponents()}
 							speedCFrame[1] = clone.CFrame.X
 							if speedCFrame[2] < 1000 or (not goneup) then 
-								task.spawn(InfoNotification, 'InfiniteFly', 'Teleported Up', 3)
+								task.spawn(warningNotification, "InfiniteFly", "Teleported Up", 3)
 								speedCFrame[2] = 100000
 								goneup = true
 							end
@@ -3444,24 +3436,23 @@ runFunction(function()
 					end
 				end)
 			else
-				RunLoops:UnbindFromHeartbeat('InfiniteFly')
+				RunLoops:UnbindFromHeartbeat("InfiniteFly")
 				if clonesuccess and oldcloneroot and clone and lplr.Character.Parent == workspace and oldcloneroot.Parent ~= nil and disabledproper and cloned == lplr.Character then 
 					local rayparams = RaycastParams.new()
 					rayparams.FilterDescendantsInstances = {lplr.Character, gameCamera}
 					rayparams.RespectCanCollide = true
 					local ray = workspace:Raycast(Vector3.new(oldcloneroot.Position.X, clone.CFrame.p.Y, oldcloneroot.Position.Z), Vector3.new(0, -1000, 0), rayparams)
 					local origcf = {clone.CFrame:GetComponents()}
-					local landpos = {oldcloneroot.Position.X, ray and ray.Position.Y + (entityLibrary.character.Humanoid.HipHeight + (oldcloneroot.Size.Y / 2)) or clone.CFrame.p.Y, oldcloneroot.Position.Z}
 					origcf[1] = oldcloneroot.Position.X
 					origcf[2] = ray and ray.Position.Y + (entityLibrary.character.Humanoid.HipHeight + (oldcloneroot.Size.Y / 2)) or clone.CFrame.p.Y
 					origcf[3] = oldcloneroot.Position.Z
 					oldcloneroot.CanCollide = true
-					bodyvelo = Instance.new('BodyVelocity')
+					bodyvelo = Instance.new("BodyVelocity")
 					bodyvelo.MaxForce = Vector3.new(0, 9e9, 0)
 					bodyvelo.Velocity = Vector3.new(0, -1, 0)
 					bodyvelo.Parent = oldcloneroot
 					oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, -1, clone.Velocity.Z)
-					RunLoops:BindToHeartbeat('InfiniteFlyOff', function(dt)
+					RunLoops:BindToHeartbeat("InfiniteFlyOff", function(dt)
 						if oldcloneroot then 
 							oldcloneroot.Velocity = Vector3.new(clone.Velocity.X, -1, clone.Velocity.Z)
 							local bruh = {clone.CFrame:GetComponents()}
@@ -3469,7 +3460,7 @@ runFunction(function()
 							local newcf = CFrame.new(unpack(bruh))
 							FlyOverlap.FilterDescendantsInstances = {lplr.Character, gameCamera}
 							local allowed = true
-							for i,v in next, (workspace:GetPartBoundsInRadius(newcf.p, 2, FlyOverlap)) do 
+							for i,v in pairs(workspace:GetPartBoundsInRadius(newcf.p, 2, FlyOverlap)) do 
 								if (v.Position.Y + (v.Size.Y / 2)) > (newcf.p.Y + 0.5) then 
 									allowed = false
 									break
@@ -3484,7 +3475,7 @@ runFunction(function()
 					entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Landed)
 					disabledproper = false
 					if isnetworkowner(oldcloneroot) then 
-						InfoNotification('InfiniteFly', 'Waiting 1.5s to not flag', 3)
+						warningNotification("InfiniteFly", "Waiting 1.5s to not flag", 3)
 						task.delay(1.5, disablefunc)
 					else
 						disablefunc()
@@ -3494,27 +3485,27 @@ runFunction(function()
 				InfiniteFlyDown = false
 			end
 		end,
-		HoverText = 'Makes you go zoom',
+		HoverText = "Makes you go zoom",
 		ExtraText = function()
-			return 'Heatseeker'
+			return "Heatseeker"
 		end
 	})
 	InfiniteFlySpeed = InfiniteFly.CreateSlider({
-		Name = 'Speed',
+		Name = "Speed",
 		Min = 1,
 		Max = 23,
 		Function = function(val) end, 
 		Default = 23
 	})
 	InfiniteFlyVerticalSpeed = InfiniteFly.CreateSlider({
-		Name = 'Vertical Speed',
+		Name = "Vertical Speed",
 		Min = 1,
 		Max = 100,
 		Function = function(val) end, 
 		Default = 44
 	})
 	InfiniteFlyVertical = InfiniteFly.CreateToggle({
-		Name = 'Y Level',
+		Name = "Y Level",
 		Function = function() end, 
 		Default = true
 	})
