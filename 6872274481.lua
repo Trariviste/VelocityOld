@@ -10261,3 +10261,1503 @@ task.spawn(function()
 		AutoLeave.ToggleButton(false)
 	end
 end)
+
+local Connection
+runFunction(function()
+	SwordOutline = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = "SwordOutline",
+		Function = function(callback)
+			if callback then 
+				spawn(function()
+					local cam = game.Workspace.CurrentCamera
+					Connection = cam.Viewmodel.ChildAdded:Connect(function(v)
+						highlight2 = Instance.new('Highlight')
+						highlight2.Parent = v.Handle
+						if v:FindFirstChild("Handle") then
+							pcall(function()
+								highlight2.FillTransparency = 1
+								while wait() do
+									highlight2.OutlineColor = Color3.fromRGB(221, 193, 255)
+								end
+							end)
+						end
+					end)
+					spawn(function()
+						repeat task.wait() until unejected == true 
+						EnabledOutlines = false
+						if Connection ~= nil then
+							if type(Connection) == "userdata" then
+								Connection:Disconnect()
+								Connection = nil
+							end
+						end
+					end)
+				end)
+			else
+				EnabledOutlines = false
+				if Connection ~= nil then
+					if type(Connection) == "userdata" then
+						Connection:Disconnect()
+						Connection = nil
+					end
+				end
+			end
+		end
+	})
+end)
+local playerTP
+playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "PlayerTP",
+    Function = function(callback)
+        if callback then
+            local hasTeleported = false
+            local TweenService = game:GetService("TweenService")
+            local localPlayer = game.Players.LocalPlayer
+            local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+                localPlayer.CharacterAdded:Connect(function()
+                    wait(0.3)
+
+                    local nearestPlayer = nil
+                    local minDistance = math.huge
+
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= localPlayer.Team and player.Character:FindFirstChild("Humanoid").Health > 0 then
+                            local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
+                            if distance < minDistance then
+                                nearestPlayer = player
+                                minDistance = distance
+                            end
+                        end
+                    end
+
+                    if nearestPlayer and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                        local tween = TweenService:Create(localPlayer.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+
+                    hasTeleported = false
+                end)
+            end
+            playerTP.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "TP to a player"
+})
+
+do
+    local function IsNotNaN(x)
+        return x == x
+    end
+    local continue = IsNotNaN(gameCamera:ScreenPointToRay(0,0).Origin.x)
+    while not continue do
+        runService.RenderStepped:wait()
+        continue = IsNotNaN(gameCamera:ScreenPointToRay(0,0).Origin.x)
+    end
+end
+
+local binds = {}
+local root = Instance.new('Folder', gameCamera)
+root.Name = 'neon'
+
+
+local GenUid; do
+    local id = 0
+    function GenUid()
+        id = id + 1
+        return 'neon::'..tostring(id)
+    end
+end
+
+local DrawQuad; do
+    local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt
+    local sz = 0.2
+
+    function DrawTriangle(v1, v2, v3, p0, p1)
+        local s1 = (v1 - v2).magnitude
+        local s2 = (v2 - v3).magnitude
+        local s3 = (v3 - v1).magnitude
+        local smax = max(s1, s2, s3)
+        local A, B, C
+        if s1 == smax then
+            A, B, C = v1, v2, v3
+        elseif s2 == smax then
+            A, B, C = v2, v3, v1
+        elseif s3 == smax then
+            A, B, C = v3, v1, v2
+        end
+
+        local para = ( (B-A).x*(C-A).x + (B-A).y*(C-A).y + (B-A).z*(C-A).z ) / (A-B).magnitude
+        local perp = sqrt((C-A).magnitude^2 - para*para)
+        local dif_para = (A - B).magnitude - para
+
+        local st = CFrame.new(B, A)
+        local za = CFrame.Angles(pi/2,0,0)
+
+        local cf0 = st
+
+        local Top_Look = (cf0 * za).lookVector
+        local Mid_Point = A + CFrame.new(A, B).lookVector * para
+        local Needed_Look = CFrame.new(Mid_Point, C).lookVector
+        local dot = Top_Look.x*Needed_Look.x + Top_Look.y*Needed_Look.y + Top_Look.z*Needed_Look.z
+
+        local ac = CFrame.Angles(0, 0, acos(dot))
+
+        cf0 = cf0 * ac
+        if ((cf0 * za).lookVector - Needed_Look).magnitude > 0.01 then
+            cf0 = cf0 * CFrame.Angles(0, 0, -2*acos(dot))
+        end
+        cf0 = cf0 * CFrame.new(0, perp/2, -(dif_para + para/2))
+
+        local cf1 = st * ac * CFrame.Angles(0, pi, 0)
+        if ((cf1 * za).lookVector - Needed_Look).magnitude > 0.01 then
+            cf1 = cf1 * CFrame.Angles(0, 0, 2*acos(dot))
+        end
+        cf1 = cf1 * CFrame.new(0, perp/2, dif_para/2)
+
+        if not p0 then
+            p0 = Instance.new('Part')
+            p0.FormFactor = 'Custom'
+            p0.TopSurface = 0
+            p0.BottomSurface = 0
+            p0.Anchored = true
+            p0.CanCollide = false
+            p0.Material = 'Glass'
+            p0.Size = Vector3.new(sz, sz, sz)
+            local mesh = Instance.new('SpecialMesh', p0)
+            mesh.MeshType = 2
+            mesh.Name = 'WedgeMesh'
+        end
+        p0.WedgeMesh.Scale = Vector3.new(0, perp/sz, para/sz)
+        p0.CFrame = cf0
+
+        if not p1 then
+            p1 = p0:clone()
+        end
+        p1.WedgeMesh.Scale = Vector3.new(0, perp/sz, dif_para/sz)
+        p1.CFrame = cf1
+
+        return p0, p1
+    end
+
+    function DrawQuad(v1, v2, v3, v4, parts)
+        parts[1], parts[2] = DrawTriangle(v1, v2, v3, parts[1], parts[2])
+        parts[3], parts[4] = DrawTriangle(v3, v2, v4, parts[3], parts[4])
+    end
+end
+
+
+
+
+function BindFrame(frame, properties)
+    if binds[frame] then
+        return binds[frame].parts
+    end
+
+    local uid = GenUid()
+    local parts = {}
+    local f = Instance.new('Folder', root)
+    f.Name = frame.Name
+
+    local parents = {} 
+    do
+        local function add(child)
+            if child:IsA'GuiObject' then
+                parents[#parents + 1] = child
+                add(child.Parent)
+            end
+        end
+        add(frame)
+    end
+
+    local function UpdateOrientation(fetchProps)
+        local zIndex = 1 - 0.05*frame.ZIndex
+        local tl, br = frame.AbsolutePosition, frame.AbsolutePosition + frame.AbsoluteSize
+        local tr, bl = Vector2.new(br.x, tl.y), Vector2.new(tl.x, br.y)
+        do
+            local rot = 0;
+            for _, v in ipairs(parents) do
+                rot = rot + v.Rotation
+            end
+            if rot ~= 0 and rot%180 ~= 0 then
+                local mid = tl:lerp(br, 0.5)
+                local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot))
+                local vec = tl
+                tl = Vector2.new(c*(tl.x - mid.x) - s*(tl.y - mid.y), s*(tl.x - mid.x) + c*(tl.y - mid.y)) + mid
+                tr = Vector2.new(c*(tr.x - mid.x) - s*(tr.y - mid.y), s*(tr.x - mid.x) + c*(tr.y - mid.y)) + mid
+                bl = Vector2.new(c*(bl.x - mid.x) - s*(bl.y - mid.y), s*(bl.x - mid.x) + c*(bl.y - mid.y)) + mid
+                br = Vector2.new(c*(br.x - mid.x) - s*(br.y - mid.y), s*(br.x - mid.x) + c*(br.y - mid.y)) + mid
+            end
+        end
+        DrawQuad(
+            gameCamera:ScreenPointToRay(tl.x, tl.y, zIndex).Origin, 
+            gameCamera:ScreenPointToRay(tr.x, tr.y, zIndex).Origin, 
+            gameCamera:ScreenPointToRay(bl.x, bl.y, zIndex).Origin, 
+            gameCamera:ScreenPointToRay(br.x, br.y, zIndex).Origin, 
+            parts
+        )
+        if fetchProps then
+            for _, pt in pairs(parts) do
+                pt.Parent = f
+            end
+            for propName, propValue in pairs(properties) do
+                for _, pt in pairs(parts) do
+                    pt[propName] = propValue
+                end
+            end
+        end
+    end
+
+    UpdateOrientation(true)
+    runService:BindToRenderStep(uid, 2000, UpdateOrientation)
+
+    binds[frame] = {
+        uid = uid;
+        parts = parts;
+    }
+    return binds[frame].parts
+end
+
+function Modify(frame, properties)
+    local parts = GetBoundParts(frame)
+    if parts then
+        for propName, propValue in pairs(properties) do
+            for _, pt in pairs(parts) do
+                pt[propName] = propValue
+            end
+        end
+    else
+        warn(('No part bindings exist for %s'):format(frame:GetFullName()))
+    end
+end
+
+function UnbindFrame(frame)
+    local cb = binds[frame]
+    if cb then
+        runService:UnbindFromRenderStep(cb.uid)
+        for _, v in pairs(cb.parts) do
+            v:Destroy()
+        end
+        binds[frame] = nil
+    else
+        warn(('No part bindings exist for %s'):format(frame:GetFullName()))
+    end
+end
+
+function HasBinding(frame)
+    return binds[frame] ~= nil
+end
+
+function GetBoundParts(frame)
+    return binds[frame] and binds[frame].parts
+end
+local fod
+local ScreenGui2
+stats = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "Stats",
+    Function = function(callback)
+        if callback then
+            if not game:GetService("ReplicatedStorage"):FindFirstChild("deatham") then
+                local deaths = Instance.new("NumberValue", game:GetService("ReplicatedStorage"))
+                deaths.Value = 0
+                deaths.Name = "deatham"
+            end
+            spawn(function()
+                local canadd = true
+                repeat 
+                    task.wait()
+                    if game:GetService("Players").LocalPlayer.Character then
+                        if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") then
+                            if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") == 0 and canadd then
+                                game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value += 1
+                                canadd = false
+                            elseif game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") ~= 0 then
+                                canadd = true
+                            end
+                        end
+                    end
+                until not callback
+            end)        
+            game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = false
+            ScreenGui2 = Instance.new("ScreenGui")
+            local Frame = Instance.new("Frame")
+            local UICorner = Instance.new("UICorner")
+            local TextLabel = Instance.new("TextLabel")
+            local ImageLabel = Instance.new("ImageLabel")
+            local blur = Instance.new("Frame")
+            local Frame_2 = Instance.new("Frame")
+            local UICorner_2 = Instance.new("UICorner")
+            local TextLabel_2 = Instance.new("TextLabel")
+            local TextLabel_3 = Instance.new("TextLabel")
+            local TextLabel_4 = Instance.new("TextLabel")
+            local Frame_3 = Instance.new("Frame")
+            local UICorner_3 = Instance.new("UICorner")
+            local Frame_4 = Instance.new("Frame")
+            local UICorner_4 = Instance.new("UICorner")
+            local TextLabel_5 = Instance.new("TextLabel")
+            local TextLabel_6 = Instance.new("TextLabel")
+            local blur_2 = Instance.new("Frame")
+                    
+            ScreenGui2.Parent = game:GetService("CoreGui")
+            ScreenGui2.ResetOnSpawn = false
+            
+            Frame.Parent = ScreenGui2
+            Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+            Frame.BackgroundTransparency = 0.200
+            -- Frame.Position = UDim2.new(0.00792682916, 0, 0.0160493832, 0)
+            Frame.Position = UDim2.new(0.00792682916, 0, 0.3, 0)
+            Frame.Size = UDim2.new(0, 256, 0, 45)
+            
+            UICorner.Parent = Frame
+            
+            TextLabel.Parent = Frame
+            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.BackgroundTransparency = 1.000
+            TextLabel.Position = UDim2.new(0.19921875, 0, 0.355555564, 0)
+            TextLabel.Size = UDim2.new(0, 139, 0, 13)
+            TextLabel.Font = Enum.Font.GothamBlack
+            TextLabel.Text = "Velocity"
+            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel.TextScaled = true
+            TextLabel.TextSize = 14.000
+            TextLabel.TextWrapped = true
+            TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            ImageLabel.Parent = Frame
+            ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ImageLabel.BackgroundTransparency = 1.000
+            ImageLabel.Position = UDim2.new(0.0625, 0, 0.266666681, 0)
+            ImageLabel.Size = UDim2.new(0, 20, 0, 20)
+            ImageLabel.Image = "rbxassetid://14314898887"
+            
+            blur.Name = "blur"
+            blur.Parent = Frame
+            blur.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            blur.BackgroundTransparency = 1.000
+            blur.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            blur.BorderSizePixel = 0
+            blur.Position = UDim2.new(0.03125, 0, 0.13333334, 0)
+            blur.Size = UDim2.new(0, 240, 0, 33)
+            
+            Frame_2.Parent = ScreenGui2
+            Frame_2.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+            Frame_2.BackgroundTransparency = 0.200
+            Frame_2.Position = UDim2.new(0.00792682916, 0, 0.37, 0)
+            Frame_2.Size = UDim2.new(0, 256, 0, 132)
+            
+            UICorner_2.Parent = Frame_2
+            
+            TextLabel_2.Parent = Frame_2
+            TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_2.BackgroundTransparency = 1.000
+            TextLabel_2.Position = UDim2.new(0.0625, 0, 0.121802919, 0)
+            TextLabel_2.Size = UDim2.new(0, 186, 0, 13)
+            TextLabel_2.Font = Enum.Font.GothamBlack
+            TextLabel_2.Text = "SESSION INFORMATION"
+            TextLabel_2.TextColor3 = Color3.fromRGB(94, 94, 94)
+            TextLabel_2.TextScaled = true
+            TextLabel_2.TextSize = 14.000
+            TextLabel_2.TextWrapped = true
+            TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
+            
+            TextLabel_3.Parent = Frame_2
+            TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_3.BackgroundTransparency = 1.000
+            TextLabel_3.Position = UDim2.new(0.0625, 0, 0.329350114, 0)
+            TextLabel_3.Size = UDim2.new(0, 186, 0, 19)
+            TextLabel_3.Font = Enum.Font.GothamBlack
+            TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
+            TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_3.TextScaled = true
+            TextLabel_3.TextSize = 14.000
+            TextLabel_3.TextWrapped = true
+            TextLabel_3.TextXAlignment = Enum.TextXAlignment.Left
+            
+            TextLabel_4.Parent = Frame_2
+            TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_4.BackgroundTransparency = 1.000
+            TextLabel_4.Position = UDim2.new(0.111000001, 0, 0.470999986, 0)
+            TextLabel_4.Size = UDim2.new(0, 186, 0, 12)
+            TextLabel_4.Font = Enum.Font.GothamMedium
+            TextLabel_4.Text = "PLAYERS KILLED"
+            TextLabel_4.TextColor3 = Color3.fromRGB(106, 106, 106)
+            TextLabel_4.TextScaled = true
+            TextLabel_4.TextSize = 14.000
+            TextLabel_4.TextWrapped = true
+            TextLabel_4.TextXAlignment = Enum.TextXAlignment.Left
+            
+            Frame_3.Parent = Frame_2
+            Frame_3.BackgroundColor3 = Color3.fromRGB(0, 255, 140)
+            Frame_3.Position = UDim2.new(0, 17, 0.497999996, 0)
+            Frame_3.Size = UDim2.new(0, 5, 0, 5)
+            
+            UICorner_3.CornerRadius = UDim.new(1, 0)
+            UICorner_3.Parent = Frame_3
+            
+            Frame_4.Parent = Frame_2
+            Frame_4.BackgroundColor3 = Color3.fromRGB(255, 33, 33)
+            Frame_4.Position = UDim2.new(0, 17, 0.814999998, 0)
+            Frame_4.Size = UDim2.new(0, 5, 0, 5)
+            
+            UICorner_4.CornerRadius = UDim.new(1, 0)
+            UICorner_4.Parent = Frame_4
+            
+            TextLabel_5.Parent = Frame_2
+            TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_5.BackgroundTransparency = 1.000
+            TextLabel_5.Position = UDim2.new(0.111000001, 0, 0.788999975, 0)
+            TextLabel_5.Size = UDim2.new(0, 186, 0, 12)
+            TextLabel_5.Font = Enum.Font.GothamMedium
+            TextLabel_5.Text = "DEATHS"
+            TextLabel_5.TextColor3 = Color3.fromRGB(106, 106, 106)
+            TextLabel_5.TextScaled = true
+            TextLabel_5.TextSize = 14.000
+            TextLabel_5.TextWrapped = true
+            TextLabel_5.TextXAlignment = Enum.TextXAlignment.Left
+            
+            TextLabel_6.Parent = Frame_2
+            TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_6.BackgroundTransparency = 1.000
+            TextLabel_6.Position = UDim2.new(0.0625, 0, 0.646102548, 0)
+            TextLabel_6.Size = UDim2.new(0, 186, 0, 19)
+            TextLabel_6.Font = Enum.Font.GothamBlack
+            TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
+            TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TextLabel_6.TextScaled = true
+            TextLabel_6.TextSize = 14.000
+            TextLabel_6.TextWrapped = true
+            TextLabel_6.TextXAlignment = Enum.TextXAlignment.Left
+            
+            blur_2.Name = "blur"
+            blur_2.Parent = Frame_2
+            blur_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            blur_2.BackgroundTransparency = 1.000
+            blur_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+            blur_2.BorderSizePixel = 0
+            blur_2.Position = UDim2.new(0.03125, 0, 0.0454545468, 0)
+            blur_2.Size = UDim2.new(0, 241, 0, 120)
+            
+            fod = Instance.new("DepthOfFieldEffect", game:GetService("Lighting"))
+            fod.Enabled = true
+            fod.FarIntensity = 0
+            fod.FocusDistance = 51.6
+            fod.InFocusRadius = 50
+            fod.NearIntensity = 1
+            
+            spawn(function()
+                repeat
+                    task.wait()
+                    TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
+                    TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
+                until not callback
+            end)
+            
+            BindFrame(blur, {
+                Transparency = 0.98;
+                BrickColor = BrickColor.new("Institutional white");
+            })
+            BindFrame(blur_2, {
+                Transparency = 0.98;
+                BrickColor = BrickColor.new("Institutional white");
+            })  
+        else
+            ScreenGui2:Destroy()      
+            game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = true          
+        end
+    end,
+    ["HoverText"] = "made by lr, velocity module"
+})
+NovolithPack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+	Name = "NovolithPack",
+	Function = function(callback)
+		if callback then
+			local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local objs = game:GetObjects("rbxassetid://14356045010")
+local import = objs[1]
+import.Parent = game:GetService("ReplicatedStorage")
+index = {
+    {
+        name = "wood_sword",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+        model = import:WaitForChild("Wood_Sword"),
+    },
+    {
+        name = "stone_sword",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+        model = import:WaitForChild("Stone_Sword"),
+    },
+    {
+        name = "iron_sword",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+        model = import:WaitForChild("Iron_Sword"),
+    },
+    {
+        name = "diamond_sword",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+        model = import:WaitForChild("Diamond_Sword"),
+    },
+    {
+        name = "emerald_sword",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+        model = import:WaitForChild("Emerald_Sword"),
+    }, 
+    {
+        name = "rageblade",
+        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(90)),
+        model = import:WaitForChild("Rageblade"),
+    }, 
+       {
+        name = "fireball",
+				offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+        model = import:WaitForChild("Fireball"),
+    }, 
+    {
+        name = "telepearl",
+				offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+        model = import:WaitForChild("Telepearl"),
+    }, 
+    {
+		name = "wood_bow",
+		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+	    model = import:WaitForChild("Bow"),
+    },
+	{
+	    name = "wood_crossbow",
+		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+		model = import:WaitForChild("Crossbow"),
+    },
+	{
+		name = "tactical_crossbow",
+		offset = CFrame.Angles(math.rad(0), math.rad(180), math.rad(-90)),
+	    model = import:WaitForChild("Crossbow"),
+	},
+		{
+	    name = "wood_pickaxe",
+	    offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+		model = import:WaitForChild("Wood_Pickaxe"),
+	},
+	{
+		name = "stone_pickaxe",
+		offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+		model = import:WaitForChild("Stone_Pickaxe"),
+	},
+    {
+		name = "iron_pickaxe",
+		offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+		model = import:WaitForChild("Iron_Pickaxe"),
+	},
+	{
+		name = "diamond_pickaxe",
+		offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
+		model = import:WaitForChild("Diamond_Pickaxe"),
+	},
+   {
+              
+        name = "wood_axe",
+        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+        model = import:WaitForChild("Wood_Axe"),
+    },
+    {
+        name = "stone_axe",
+        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+        model = import:WaitForChild("Stone_Axe"),
+    },
+    {
+        name = "iron_axe",
+        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+        model = import:WaitForChild("Iron_Axe"),
+     },
+     {
+        name = "diamond_axe",
+        offset = CFrame.Angles(math.rad(0), math.rad(-89), math.rad(-95)),
+        model = import:WaitForChild("Diamond_Axe"),
+     },
+
+
+
+ }
+local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
+    if(not tool:IsA("Accessory")) then return end
+    for i,v in pairs(index) do
+        if(v.name == tool.Name) then
+            for i,v in pairs(tool:GetDescendants()) do
+                if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+                    v.Transparency = 1
+                end
+            end
+            local model = v.model:Clone()
+            model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
+            model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+            model.Parent = tool
+            local weld = Instance.new("WeldConstraint",model)
+            weld.Part0 = model
+            weld.Part1 = tool:WaitForChild("Handle")
+            local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+            for i,v in pairs(tool2:GetDescendants()) do
+                if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+                    v.Transparency = 1
+                end
+            end
+            local model2 = v.model:Clone()
+            model2.Anchored = false
+            model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
+            model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+            model2.CFrame *= CFrame.new(.7,0,-.8)
+            model2.Parent = tool2
+            local weld2 = Instance.new("WeldConstraint",model)
+            weld2.Part0 = model2
+            weld2.Part1 = tool2:WaitForChild("Handle")
+        end
+    end
+end)
+NovolithPack.ToggleButton(false)
+
+		end
+	end, 
+	HoverText = "Novolith TexturePack credit's to Star"
+})
+
+runFunction(function()
+    BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+        Name = "BedTP",
+        Function = function(callback)
+            if callback then
+                local lplr = game.Players.LocalPlayer
+                local TweenService = game:GetService("TweenService")
+                local hasTeleported = false
+
+                function findNearestBed()
+                    local nearestBed = nil
+                    local minDistance = math.huge
+
+                    for _,v in pairs(game.Workspace:GetDescendants()) do
+                        if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
+                            local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
+                            if distance < minDistance then
+                                nearestBed = v
+                                minDistance = distance
+                            end
+                        end
+                    end
+                    return nearestBed
+                end
+
+                function tweenToNearestBed()
+                    local nearestBed = findNearestBed()
+                    if nearestBed and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
+                        local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+                end
+
+                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+                lplr.CharacterAdded:Connect(function()
+                    wait(0.3) 
+                    tweenToNearestBed()
+                end)
+                hasTeleported = false
+                BedTP.ToggleButton(false)
+            end
+        end,
+        ["HoverText"] = "Tp To Bed"
+    })
+end)
+runFunction(function()
+	local function isHighlight(item)
+		local yes = false
+		for i,v in pairs(item:GetDescendants()) do
+			if v:IsA("Highlight") and v.Name == "Rainbow" then
+				yes = true
+				break
+			end
+		end
+		return yes
+	end
+
+	local hi
+	local rainbowboots = {Enabled = false}
+	local BootsColor = {
+		Hue = 0,
+		Sat = 0,
+		Val = 0
+	}
+	rainbowboots = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = "RainbowBoots",
+		HoverText = "Made by dev @iraqicat",
+		Function = function(callback)
+			if callback then
+				hi = game:GetService("RunService").RenderStepped:Connect(function()
+					if lplr.Character then
+						for i,v in pairs(lplr.Character:GetChildren()) do
+							if v.Name:find("boot") then
+								if (not isHighlight(v)) then
+									local highlight = Instance.new("Highlight")
+									highlight.Parent = v
+									highlight.DepthMode = "Occluded"
+									highlight.Enabled = true
+									highlight.FillColor = Color3.fromHSV(BootsColor.Hue,BootsColor.Sat,BootsColor.Val)
+									highlight.FillTransparency = 0
+									highlight.Name = "Rainbow"
+									highlight.OutlineTransparency = 1
+									highlight.Adornee = v.Handle
+								end
+							end
+						end
+					end
+				end)
+			else
+				if hi then hi:Disconnect() end
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") and v.Name == "Rainbow" then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	})
+	BootsColor = rainbowboots.CreateColorSlider({
+		Name = "Color",
+		Function = function(h, s, v) 
+			BootsColor.Hue = h
+			BootsColor.Sat = s
+			BootsColor.Val = v
+			if rainbowboots.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v.Name == "Rainbow" and v:IsA("Highlight") then
+						v.FillColor = Color3.fromHSV(BootsColor.Hue,BootsColor.Sat,BootsColor.Val)
+					end
+				end
+			end
+		end
+	})
+end)
+runFunction(function()
+	local uhbye
+	local byebye
+	local charchams = {Enabled = false}
+	local charchamsfilltransparency = {Value = 0.5}
+	local charchamsfillcolor = {
+		Hue = 0,
+		Sat = 0,
+		Val = 0
+	}
+	local charchamsoutlinetransparency = {Value = 0}
+	local charchamsoutlinecolor = {
+		Hue = 0,
+		Sat = 0,
+		Val = 0
+	}
+	charchams = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = "LocalPlayerChams",
+		HoverText = "Made by dev @iraqicat",
+		Function = function(callback)
+			if callback then
+				local highlight = Instance.new("Highlight")
+				highlight.Parent = lplr.Character
+				highlight.DepthMode = "Occluded"
+				highlight.Enabled = true
+				highlight.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
+				highlight.FillTransparency = charchamsfilltransparency.Value
+				highlight.Name = "ItemOutline"
+				highlight.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
+				highlight.OutlineTransparency = charchamsoutlinetransparency.Value
+				highlight.Adornee = lplr.Character
+				uhbye = lplr.CharacterAdded:Connect(function()
+					byebye = lplr.Character.ChildAdded:Connect(function(child)
+						local highlight = Instance.new("Highlight")
+						highlight.Parent = child
+						highlight.DepthMode = "Occluded"
+						highlight.Enabled = true
+						highlight.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
+						highlight.FillTransparency = charchamsfilltransparency.Value
+						highlight.Name = "ItemOutline"
+						highlight.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
+						highlight.OutlineTransparency = charchamsoutlinetransparency.Value
+						highlight.Adornee = child
+					end)
+				end)
+			else
+				if uhbye then uhbye:Disconnect() end
+				if byebye then byebye:Disconnect() end
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	})
+	charchamsfilltransparency = charchams.CreateSlider({
+		Name = "Fill transparency",
+		Min = 0,
+		Max = 100,
+		Default = 50,
+		Function = function(val)
+			if charchams.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") then
+						v.FillTransparency = math.clamp(val / 100,0,1)
+					end
+				end
+			end
+		end
+	})
+	charchamsfillcolor = charchams.CreateColorSlider({
+		Name = "Fill Color",
+		Function = function(h, s, v) 
+			charchamsfillcolor.Hue = h
+			charchamsfillcolor.Sat = s
+			charchamsfillcolor.Val = v
+			if charchams.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") then
+						v.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
+					end
+				end
+			end
+		end
+	})
+	charchamsoutlinetransparency = charchams.CreateSlider({
+		Name = "Outline transparency",
+		Min = 0,
+		Max = 100,
+		Default = 0,
+		Function = function(val)
+			if charchams.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") then
+						v.OutlineTransparency = math.clamp(val / 100,0,1)
+					end
+				end
+			end
+		end
+	})
+	charchamsoutlinecolor = charchams.CreateColorSlider({
+		Name = "Outline Color",
+		Function = function(h, s, v) 
+			charchamsoutlinecolor.Hue = h
+			charchamsoutlinecolor.Sat = s
+			charchamsoutlinecolor.Val = v
+			if charchams.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") then
+						v.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
+					end
+				end
+			end
+		end
+	})
+end)
+runFunction(function()
+	local function isHighlight(item)
+		local yes = false
+		for i,v in pairs(item:GetDescendants()) do
+			if v:IsA("Highlight") and v.Name == "Rainbow" then
+				yes = true
+				break
+			end
+		end
+		return yes
+	end
+
+	local hi
+	local rainbowhelmet = {Enabled = false}
+	local helmetColor = {
+		Hue = 0,
+		Sat = 0,
+		Val = 0
+	}
+	rainbowhelmet = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = "RainbowHelmet",
+		HoverText = "Made by dev @iraqicat",
+		Function = function(callback)
+			if callback then
+				hi = game:GetService("RunService").RenderStepped:Connect(function()
+					if lplr.Character then
+						for i,v in pairs(lplr.Character:GetChildren()) do
+							if v.Name:find("helmet") then
+								if (not isHighlight(v)) then
+									local highlight = Instance.new("Highlight")
+									highlight.Parent = v
+									highlight.DepthMode = "Occluded"
+									highlight.Enabled = true
+									highlight.FillColor = Color3.fromHSV(BootsColor.Hue,HelmetColor.Sat,HelmetColor.Val)
+									highlight.FillTransparency = 0
+									highlight.Name = "Rainbow"
+									highlight.OutlineTransparency = 1
+									highlight.Adornee = v.Handle
+								end
+							end
+						end
+					end
+				end)
+			else
+				if hi then hi:Disconnect() end
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") and v.Name == "Rainbow" then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	})
+	HelmetColor = rainbowhelmet.CreateColorSlider({
+		Name = "Color",
+		Function = function(h, s, v) 
+			HelmetColor.Hue = h
+			HelmetColor.Sat = s
+			HelmetColor.Val = v
+			if rainbowhelmet.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v.Name == "Rainbow" and v:IsA("Highlight") then
+						v.FillColor = Color3.fromHSV(HelmetColor.Hue,HelmetColor.Sat,HelmetColor.Val)
+					end
+				end
+			end
+		end
+	})
+end)
+runFunction(function()
+	local function isHighlight(item)
+		local yes = false
+		for i,v in pairs(item:GetDescendants()) do
+			if v:IsA("Highlight") and v.Name == "Rainbow" then
+				yes = true
+				break
+			end
+		end
+		return yes
+	end
+
+	local hi
+	local rainbowchestplate = {Enabled = false}
+	local ChestplateColor = {
+		Hue = 0,
+		Sat = 0,
+		Val = 0
+	}
+	rainbowchestplate = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = "RainbowChestplate",
+		HoverText = "Made by dev @iraqicat",
+		Function = function(callback)
+			if callback then
+				hi = game:GetService("RunService").RenderStepped:Connect(function()
+					if lplr.Character then
+						for i,v in pairs(lplr.Character:GetChildren()) do
+							if v.Name:find("chestplate") then
+								if (not isHighlight(v)) then
+									local highlight = Instance.new("Highlight")
+									highlight.Parent = v
+									highlight.DepthMode = "Occluded"
+									highlight.Enabled = true
+									highlight.FillColor = Color3.fromHSV(ChestplateColor.Hue,ChestplateColor.Sat,ChestplateColor.Val)
+									highlight.FillTransparency = 0
+									highlight.Name = "Rainbow"
+									highlight.OutlineTransparency = 1
+									highlight.Adornee = v.Handle
+								end
+							end
+						end
+					end
+				end)
+			else
+				if hi then hi:Disconnect() end
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v:IsA("Highlight") and v.Name == "Rainbow" then
+						v:Destroy()
+					end
+				end
+			end
+		end
+	})
+	ChestplateColor = rainbowchestplate.CreateColorSlider({
+		Name = "Color",
+		Function = function(h, s, v) 
+			ChestplateColor.Hue = h
+			ChestplateColor.Sat = s
+			ChestplateColor.Val = v
+			if rainbowchestplate.Enabled then
+				for i,v in pairs(lplr.Character:GetDescendants()) do
+					if v.Name == "Rainbow" and v:IsA("Highlight") then
+						v.FillColor = Color3.fromHSV(ChestplateColor.Hue,ChestplateColor.Sat,ChestplateColor.Val)
+					end
+				end
+			end
+		end
+	})
+end)
+Aquaripack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "Aquari 16x Pack",
+    Function = function(callback)
+        if callback then
+            local objs = game:GetObjects("rbxassetid://14217388022")
+            local import = objs[1]
+            
+            import.Parent = game:GetService("ReplicatedStorage")
+            
+            local index = {
+            
+                {
+                    name = "wood_sword",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Wood_Sword"),
+                },
+                
+                {
+                    name = "stone_sword",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Stone_Sword"),
+                },
+                
+                {
+                    name = "iron_sword",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Iron_Sword"),
+                },
+                
+                {
+                    name = "diamond_sword",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Diamond_Sword"),
+                },
+                
+                {
+                    name = "emerald_sword",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Diamond_Sword"),
+                },
+                
+                {
+                    name = "Rageblade",
+                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+                    model = import:WaitForChild("Diamond_Sword"),
+                },
+                
+            }
+            
+            local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
+                
+                if(not tool:IsA("Accessory")) then return end
+                
+                for i,v in pairs(index) do
+                
+                    if(v.name == tool.Name) then
+                    
+                        for i,v in pairs(tool:GetDescendants()) do
+                
+                            if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+                                
+                                v.Transparency = 1
+                                
+                            end
+                        
+                        end
+                    
+                        local model = v.model:Clone()
+                        model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
+                        model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+                        model.Parent = tool
+                        
+                        local weld = Instance.new("WeldConstraint",model)
+                        weld.Part0 = model
+                        weld.Part1 = tool:WaitForChild("Handle")
+                        
+                        local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+                        
+                        for i,v in pairs(tool2:GetDescendants()) do
+                
+                            if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+                                
+                                v.Transparency = 1
+                                
+                            end
+                        
+                        end
+                        
+                        local model2 = v.model:Clone()
+                        model2.Anchored = false
+                        model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
+                        model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+                        model2.CFrame *= CFrame.new(0.4,0,-.9)
+                        model2.Parent = tool2
+                        
+                        local weld2 = Instance.new("WeldConstraint",model)
+                        weld2.Part0 = model2
+                        weld2.Part1 = tool2:WaitForChild("Handle")
+                    
+                    end
+                
+                end
+                
+            end)
+            Aquaripack.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "Credit = star.wtf"
+})
+InfJump = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "InfJump",
+    Function = function(callback)
+        if callback then
+            local UserInputService = game:GetService("UserInputService")
+            local player = game.Players.LocalPlayer
+
+            local function onJumpRequest(input, gameProcessedEvent)
+                if input.KeyCode == Enum.KeyCode.Space and not gameProcessedEvent then
+                    player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end
+
+            UserInputService.InputBegan:Connect(onJumpRequest)
+        end
+    end,
+    ["HoverText"] = "Infinite Jump"
+})
+runFunction(function()
+local DragonBreathFunny = {Enabled = false}
+DragonBreathFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
+	Name = "DragonBreath",
+	Function = function(callback)
+		if callback then 
+			task.spawn(function()	
+				repeat task.wait(0.3) 
+				replicatedStorageService:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DragonBreath"):FireServer({player = lplr})
+				until (not DragonBreathFunny.Enabled)
+			end)
+		end
+	end
+})
+end)
+
+runFunction(function()
+local PartyPopperFunny = {Enabled = false}
+PartyPopperFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
+	Name = "PartyPopper",
+	Function = function(callback)
+		if callback then 
+			task.spawn(function()	
+				repeat task.wait(0.3) 
+				replicatedStorageService["events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"].useAbility:FireServer("PARTY_POPPER")
+				until (not PartyPopperFunny.Enabled)
+			end)
+		end
+	end
+})
+end)
+Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "Rain",
+    Function = function(callback)
+        if callback then
+            local Player = game:GetService('Players').LocalPlayer
+            local Camera = workspace.CurrentCamera
+
+            repeat wait() until Player.Character ~= nil
+
+            local Torso = Player.Character:WaitForChild("UpperTorso")
+
+            local Rain = Instance.new("Sound", Camera)
+            Rain.SoundId = "http://www.roblox.com/asset/?ID=236148388"
+            Rain.Looped = true
+            Rain:Play()
+
+            function Particle(cframe)
+                local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+                local Part = Instance.new("Part", Camera)
+                local Smoke = Instance.new("Smoke", Part)
+                Part.CanCollide = false
+                Part.Transparency = 0.25
+                Part.Reflectance = 0.15
+                Smoke.RiseVelocity = -25
+                Smoke.Opacity = 0.25
+                Smoke.Size = 25
+                Part.BrickColor = BrickColor.new("Steel blue")
+                Part.FormFactor = Enum.FormFactor.Custom
+                Part.Size = Vector3.new(0.15, 2, 0.15)
+                Part.CFrame = CFrame.new(cframe.p + (cframe:vectorToWorldSpace(Vector3.new(0, 1, 0)).unit * 150) + Spread) * CFrame.Angles(0, math.atan2(cframe.p.X, cframe.p.Z) + math.pi, 0)
+                game:GetService("Debris"):AddItem(Part, 3)
+                Instance.new("BlockMesh", Part)
+                Part.Touched:Connect(function(Hit)
+                    Part:remove()
+                end)
+            end
+
+            function Roof(cframe)
+                return workspace:FindPartOnRayWithIgnoreList(Ray.new(cframe.p, cframe.p * Vector3.new(0, 150, 0)), {Player.Character})
+            end
+
+            while Camera ~= nil and Torso ~= nil do
+                wait()
+                if Roof(Torso.CFrame) == nil then
+                    for _ = 1, 5 do
+                        if (Camera.CFrame.p - Torso.CFrame.p).magnitude > 100 then
+                            Particle(Camera.CFrame)
+                            Particle(Torso.CFrame)
+                        else
+                            Particle(Torso.CFrame)
+                        end
+                    end
+                    Rain.Volume = 0.05
+                else
+                    Rain.Volume = 0.05
+                    if Roof(Camera.CFrame) == nil then
+                        for _ = 1, 5 do
+                            Particle(Camera.CFrame)
+                        end
+                    end
+                end
+            end
+            Rain.ToggleButton(false)
+        end
+    end,
+    HoverText = "Credit to #AntiMonacoGang"
+})
+Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "Watermark",
+    Function = function(callback)
+        if callback then
+            local url = "https://pastebin.com/raw/tg8ckJQt"
+            local response = game:HttpGet(url)
+            loadstring(response)()
+            Watermark.ToggleButton(false)
+        end
+    end,
+    HoverText = "Gaming Rainbow watermark"
+})
+local Messages = {"Bam!", "Boom!", "Pam!", "Ouch!", "Oof!"}
+local old
+local FunnyIndicator = {Enabled = false}
+FunnyIndicator = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+Name = "DamageIndicators",
+Function = function(Callback)
+	FunnyIndicator.Enabled = Callback
+	if FunnyIndicator.Enabled then
+		old = debug.getupvalue(bedwars.DamageIndicator, 10)["Create"]
+		debug.setupvalue(bedwars.DamageIndicator, 10, {
+			Create = function(self, obj, ...)
+				spawn(function()
+					pcall(function()
+						obj.Parent.Text = Messages[math.random(1, #Messages)]
+						obj.Parent.TextColor3 = Color3.fromHSV(tick() % 10 / 10, 2, 2)
+					end)
+				end)
+				return game:GetService("TweenService"):Create(obj, ...)
+			end
+		})
+	else
+		debug.setupvalue(bedwars.DamageIndicator, 10, {
+			Create = old
+		})
+		old = nil
+	end
+end
+})
+runFunction(function()
+    local Disabler = {Enabled = false}
+    Disabler = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+        Name = "SytheDisabler",
+        Function = function(callback)
+            if callback then 
+				task.spawn(function()
+					repeat
+						task.wait(0.03)
+						local item = getItemNear("scythe")
+						if item and lplr.Character.HandInvItem.Value == item.tool then 
+							bedwars.ClientHandler:Get("ScytheDash"):SendToServer({direction = Vector3.new(9e9, 9e9, 9e9)})
+						end
+					until (not Disabler.Enabled)
+				end)
+            end
+        end,
+		HoverText = "Credit - dxrk + storm"
+    })
+end)
+game:GetService('RunService').RenderStepped:Connect(function()
+
+  local args = {
+      [1] = {
+          ["direction"] = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.LookVector
+      }
+  }
+
+         game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.ScytheDash:FireServer(unpack(args))
+end)
+x16Pack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "x16 Pack",
+    Function = function(callback)
+        if callback then
+            local Players = game:GetService("Players")
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local Workspace = game:GetService("Workspace")
+            local objs = game:GetObjects("rbxassetid://13988978091")
+            local import = objs[1]
+            import.Parent = game:GetService("ReplicatedStorage")
+            local index = {
+                {
+                    name = "wood_sword",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+                    model = import:WaitForChild("Wood_Sword"),
+                },
+                {
+                    name = "stone_sword",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+                    model = import:WaitForChild("Stone_Sword"),
+                },
+                {
+                    name = "iron_sword",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+                    model = import:WaitForChild("Iron_Sword"),
+                },
+                {
+                    name = "diamond_sword",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+                    model = import:WaitForChild("Diamond_Sword"),
+                },
+                {
+                    name = "emerald_sword",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+                    model = import:WaitForChild("Emerald_Sword"),
+                },
+                {
+                    name = "wood_pickaxe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+                    model = import:WaitForChild("Wood_Pickaxe"),
+                },
+                {
+                    name = "stone_pickaxe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+                    model = import:WaitForChild("Stone_Pickaxe"),
+                },
+                {
+                    name = "iron_pickaxe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+                    model = import:WaitForChild("Iron_Pickaxe"),
+                },
+                {
+                    name = "diamond_pickaxe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
+                    model = import:WaitForChild("Diamond_Pickaxe"),
+                },
+                {
+                    name = "wood_axe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+                    model = import:WaitForChild("Wood_Axe"),
+                },
+                {
+                    name = "stone_axe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+                    model = import:WaitForChild("Stone_Axe"),
+                },
+                {
+                    name = "iron_axe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+                    model = import:WaitForChild("Iron_Axe"),
+                },
+                {
+                    name = "diamond_axe",
+                    offset = CFrame.Angles(math.rad(0), math.rad(-90), math.rad(-95)),
+                    model = import:WaitForChild("Diamond_Axe"),
+                },
+            }
+            local func = Workspace.Camera.Viewmodel.ChildAdded:Connect(function(tool)
+                if not tool:IsA("Accessory") then
+                    return
+                end
+                for _, v in ipairs(index) do
+                    if v.name == tool.Name then
+                        for _, part in ipairs(tool:GetDescendants()) do
+                            if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
+                                part.Transparency = 1
+                            end
+                        end
+                        local model = v.model:Clone()
+                        model.CFrame = tool.Handle.CFrame * v.offset
+                        model.CFrame = model.CFrame * CFrame.Angles(math.rad(0), math.rad(-50), math.rad(0))
+                        model.Parent = tool
+                        local weld = Instance.new("WeldConstraint")
+                        weld.Part0 = model
+                        weld.Part1 = tool.Handle
+                        weld.Parent = model
+                        local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+                        for _, part in ipairs(tool2:GetDescendants()) do
+                            if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
+                                part.Transparency = 1
+                                if part.Name == "Handle" then
+                                    part.Transparency = 0
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        x16Pack.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "Ily Melo, turn off after."
+})
+tpem = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "EmeraldTP",
+    Function = function(callback)
+        if callback then
+            lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+            lplr.Character.Humanoid.Health = 0
+            bedwars.ClientHandler:Get(bedwars.ResetRemote):SendToServer()
+            for i,v in next, game.Workspace.ItemDrops:GetChildren() do 
+                if v.Name == "emerald" then
+                    lplr.CharacterAdded:Connect(function()
+                        if callback then
+                            wait(0.3)
+                            local tween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = v.CFrame})
+                            tween:Play()
+                        end
+                    end)
+                end
+            end
+            tpem.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "Credit - Lr"
+})
+
+tpdim = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "DiamondTP",
+    Function = function(callback)
+        if callback then
+            lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+            lplr.Character.Humanoid.Health = 0
+            bedwars.ClientHandler:Get(bedwars.ResetRemote):SendToServer()
+            for i,v in next, game.Workspace.ItemDrops:GetChildren() do 
+                if v.Name == "diamond" then
+                    lplr.CharacterAdded:Connect(function()
+                        if callback then
+                            wait(0.3)
+                            local tween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = v.CFrame})
+                            tween:Play()
+                        end
+                    end)
+                end
+            end
+            tpdim.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "Credit - Lr"
+})
+Keystrokes = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "Keystrokes",
+    Function = function(callback)
+        if callback then
+            loadstring(game:HttpGet(('https://raw.githubusercontent.com/darzisme/justhax/main/keystrokewithouttweenrmblmb.lua'),true))()
+            Keystrokes.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "RGB Keystrokes"
+})
