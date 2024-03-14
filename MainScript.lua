@@ -16,14 +16,6 @@ local isfile = isfile or function(file)
     return suc and res ~= nil
 end
 
-if isfile(customModuleFile) and not readfile(customModuleFile):find("Private") then
-    pcall(function()
-        local mainscript = game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/main/NewMainScript.lua", true)
-        mainscript = "-- This is a watermark and should not be removed.\n"..mainscript
-        writefile(baseDirectory.."NewMainScript.lua", mainscript)
-    end)
-end
-
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 0 end
 local vapeAssetTable = {
