@@ -34,7 +34,7 @@ if shared.VapeExecuted then
 		["vape/assets/PinButton.png"] = "rbxassetid://13350778654",
 		["vape/assets/ProfilesIcon.png"] = "rbxassetid://13350779149",
 		["vape/assets/RadarIcon1.png"] = "rbxassetid://13350779545",
-		["vape/assets/RadarIcon2.png"] = "rbxassetid://13350779992",
+		["vape/assets/RadarIcon2.png"] = "rbxassetid://14338041181",
 		["vape/assets/RainbowIcon1.png"] = "rbxassetid://13350780571",
 		["vape/assets/RainbowIcon2.png"] = "rbxassetid://13350780993",
 		["vape/assets/RightArrow.png"] = "rbxassetid://13350781908",
