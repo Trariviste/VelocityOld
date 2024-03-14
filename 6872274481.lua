@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after commits.
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
@@ -74,7 +75,7 @@ local isfile = isfile or function(file)
 	return suc and res ~= nil
 end
 local networkownerswitch = tick()
-local isnetworkowner = function(part)
+local isnetworkowner = isnetworkowner or function(part)
 	local suc, res = pcall(function() return gethiddenproperty(part, "NetworkOwnershipRule") end)
 	if suc and res == Enum.NetworkOwnership.Manual then 
 		sethiddenproperty(part, "NetworkOwnershipRule", Enum.NetworkOwnership.Automatic)
@@ -1325,7 +1326,7 @@ runFunction(function()
 		RuntimeLib = require(replicatedStorageService["rbxts_include"].RuntimeLib),
 		ScytheController = KnitClient.Controllers.ScytheController,
 		Shop = require(replicatedStorageService.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop,
-		ShopItems = debug.getupvalue(debug.getupvalue(require(replicatedStorageService.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 1), 3),
+		ShopItems = debug.getupvalue(debug.getupvalue(require(replicatedStorageService.TS.games.bedwars.shop["bedwars-shop"]).BedwarsShop.getShopItem, 1), 2),
 		SoundList = require(replicatedStorageService.TS.sound["game-sound"]).GameSound,
 		SoundManager = require(replicatedStorageService["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out).SoundManager,
 		SpawnRavenRemote = dumpRemote(debug.getconstants(KnitClient.Controllers.RavenController.spawnRaven)),
@@ -2546,7 +2547,7 @@ runFunction(function()
 		Function = function(callback)
 			if callback then
 				if inputService.TouchEnabled then
-					pcall(function() lplr.PlayerGui.MobileUI["4"].Visible = false end)
+					pcall(function() lplr.PlayerGui.MobileUI["2"].Visible = false end)
 				end
 				oldSprintFunction = bedwars.SprintController.stopSprinting
 				bedwars.SprintController.stopSprinting = function(...)
@@ -2564,7 +2565,7 @@ runFunction(function()
 				end)
 			else
 				if inputService.TouchEnabled then
-					pcall(function() lplr.PlayerGui.MobileUI["3"].Visible = true end)
+					pcall(function() lplr.PlayerGui.MobileUI["2"].Visible = true end)
 				end
 				bedwars.SprintController.stopSprinting = oldSprintFunction
 				bedwars.SprintController:stopSprinting()
@@ -4101,7 +4102,7 @@ runFunction(function()
 		Name = "Range Visualizer",
 		Function = function(callback)
 			if callback then 
-				--[[killaurarangecirclepart = Instance.new("MeshPart")
+				killaurarangecirclepart = Instance.new("MeshPart")
 				killaurarangecirclepart.MeshId = "rbxassetid://3726303797"
 				killaurarangecirclepart.Color = Color3.fromHSV(killauracolor["Hue"], killauracolor["Sat"], killauracolor.Value)
 				killaurarangecirclepart.CanCollide = false
@@ -4111,7 +4112,7 @@ runFunction(function()
 				if Killaura.Enabled then 
 					killaurarangecirclepart.Parent = gameCamera
 				end
-				bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)]]--
+				bedwars.QueryUtil:setQueryIgnored(killaurarangecirclepart, true)
 			else
 				if killaurarangecirclepart then 
 					killaurarangecirclepart:Destroy()
@@ -6984,7 +6985,7 @@ runFunction(function()
 					hotbaropeninv.render = function(self) 
 						return bedwars.Roact.createElement("TextButton", {Visible = false}, {})
 					end
-					--[[debug.setconstant(hotbar.render, 52, 0.9975)
+					debug.setconstant(hotbar.render, 52, 0.9975)
 					debug.setconstant(hotbar.render, 73, 100)
 					debug.setconstant(hotbar.render, 89, 1)
 					debug.setconstant(hotbar.render, 90, 0.04)
@@ -6995,7 +6996,7 @@ runFunction(function()
 					debug.setconstant(debug.getupvalue(hotbar.render, 11).render, 31, 0.175)
 					debug.setconstant(debug.getupvalue(hotbar.render, 11).render, 33, -0.101)
 					debug.setconstant(debug.getupvalue(hotbar.render, 18).render, 71, 0)
-					debug.setconstant(debug.getupvalue(hotbar.render, 18).tweenPosition, 16, 0)]]
+					debug.setconstant(debug.getupvalue(hotbar.render, 18).tweenPosition, 16, 0)
 					gametheme.topBarBGTransparency = 0.5
 					bedwars.TopBarController:mountHud()
 					game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, true)
@@ -7028,7 +7029,6 @@ runFunction(function()
 		end
 	})
 end)
-
 
 runFunction(function()
 	local AntiAFK = {Enabled = false}
