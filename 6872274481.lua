@@ -11456,73 +11456,84 @@ PartyPopperFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].
 	end
 })
 end)
-Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "Rain",
-    Function = function(callback)
-        if callback then
-            local Player = game:GetService('Players').LocalPlayer
-            local Camera = workspace.CurrentCamera
 
-            repeat wait() until Player.Character ~= nil
+runFunction(function()
+    local Rain = {Enabled = false}
+    Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+        Name = "Rain",
+        Function = function(callback)
+            if callback then
+                task.spawn(function()	
+                    repeat
+                        task.wait(0.3)
+                        local Player = game:GetService('Players').LocalPlayer
+                        local Camera = workspace.CurrentCamera
 
-            local Torso = Player.Character:WaitForChild("UpperTorso")
+                        repeat wait() until Player.Character ~= nil
 
-            local RainSound = Instance.new("Sound", Camera)
-            RainSound.SoundId = "http://www.roblox.com/asset/?ID=236148388"
-            RainSound.Looped = true
-            RainSound:Play()
+                        local Torso = Player.Character:WaitForChild("UpperTorso")
 
-            function Particle(cframe)
-                local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
-                local Part = Instance.new("Part", Camera)
-                local Smoke = Instance.new("Smoke", Part)
-                Part.CanCollide = false
-                Part.Transparency = 0.25
-                Part.Reflectance = 0.15
-                Smoke.RiseVelocity = -25
-                Smoke.Opacity = 0.25
-                Smoke.Size = 25
-                Part.BrickColor = BrickColor.new("Steel blue")
-                Part.FormFactor = Enum.FormFactor.Custom
-                Part.Size = Vector3.new(0.15, 2, 0.15)
-                Part.CFrame = CFrame.new(cframe.p + (cframe:vectorToWorldSpace(Vector3.new(0, 1, 0)).unit * 150) + Spread) * CFrame.Angles(0, math.atan2(cframe.p.X, cframe.p.Z) + math.pi, 0)
-                game:GetService("Debris"):AddItem(Part, 3)
-                Instance.new("BlockMesh", Part)
-                Part.Touched:Connect(function(Hit)
-                    Part:Destroy()
+                        local RainSound = Instance.new("Sound", Camera)
+                        RainSound.SoundId = "http://www.roblox.com/asset/?ID=236148388"
+                        RainSound.Looped = true
+                        RainSound:Play()
+
+                        function Particle(cframe)
+                            local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+                            local Part = Instance.new("Part", Camera)
+                            local Smoke = Instance.new("Smoke", Part)
+                            Part.CanCollide = false
+                            Part.Transparency = 0.25
+                            Part.Reflectance = 0.15
+                            Smoke.RiseVelocity = -25
+                            Smoke.Opacity = 0.25
+                            Smoke.Size = 25
+                            Part.BrickColor = BrickColor.new("Steel blue")
+                            Part.FormFactor = Enum.FormFactor.Custom
+                            Part.Size = Vector3.new(0.15, 2, 0.15)
+                            Part.CFrame = CFrame.new(cframe.p + (cframe:vectorToWorldSpace(Vector3.new(0, 1, 0)).unit * 150) + Spread) * CFrame.Angles(0, math.atan2(cframe.p.X, cframe.p.Z) + math.pi, 0)
+                            game:GetService("Debris"):AddItem(Part, 3)
+                            Instance.new("BlockMesh", Part)
+                            Part.Touched:Connect(function(Hit)
+                                Part:Destroy()
+                            end)
+                        end
+
+                        function Roof(cframe)
+                            return workspace:FindPartOnRayWithIgnoreList(Ray.new(cframe.p, cframe.p * Vector3.new(0, 150, 0)), {Player.Character})
+                        end
+
+                        while Camera ~= nil and Torso ~= nil and Rain.Enabled do
+                            wait()
+                            if Roof(Torso.CFrame) == nil then
+                                for _ = 1, 5 do
+                                    if (Camera.CFrame.p - Torso.CFrame.p).Magnitude > 100 then
+                                        Particle(Camera.CFrame)
+                                        Particle(Torso.CFrame)
+                                    else
+                                        Particle(Torso.CFrame)
+                                    end
+                                end
+                                RainSound.Volume = 0.05
+                            else
+                                RainSound.Volume = 0.05
+                                if Roof(Camera.CFrame) == nil then
+                                    for _ = 1, 5 do
+                                        Particle(Camera.CFrame)
+                                    end
+                                end
+                            end
+                        end
+                        RainSound:Destroy()
+                        wait()
+                    until (not Rain.Enabled)
                 end)
             end
+        end,
+        HoverText = "Credit to #AntiMonacoGang"
+    })
+end)
 
-            function Roof(cframe)
-                return workspace:FindPartOnRayWithIgnoreList(Ray.new(cframe.p, cframe.p * Vector3.new(0, 150, 0)), {Player.Character})
-            end
-
-            while Camera ~= nil and Torso ~= nil do
-                wait()
-                if Roof(Torso.CFrame) == nil then
-                    for _ = 1, 5 do
-                        if (Camera.CFrame.p - Torso.CFrame.p).Magnitude > 100 then
-                            Particle(Camera.CFrame)
-                            Particle(Torso.CFrame)
-                        else
-                            Particle(Torso.CFrame)
-                        end
-                    end
-                    RainSound.Volume = 0.05
-                else
-                    RainSound.Volume = 0.05
-                    if Roof(Camera.CFrame) == nil then
-                        for _ = 1, 5 do
-                            Particle(Camera.CFrame)
-                        end
-                    end
-                end
-            end
-            RainSound:Destroy()
-        end
-    end,
-    HoverText = "Credit to #AntiMonacoGang"
-})
 
 Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "Watermark",
