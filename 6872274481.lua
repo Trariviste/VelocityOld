@@ -11467,10 +11467,10 @@ Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
 
             local Torso = Player.Character:WaitForChild("UpperTorso")
 
-            local Rain = Instance.new("Sound", Camera)
-            Rain.SoundId = "http://www.roblox.com/asset/?ID=236148388"
-            Rain.Looped = true
-            Rain:Play()
+            local RainSound = Instance.new("Sound", Camera)
+            RainSound.SoundId = "http://www.roblox.com/asset/?ID=236148388"
+            RainSound.Looped = true
+            RainSound:Play()
 
             function Particle(cframe)
                 local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
@@ -11489,7 +11489,7 @@ Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
                 game:GetService("Debris"):AddItem(Part, 3)
                 Instance.new("BlockMesh", Part)
                 Part.Touched:Connect(function(Hit)
-                    Part:remove()
+                    Part:Destroy()
                 end)
             end
 
@@ -11501,16 +11501,16 @@ Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
                 wait()
                 if Roof(Torso.CFrame) == nil then
                     for _ = 1, 5 do
-                        if (Camera.CFrame.p - Torso.CFrame.p).magnitude > 100 then
+                        if (Camera.CFrame.p - Torso.CFrame.p).Magnitude > 100 then
                             Particle(Camera.CFrame)
                             Particle(Torso.CFrame)
                         else
                             Particle(Torso.CFrame)
                         end
                     end
-                    Rain.Volume = 0.05
+                    RainSound.Volume = 0.05
                 else
-                    Rain.Volume = 0.05
+                    RainSound.Volume = 0.05
                     if Roof(Camera.CFrame) == nil then
                         for _ = 1, 5 do
                             Particle(Camera.CFrame)
@@ -11518,11 +11518,12 @@ Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
                     end
                 end
             end
-            Rain.ToggleButton(false)
+            RainSound:Destroy()
         end
     end,
     HoverText = "Credit to #AntiMonacoGang"
 })
+
 Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "Watermark",
     Function = function(callback)
