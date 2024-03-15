@@ -11424,20 +11424,22 @@ InfJump = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButto
     ["HoverText"] = "Infinite Jump"
 })
 runFunction(function()
-local DragonBreathFunny = {Enabled = false}
-DragonBreathFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
-	Name = "DragonBreath",
-	Function = function(callback)
-		if callback then 
-			task.spawn(function()	
-				repeat task.wait(0.3) 
-				replicatedStorageService:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DragonBreath"):FireServer({player = lplr})
-				until (not DragonBreathFunny.Enabled)
-			end)
-		end
-	end
-})
+    local DragonBreathFunny = {Enabled = false}
+    DragonBreathFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
+        Name = "DragonBreath",
+        Function = function(callback)
+            if callback then 
+                task.spawn(function()	
+                    repeat
+                        task.wait(0.3) 
+                        replicatedStorageService:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DragonBreath"):FireServer({player = lplr})
+                    until not DragonBreathFunny.Enabled
+                end)
+            end
+        end
+    })
 end)
+
 
 runFunction(function()
 local PartyPopperFunny = {Enabled = false}
