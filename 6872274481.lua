@@ -11465,7 +11465,7 @@ runFunction(function()
             if callback then
                 task.spawn(function()	
                     repeat
-                        task.wait(0.3)
+                        task.wait(0.05)
                         local Player = game:GetService('Players').LocalPlayer
                         local Camera = workspace.CurrentCamera
 
