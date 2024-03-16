@@ -482,12 +482,7 @@ if shared.VapeExecuted then
 		touchButton.MouseButton1Down:Connect(function()
 			touchedButton = true
 			local touchtick = tick()
-			local touchposition = inputService:GetMouseLocation()
-			repeat 
-				task.wait()
-				if not touchedButton then break end
-				touchedButton = (inputService:GetMouseLocation() - touchposition).Magnitude < 3
-			until (tick() - touchtick) > 1 or not touchedButton
+			repeat task.wait() until (tick() - touchtick) > 1 or not touchedButton
 			if touchedButton then 
 				local ind = table.find(GuiLibrary.MobileButtons, touchButton)
 				if ind then table.remove(GuiLibrary.MobileButtons, ind) end
@@ -5792,12 +5787,14 @@ if shared.VapeExecuted then
 				local touchedButton = false
 				button.MouseButton1Down:Connect(function()
 					touchedButton = true
+					local oldbuttonposition = button.AbsolutePosition
 					local touchtick = tick()
-					local touchposition = inputService:GetMouseLocation()
 					repeat 
 						task.wait()
-						if not touchedButton then break end
-						touchedButton = (inputService:GetMouseLocation() - touchposition).Magnitude < 3
+						if button.AbsolutePosition ~= oldbuttonposition then 
+						        touchedButton = false
+                                                        break
+						end
 					until (tick() - touchtick) > 1 or not touchedButton or not clickgui.Visible
 					if touchedButton and clickgui.Visible then 
 						clickgui.Visible = false
