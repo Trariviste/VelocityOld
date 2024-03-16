@@ -11,6 +11,7 @@ local gameCamera = workspace.CurrentCamera
 local textService = game:GetService("TextService")
 local playersService = game:GetService("Players")
 local inputService = game:GetService("UserInputService")
+local httprequest = (request or http and http.request or http_request or fluxus and fluxus.request or function() end)
 local isfile = isfile or function(file)
 	local suc, res = pcall(function() return readfile(file) end)
 	return suc and res ~= nil
