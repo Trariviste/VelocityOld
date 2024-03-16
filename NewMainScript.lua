@@ -1,13 +1,14 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local screenGui = Instance.new("ScreenGui")
-local button = Instance.new("TextButton")
 screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+local button = Instance.new("TextButton")
 button.Name = "PressVButton"
 button.Text = "Vape"
 button.Size = UDim2.new(0.05, 0, 0.05, 0)
 button.Position = UDim2.new(0.9, 0, 0.5, 0)
 button.Parent = screenGui
+
 local isDragging = false
 local startPosition = UDim2.new()
 local startInputPosition = Vector2.new()
@@ -51,6 +52,10 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 button.MouseButton1Up:Connect(onMouseButton1Up)
+local function onButtonClicked()
+    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.V, false, game)
+end
+button.MouseButton1Click:Connect(onButtonClicked)
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
