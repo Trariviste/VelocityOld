@@ -1732,7 +1732,7 @@ GUISettings.CreateToggle({
 	Name = "Blur Background", 
 	Function = function(callback) 
 		GuiLibrary.MainBlur.Size = (callback and 25 or 0) 
-		--game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainGui.ScaledGui.ClickGui.Visible and callback) 
+		pcall(function() game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainGui.ScaledGui.ClickGui.Visible and callback) end)
 	end,
 	Default = true,
 	HoverText = "Blur the background of the GUI"
@@ -1835,11 +1835,13 @@ GuiLibrary.SelfDestruct = function()
 		GuiLibrary.SaveSettings()
 	end
 	vapeInjected = false
-	inputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
+	pcall(function() inputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None end)
 
 	for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
 		if (v.Type == "Button" or v.Type == "OptionsButton" or v.Type == "LegitModule") and v.Api.Enabled then
-			v.Api.ToggleButton(false)
+			task.spawn(function() 
+				v.Api.ToggleButton()
+			end)
 		end
 	end
 
@@ -1870,7 +1872,7 @@ GuiLibrary.SelfDestruct = function()
 	end
 	teleportConnection:Disconnect()
 	GuiLibrary.MainGui:Destroy()
-	--game:GetService("RunService"):SetRobloxGuiFocused(false)	
+	pcall(function() game:GetService("RunService"):SetRobloxGuiFocused(false) end)
 end
 
 GeneralSettings.CreateButton2({
@@ -2001,7 +2003,7 @@ local function loadVape()
 	if shared.VapeOpenGui then
 		GuiLibrary.MainGui.ScaledGui.ClickGui.Visible = true
 		GuiLibrary.MainGui.ScaledGui.LegitGui.Visible = false
-		--game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainBlur.Size ~= 0) 
+		pcall(function() game:GetService("RunService"):SetRobloxGuiFocused(GuiLibrary.MainBlur.Size ~= 0) end)
 		shared.VapeOpenGui = nil
 	end
 
