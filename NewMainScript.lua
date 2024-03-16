@@ -8,7 +8,6 @@ button.Text = "Vape"
 button.Size = UDim2.new(0.05, 0, 0.05, 0)
 button.Position = UDim2.new(0.9, 0, 0.5, 0)
 button.Parent = screenGui
-
 local isDragging = false
 local startPosition = UDim2.new()
 local startInputPosition = Vector2.new()
@@ -16,46 +15,37 @@ local function updatePosition(inputPosition)
     local delta = inputPosition - startInputPosition
     button.Position = startPosition + UDim2.new(0, delta.X, 0, delta.Y)
 end
-local function onTouchStarted(input)
-    isDragging = true
-    startPosition = button.Position
-    startInputPosition = input.Position
-end
-local function onTouchMoved(input)
-    if isDragging then
-        updatePosition(input.Position)
+local function onInput(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if input.UserInputState == Enum.UserInputState.Begin then
+                isDragging = true
+                startPosition = button.Position
+                startInputPosition = input.Position
+            elseif input.UserInputState == Enum.UserInputState.End then
+                isDragging = false
+            end
+        elseif input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputState == Enum.UserInputState.Begin then
+                isDragging = true
+                startPosition = button.Position
+                startInputPosition = input.Position
+            elseif input.UserInputState == Enum.UserInputState.End then
+                isDragging = false
+            end
+        end
+    elseif input.UserInputType == Enum.UserInputType.MouseMovement then
+        if isDragging then
+            updatePosition(input.Position)
+        end
     end
 end
-local function onTouchEnded()
-    isDragging = false
-end
-button.TouchStarted:Connect(onTouchStarted)
-UserInputService.TouchMoved:Connect(onTouchMoved)
-button.TouchEnded:Connect(onTouchEnded)
-local function onMouseButton1Down(input)
-    isDragging = true
-    startPosition = button.Position
-    startInputPosition = input.Position
-end
-local function onMouseMoved(input)
-    if isDragging then
-        updatePosition(input.Position)
-    end
-end
-local function onMouseButton1Up()
-    isDragging = false
-end
-button.MouseButton1Down:Connect(onMouseButton1Down)
-UserInputService.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        onMouseMoved(input)
-    end
-end)
-button.MouseButton1Up:Connect(onMouseButton1Up)
+UserInputService.InputChanged:Connect(onInput)
 local function onButtonClicked()
     game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.V, false, game)
 end
 button.MouseButton1Click:Connect(onButtonClicked)
+
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
