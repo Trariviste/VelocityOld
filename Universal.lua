@@ -375,6 +375,7 @@ do
 end
 shared.vapewhitelist = WhitelistFunctions
 
+--[[
 local function renderNametag(plr)
     if not plr or not plr:IsA("Player") then
         return
@@ -412,7 +413,8 @@ local function renderNametag(plr)
         end
     end
 end
-
+--]]
+--[[
 task.spawn(function()
     repeat
         task.wait()
@@ -428,7 +430,7 @@ task.spawn(function()
         end
     end)
 end)
-
+--]]
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
 	function RunLoops:BindToRenderStep(name, func)
