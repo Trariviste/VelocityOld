@@ -9922,27 +9922,34 @@ runFunction(function()
 end)
 
 runFunction(function()
-    local Disabler = {Enabled = false}
-    Disabler = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = "FirewallBypass",
-        Function = function(callback)
-            if callback then 
-				task.spawn(function()
-					repeat
-						task.wait()
-						local item = getItemNear("scythe")
-						if item and lplr.Character.HandInvItem.Value == item.tool and bedwars.CombatController then 
-							bedwars.ClientHandler:Get("ScytheDash"):SendToServer({direction = Vector3.new(9e9, 9e9, 9e9)})
-							if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
-								bedwarsStore.scythe = tick() + 1
-							end
+	local ScytheDisabler = {}
+	ScytheDisabler = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = 'FirewallBypass',
+		HoverText = 'Float disabler for scythe',
+		Function = function(calling)
+			if calling then 
+				repeat
+					task.wait()
+					if killauraNearPlayer then 
+						continue
+					end
+					local scythe = getItemNear('_scythe')
+					if isAlive(lplr, true) and not scythe then 
+						bedwars.ClientHandler:Get('ForgePurchaseUpgrade'):SendToServer(bedwars.ForgeConstants.SCYTHE)
+						continue
+					end
+					if isAlive(lplr, true) then 
+						local move = lplr.Character.Humanoid.MoveDirection
+						switchItem(scythe.tool)
+						bedwars.ClientHandler:Get('ScytheDash'):SendToServer({direction = move == Vector3.zero and Vector3.new(9e9, 9e9, 9e9) or move * 9e15})
+						if lplr:GetAttribute('ScytheSpinning') then 
+							bedwarsStore.scythe = (tick() + 1) 
 						end
-					until (not Disabler.Enabled)
-				end)
-            end
-        end,
-		HoverText = "Float disabler with scythe"
-    })
+					end
+				until (not ScytheDisabler.Enabled)
+			end
+		end
+	})
 end)
 
 runFunction(function()
