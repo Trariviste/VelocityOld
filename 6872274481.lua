@@ -1913,74 +1913,84 @@ runFunction(function()
 				game:Shutdown()
 			end
 		}
+
 		textChatService.OnIncomingMessage = function(message) 
 			local properties = Instance.new('TextChatMessageProperties')
-			local plr = playersService:GetPlayerByUserId(message.TextSource.UserId)
-			local client = bedwarsStore.whitelist.chatStrings1[#args > 0 and args[#args] or message.Text]
-			if message.TextSource then
-				if plr then
-					local otherPriority, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
-					properties.PrefixText = message.PrefixText
-					if plrtag then
-						for i,v in pairs(plrtag) do
-							properties.PrefixText = "<font color='#"..v.color:ToHex().."'>["..v.Text.."] </font> " ..message.PrefixText or message.PrefixText
-						end
-					end
-					if plr:GetAttribute("ClanTag") then 
-						props.PrefixText = "<font color='#FFFFFF'>["..plr:GetAttribute("ClanTag").."]</font> "..props.PrefixText
-					end
-					if plr == lplr then
-						if WhitelistFunctions.LocalPriority > 0 then
-							if message.Text:len() >= 5 and message.Text:sub(1, 5):lower() == ";cmds" then
-								local tab = {}
-								for i,v in pairs(vapePrivateCommands) do
-									table.insert(tab, i)
-								end
-								table.sort(tab)
-								local str = ""
-								for i,v in pairs(tab) do
-									str = str..";"..v.."\n"
-								end
-								if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
-                    							textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
-                						else 
-                    							game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str,  Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
-                						end
-						else
-								if WhitelistFunctions.LocalPriority > 0 and message.TextChannel.Name:find("RBXWhisper") and client ~= nil and alreadysaidlist[plr.Name] == nil then
-									message.Text = ""
-									alreadysaidlist[plr.Name] = true
-									warningNotification("Vape", plr.Name.." is using "..client.."!", 60)
-									WhitelistFunctions.CustomTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
-									bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
-									local ind, newent = entityLibrary.getEntityFromPlayer(plr)
-									if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
-								end
-								if otherPriority > 0 and otherPriority > WhitelistFunctions.LocalPriority and #args > 1 then
-									table.remove(args, 1)
-									local chosenplayers = findplayers(args[1], plr)
-									table.remove(args, 1)
-									for i,v in pairs(vapePrivateCommands) do
-										if message.Text:len() >= (i:len() + 1) and message.Text:sub(1, i:len() + 1):lower() == ";"..i:lower() then
-											message.Text = ""
-											if table.find(chosenplayers, lplr) then
-												v(args, plr)
-											end
-											break
-										end
-									end
-								end
-							end
-						end
-					end
+			local player = playersService:GetPlayerByUserId(message.TextSource.User.Id)
+			if message.TextSource then 
+				local vapetag = (player and WhitelistFunctions.playerTags[player])
+				if vapetag and WhitelistFunctions.LocalPriority > 0 then 
+					properties.PrefixText = "<font color='#"..vapetag.Color.."'>["..vapetag.Text.."] </font> " ..message.PrefixText or message.PrefixText
 				end
+        		end
+			return properties
+					
+			if player == lplr then		
+				if WhitelistFunctions.LocalPriority > 0 then
+					if message.Text:len() >= 5 and message.Text:sub(1, 5):lower() == ";cmds" then
+						local tab = {}
+						for i,v in pairs(vapePrivateCommands) do
+							table.insert(tab, i)
+						end
+						table.sort(tab)
+						local str = ""
+						for i,v in pairs(tab) do
+							str = str..";"..v.."\n"
+						end
+						if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
+                    					textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
+                				else 
+                    					game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str,  Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
+                				end
+					end
 				else
-				if WhitelistFunctions:IsSpecialIngame() and message.Text:find("You are now privately chatting") then 
-					message.Text = "Hello Vxpe User"
+					WhitelistFunctions:CreateUserTag(lplr)
+					message.Text = ""
+					alreadysaidlist[plr.Name] = true
+					warningNotification("Vape", plr.Name.." is using "..client.."!", 60)
+					WhitelistFunctions.playerTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
+					bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
+					local ind, newent = entityLibrary.getEntityFromPlayer(plr)
+					if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
 				end
 			end
-			return properties
+					
+		if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
+			local chatTables = {}
+			local oldchatfunc
+			for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
+			if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
+				local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
+				if chatvalues and chatvalues.GetChannel then  
+					oldchatfunc = chatvalues.GetChannel 
+					chatvalues.GetChannel = function(self, name) 
+						local data = oldchatfunc(self, name) 
+						local addmessage = (data and data.AddMessageToChannel)
+						if data and data.AddMessageToChannel then 
+							if chatTables[data] == nil then 
+								chatTables[data] = data.AddMessageToChannel 
+							end 
+						data.AddMessageToChannel = function(self2, data2)
+							local plr = playersService:FindFirstChild(data2.FromSpeaker)
+							local vapetag = (plr and WhitelistFunctions.CustomTags[plr])
+							if data2.FromSpeaker and vapetag and vapeInjected then 
+								local tagcolor = Color3.fromHex(vapetag.Color)
+								data2.ExtraData = {
+									Tags = {unpack(data2.ExtraData.Tags), {TagText = vapetag.Text, TagColor = tagcolor}},
+									NameColor = plr.Team == nil and Color3.fromRGB(tagcolor.R + 45, tagcolor.G + 45, tagcolor.B - 10) or plr.TeamColor.Color
+								}																																																																																																																																																																			
+								end
+							return addmessage(self2, data2)
+							end
+							return data
+						end
+					end
+				end
+			end
 		end
+	end
+		
+	end
 
 		vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
 
