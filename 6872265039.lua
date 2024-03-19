@@ -284,14 +284,14 @@ end)
 
 local function getNametagString(plr)
 	local nametag = ""
-	if WhitelistFunctions:CheckPlayerType(plr) == "VAPE PRIVATE" then
+	if WhitelistFunctions.LocalPriority == 1 then
 		nametag = '<font color="rgb(127, 0, 255)">[VAPE PRIVATE] '..(plr.DisplayName or plr.Name)..'</font>'
 	end
-	if WhitelistFunctions:CheckPlayerType(plr) == "VAPE OWNER" then
+	if WhitelistFunctions.LocalPriority == 2 then
 		nametag = '<font color="rgb(255, 80, 80)">[VAPE OWNER] '..(plr.DisplayName or plr.Name)..'</font>'
 	end
-	if WhitelistFunctions.WhitelistTable.chattags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
-		local data = WhitelistFunctions.WhitelistTable.chattags[WhitelistFunctions:Hash(plr.Name..plr.UserId)]
+	if WhitelistFunctions.WhitelistTable.WhitelistedTags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
+		local data = WhitelistFunctions.WhitelistTable.WhitelistedTags[WhitelistFunctions:Hash(plr.Name..plr.UserId)]
 		local newnametag = ""
 		if data.Tags then
 			for i2,v2 in pairs(data.Tags) do
@@ -302,6 +302,57 @@ local function getNametagString(plr)
 	end
 	return nametag
 end
+
+local function renderNametag(plr)
+    if not plr or not plr:IsA("Player") then
+        return
+    end
+    if WhitelistFunctions.LocalPriority >= 1 then
+        local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
+        if playerlist then
+            pcall(function()
+                local playerlistplayers = playerlist.PlayerListMaster.OffsetFrame.PlayerScrollList.SizeOffsetFrame.ScrollingFrameContainer.ScrollingFrameClippingFrame.ScollingFrame.OffsetUndoFrame
+                local targetedplr = playerlistplayers:FindFirstChild("p_" .. plr.UserId)
+                if targetedplr then
+                    targetedplr.ChildrenFrame.NameFrame.BGFrame.OverlayFrame.PlayerIcon.Image = "rbxassetid://13350808582"
+                end
+            end)
+        end
+        local nametag = getNametagString(plr, userData)
+        local function setNametag()
+            pcall(function()
+                local entityUtil = require(repstorage.TS.entity["entity-util"]).EntityUtil
+                local entityTable = entityUtil:getEntityTable()
+                if entityTable and entityTable.getEntity then
+                    local entity = entityTable.getEntity(plr)
+                    if entity then
+                        entity:setNametag(nametag)
+                    end
+                end
+            end)
+        end
+        plr.CharacterAdded:Connect(function(char)
+            if char ~= oldchar then
+                setNametag()
+            end
+        end)
+        if plr.Character and plr.Character ~= oldchar then
+            task.spawn(setNametag)
+        end
+    end
+end
+
+task.spawn(function()
+    repeat
+        task.wait()
+    until WhitelistFunctions.Loaded
+    for _, player in pairs(game.Players:GetPlayers()) do
+        renderNametag(player)
+    end
+    game.Players.PlayerAdded:Connect(function(player)
+        renderNametag(player)
+    end)
+end)
 
 local AnticheatBypassNumbers = {
 	TPSpeed = 0.1,
