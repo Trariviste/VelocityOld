@@ -1935,7 +1935,7 @@ runFunction(function()
 					if plr:GetAttribute("ClanTag") then 
 						props.PrefixText = "<font color='#FFFFFF'>["..plr:GetAttribute("ClanTag").."]</font> "..props.PrefixText
 					end
-					if WhitelistFunctions.LocalPriority > 0 then  --plr == lplr
+					if plr == lplr then 
 						if WhitelistFunctions.LocalPriority > 0 then
 							if message.Text:len() >= 5 and message.Text:sub(1, 5):lower() == ";cmds" then
 								local tab = {}
