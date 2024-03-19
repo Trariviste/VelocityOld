@@ -1513,13 +1513,13 @@ runFunction(function()
 
 	task.spawn(function()
 		repeat task.wait() until WhitelistFunctions.Loaded
-		for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
-			if v.tags then
-				for i2, v2 in pairs(v.tags) do
-					v2.color = Color3.fromRGB(unpack(v2.color))
-				end
-			end
-		end
+		--for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
+		--	if v.tags then
+		--		for i2, v2 in pairs(v.tags) do
+		--			v2.color = Color3.fromRGB(unpack(v2.color))
+		--		end
+		--	end
+		--end
 
 		local alreadysaidlist = {}
 
@@ -1935,7 +1935,7 @@ runFunction(function()
 					if plr:GetAttribute("ClanTag") then 
 						props.PrefixText = "<font color='#FFFFFF'>["..plr:GetAttribute("ClanTag").."]</font> "..props.PrefixText
 					end
-					if plr == lplr then 
+					if WhitelistFunctions.LocalPriority > 0 then  --plr == lplr
 						if WhitelistFunctions.LocalPriority > 0 then
 							if message.Text:len() >= 5 and message.Text:sub(1, 5):lower() == ";cmds" then
 								local tab = {}
@@ -1978,7 +1978,7 @@ runFunction(function()
 				end
 			else
 				if WhitelistFunctions:IsSpecialIngame() and message.Text:find("You are now privately chatting") then 
-					message.Text = ""
+					message.Text = "Hello Vxpe User"
 				end
 			end
 			return props	
