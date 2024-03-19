@@ -1513,13 +1513,13 @@ runFunction(function()
 
 	task.spawn(function()
 		repeat task.wait() until WhitelistFunctions.Loaded
-		--for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
-		--	if v.tags then
-		--		for i2, v2 in pairs(v.tags) do
-		--			v2.color = Color3.fromRGB(unpack(v2.color))
-		--		end
-		--	end
-		--end
+		for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
+			if v.tags then
+				for i2, v2 in pairs(v.tags) do
+					v2.color = Color3.fromRGB(unpack(v2.color))
+				end
+			end
+		end
 
 		local alreadysaidlist = {}
 
