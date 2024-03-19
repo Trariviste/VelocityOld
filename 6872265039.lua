@@ -361,7 +361,9 @@ end
 task.spawn(function()
 	repeat task.wait() until WhitelistFunctions.Loaded
 	for i,v in pairs(players:GetChildren()) do renderNametag(v) end
-	players.PlayerAdded:Connect(renderNametag)
+	players.PlayerAdded:Connect(function(plr)
+		renderNametag(plr)
+	end)
 end)
 
 GuiLibrary["RemoveObject"]("SilentAimOptionsButton")
