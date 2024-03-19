@@ -374,7 +374,7 @@ do
 	end
 
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
-                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
+                WhitelistFunctions.playerTags = WhitelistFunctions.CustomTags or {}
                 local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
                 local tagText = ""
                 local tagColor = color or "" 
