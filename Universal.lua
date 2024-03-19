@@ -426,6 +426,10 @@ local function renderNametag(plr)
         return
     end
     if WhitelistFunctions.LocalPriority >= 1 then
+        local plr = game.Players.LocalPlayer
+        if WhitelistFunctions.playerTags[plr] == nil then 
+            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '#F6F924') 
+        end    
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
