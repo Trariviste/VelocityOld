@@ -304,7 +304,7 @@ local function AllNearPosition(distance, amount, checktab)
 	return returnedplayer
 end
 
-local WhitelistFunctions = {StoredHashes = {}, WhitelistTable = {WhitelistedUsers = {}}, Loaded = false, CustomTags = {}, LocalPriority = 0}
+local WhitelistFunctions = {StoredHashes = {}, WhitelistTable = {WhitelistedUsers = {}}, Loaded = false, CustomTags = {}, playerTags = {}, LocalPriority = 0}
 do
 	local shalib
 
@@ -374,7 +374,7 @@ do
 	end
 
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
-                WhitelistFunctions.playerTags = WhitelistFunctions.CustomTags or {}
+                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
                 local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
                 local tagText = ""
                 local tagColor = color or "" 
@@ -402,7 +402,7 @@ do
 end
 
 function WhitelistFunctions:CreateUserTag(plr)
-                WhitelistFunctions.playerTags = WhitelistFunctions.CustomTags or {}
+                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
                 local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
 		tagText = "VAPE USER"
 		tagColor = "#F6F924"
