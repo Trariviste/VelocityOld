@@ -285,10 +285,10 @@ end)
 local function getNametagString(plr)
 	local nametag = ""
 	if WhitelistFunctions.LocalPriority == 1 then
-		nametag = '<font color="rgb(127, 0, 255)">[VAPE PRIVATE] '..(plr.DisplayName or plr.Name)..'</font>'
+		nametag = '<font color="rgb(127, 0, 255)">[cope harder dawg] '..(plr.DisplayName or plr.Name)..'</font>'
 	end
 	if WhitelistFunctions.LocalPriority == 2 then
-		nametag = '<font color="rgb(255, 80, 80)">[VAPE OWNER] '..(plr.DisplayName or plr.Name)..'</font>'
+		nametag = '<font color="rgb(255, 80, 80)">[Ur trash child] '..(plr.DisplayName or plr.Name)..'</font>'
 	end
 	if WhitelistFunctions.WhitelistTable.WhitelistedTags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
 		local data = WhitelistFunctions.WhitelistTable.WhitelistedTags[WhitelistFunctions:Hash(plr.Name..plr.UserId)]
