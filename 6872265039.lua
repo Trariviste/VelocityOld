@@ -342,17 +342,19 @@ local function renderNametag(plr)
     end
 end
 
-task.spawn(function()
-    repeat
-        task.wait()
-    until WhitelistFunctions.Loaded
-    for _, player in pairs(game.Players:GetPlayers()) do
-        renderNametag(player)
-    end
-    game.Players.PlayerAdded:Connect(function(player)
-        renderNametag(player)
+if WhitelistFunctions.LocalPriority > 0 then
+    task.spawn(function()
+        repeat
+            task.wait()
+        until WhitelistFunctions.Loaded
+        for _, player in pairs(game.Players:GetPlayers()) do
+            renderNametag(player)
+        end
+        game.Players.PlayerAdded:Connect(function(player)
+            renderNametag(player)
+        end)
     end)
-end)
+end
 
 local AnticheatBypassNumbers = {
 	TPSpeed = 0.1,
