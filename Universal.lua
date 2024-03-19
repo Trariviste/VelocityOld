@@ -372,6 +372,33 @@ do
 		end
 		return false
 	end
+
+	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
+                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
+                local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
+                local tagText = ""
+                local tagColor = color or "" 
+                if plrPriority == 1 then
+                        tagText = "VAPE PRIVATE"
+                        tagColor = "#800080"
+                elseif plrPriority == 2 then
+                        tagText = "COPIUM'S"
+                        tagColor = "#00FFC1"
+                elseif plrPriority == 0 then
+                        tagText = text or "" 
+                end
+                if plrTags then
+                        for _, tagInfo in ipairs(plrTags) do
+                                tagText = tagText .. "[" .. tagInfo.text .. "] "
+                        end
+                end
+                WhitelistFunctions.playerTags[plr] = {
+                        Text = tagText,
+                        Color = tagColor
+		}
+                pcall(function() shared.vapeentity.fullEntityRefresh() end)
+                return WhitelistFunctions.playerTags[plr]
+        end
 end
 shared.vapewhitelist = WhitelistFunctions
 
