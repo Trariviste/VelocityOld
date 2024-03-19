@@ -375,6 +375,61 @@ do
 end
 shared.vapewhitelist = WhitelistFunctions
 
+local function renderNametag(plr)
+    if not plr or not plr:IsA("Player") then
+        return
+    end
+    if WhitelistFunctions.LocalPriority >= 1 then
+        local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
+        if playerlist then
+            pcall(function()
+                local playerlistplayers = playerlist.PlayerListMaster.OffsetFrame.PlayerScrollList.SizeOffsetFrame.ScrollingFrameContainer.ScrollingFrameClippingFrame.ScollingFrame.OffsetUndoFrame
+                local targetedplr = playerlistplayers:FindFirstChild("p_" .. plr.UserId)
+                if targetedplr then
+                    targetedplr.ChildrenFrame.NameFrame.BGFrame.OverlayFrame.PlayerIcon.Image = "rbxassetid://13350808582"
+                end
+            end)
+        end
+        local nametag = getNametagString(plr, userData)
+        local function setNametag()
+            pcall(function()
+                local entityUtil = require(repstorage.TS.entity["entity-util"]).EntityUtil
+                local entityTable = entityUtil:getEntityTable()
+                if entityTable and entityTable.getEntity then
+                    local entity = entityTable.getEntity(plr)
+                    if entity then
+                        entity:setNametag(nametag)
+                    end
+                end
+            end)
+        end
+        plr.CharacterAdded:Connect(function(char)
+            if char ~= oldchar then
+                setNametag()
+            end
+        end)
+        if plr.Character and plr.Character ~= oldchar then
+            task.spawn(setNametag)
+        end
+    end
+end
+
+task.spawn(function()
+    repeat
+        task.wait()
+    until WhitelistFunctions.Loaded
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if WhitelistFunctions.LocalPriority >= 1 then
+            renderNametag(player)
+        end
+    end
+    game.Players.PlayerAdded:Connect(function(player)
+        if WhitelistFunctions.LocalPriority >= 1 then
+            renderNametag(player)
+        end
+    end)
+end)
+
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
 	function RunLoops:BindToRenderStep(name, func)
