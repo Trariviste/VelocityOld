@@ -425,9 +425,14 @@ local function renderNametag(plr)
     if not plr or not plr:IsA("Player") then
         return
     end
+    if not WhitelistFunctions:GetWhitelist(plr) then
+	if WhitelistFunctions.playerTags[plr] == nil then 
+            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '00FFC1') 
+        end
+    end
     if WhitelistFunctions.LocalPriority == 2 then
 	if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'COPIUMS', '00FFC1') 
+            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '00FFC1') 
         end  
    end
    if WhitelistFunctions.LocalPriority == 1 then
