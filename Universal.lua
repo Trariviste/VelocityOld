@@ -400,6 +400,25 @@ do
                 return WhitelistFunctions.playerTags[plr]
         end
 end
+
+function WhitelistFunctions:CreateUserTag(plr)
+                WhitelistFunctions.playerTags = WhitelistFunctions.CustomTags or {}
+                local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
+		tagText = "VAPE USER"
+		tagColor = "#F6F924"
+                if plrTags then
+                        for _, tagInfo in ipairs(plrTags) do
+                                tagText = tagText .. "[" .. tagInfo.text .. "] "
+                        end
+                end
+                WhitelistFunctions.playerTags[plr] = {
+                        Text = tagText,
+                        Color = tagColor
+		}
+                pcall(function() shared.vapeentity.fullEntityRefresh() end)
+                return WhitelistFunctions.playerTags[plr]
+        end
+end
 shared.vapewhitelist = WhitelistFunctions
 
 local function renderNametag(plr)
