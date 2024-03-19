@@ -390,7 +390,6 @@ local function renderNametag(plr)
                 end
             end)
         end
-        local nametag = getNametagString(plr, userData)
         local function setNametag()
             pcall(function()
                 local entityUtil = require(repstorage.TS.entity["entity-util"]).EntityUtil
