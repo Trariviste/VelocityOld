@@ -323,7 +323,7 @@ local function friendCheck(plr, recolor)
 end
 
 local function renderNametag(plr)
-	if WhitelistFunctions:CheckWhitelisted(plr) or WhitelistFunctions.WhitelistTable.chattags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
+	if WhitelistFunctions.WhitelistTable.chattags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
 		local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
 		if playerlist then
 			pcall(function()
