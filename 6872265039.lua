@@ -323,32 +323,38 @@ local function friendCheck(plr, recolor)
 end
 
 local function renderNametag(plr)
-	if WhitelistFunctions.WhitelistTable.chattags[WhitelistFunctions:Hash(plr.Name..plr.UserId)] then
-		local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
-		if playerlist then
-			pcall(function()
-				local playerlistplayers = playerlist.PlayerListMaster.OffsetFrame.PlayerScrollList.SizeOffsetFrame.ScrollingFrameContainer.ScrollingFrameClippingFrame.ScollingFrame.OffsetUndoFrame
-				local targetedplr = playerlistplayers:FindFirstChild("p_"..plr.UserId)
-				if targetedplr then 
-					targetedplr.ChildrenFrame.NameFrame.BGFrame.OverlayFrame.PlayerIcon.Image = getcustomassetfunc("vape/assets/VapeIcon.png")
-				end
-			end)
-		end
-		local nametag = getNametagString(plr)
-		plr.CharacterAdded:Connect(function(char)
-			if char ~= oldchar then
-				pcall(function() 
-					bedwars["getEntityTable"]:getEntity(plr):setNametag(nametag)
+	local s,e = pcall(function()
+		if WhitelistFunctions:GetWhitelist(plr) then
+			local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
+			if playerlist then
+				pcall(function()
+					local playerlistplayers = playerlist.PlayerListMaster.OffsetFrame.PlayerScrollList.SizeOffsetFrame.ScrollingFrameContainer.ScrollingFrameClippingFrame.ScollingFrame.OffsetUndoFrame
+					local targetedplr = playerlistplayers:FindFirstChild("p_"..plr.UserId)
+					if targetedplr then 
+						targetedplr.ChildrenFrame.NameFrame.BGFrame.OverlayFrame.PlayerIcon.Image = getcustomassetfunc("vape/assets/VapeIcon.png")
+					end
 				end)
 			end
-		end)
-		if plr.Character and plr.Character ~= oldchar then
-			task.spawn(function()
-				pcall(function() 
-					bedwars["getEntityTable"]:getEntity(plr):setNametag(nametag)
-				end)
+			local nametag = getNametagString(plr)
+			plr.CharacterAdded:Connect(function(char)
+				if char ~= oldchar then
+					pcall(function() 
+						bedwars["getEntityTable"]:getEntity(plr):setNametag(nametag)
+					end)
+				end
 			end)
+			if plr.Character and plr.Character ~= oldchar then
+				task.spawn(function()
+					pcall(function() 
+						bedwars["getEntityTable"]:getEntity(plr):setNametag(nametag)
+					end)
+				end)
+			end
 		end
+	end)
+	if not s then
+		createwarning("Velocity", "Error while running the render nametag function. Error: " ..e, 10)
+		print(e)
 	end
 end
 
