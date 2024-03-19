@@ -425,11 +425,18 @@ local function renderNametag(plr)
     if not plr or not plr:IsA("Player") then
         return
     end
+    if WhitelistFunctions.LocalPriority == 2 then
+	if WhitelistFunctions.playerTags[plr] == nil then 
+            WhitelistFunctions:CreatePlayerTag(plr, 'COPIUMS', '00FFC1') 
+        end  
+   end
+   if WhitelistFunctions.LocalPriority == 1 then
+	if WhitelistFunctions.playerTags[plr] == nil then 
+            WhitelistFunctions:CreatePlayerTag(plr, 'PRIVATE USERS', '800080') 
+        end  
+   end
     if WhitelistFunctions.LocalPriority >= 1 then
         local plr = game.Players.LocalPlayer
-        if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '#F6F924') 
-        end    
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
