@@ -13,6 +13,8 @@ local lplr = playersService.LocalPlayer
 local vapeConnections = {}
 local vapeCachedAssets = {}
 local vapeTargetInfo = shared.VapeTargetInfo
+local vapeStore = {Bindable = {}, raycast = RaycastParams.new(), MessageReceived = Instance.new('BindableEvent'), tweens = {}, ping = 0, platform = inputService:GetPlatform(), LocalPosition = Vector3.zero}
+getgenv().vapeStore = vapeStore
 local vapeInjected = true
 table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 	gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA("Camera")
@@ -128,6 +130,8 @@ local function getPlayerColor(plr)
 end
 
 local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"))()
+local sendmessage = function() end
+local sendprivatemessage = function() end
 shared.vapeentity = entityLibrary
 do
 	entityLibrary.selfDestruct()
@@ -243,6 +247,49 @@ local function EntityNearPosition(distance, checktab)
 				if not raycastWallCheck(v.entity, checktab) then continue end
 			end
 			return v.entity
+		end
+	end
+end
+
+task.spawn(function()
+	local function chatfunc(plr)
+		table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+			vapeStore.MessageReceived:Fire(plr, message)
+		end))
+	end
+	table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+		local success, player = pcall(function() 
+			return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+		end)
+		if success then 
+			vapeStore.MessageReceived:Fire(player, data.Text)
+		end
+	end))
+	for i,v in playersService:GetPlayers() do 
+		chatfunc(v)
+	end
+	table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+end)
+
+sendmessage = function(text)
+	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+	else
+		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+	end
+end
+
+sendprivatemessage = function(player, text)
+	if player then
+		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+			local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
+			local whisperchannel = game:GetService('RobloxReplicatedStorage').ExperienceChat.WhisperChat:InvokeServer(player.UserId)
+			if whisperchannel then
+				whisperchannel:SendAsync(text)
+				textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
+			end
+		else
+			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..player.Name.." "..text, 'All')
 		end
 	end
 end
@@ -363,7 +410,34 @@ do
 		end
 		return false
 	end
-	
+    
+	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
+        WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
+        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
+        local tagText = ""
+        local tagColor = color or "" 
+        if plrPriority == 1 then
+            tagText = "VAPE PRIVATE"
+            tagColor = "#800080"  
+        elseif plrPriority == 2 then
+            tagText = "VAPE OWNER"
+            tagColor = "#00FFC1"  
+        elseif plrPriority == 0 then
+            tagText = text or "" 
+        end
+        if plrTags then
+            for _, tagInfo in ipairs(plrTags) do
+                tagText = tagText .. "[" .. tagInfo.text .. "] "
+            end
+        end
+        WhitelistFunctions.playerTags[plr] = {
+                Text = tagText,
+                Color = tagColor
+        }
+        pcall(function() shared.vapeentity.fullEntityRefresh() end)
+        return WhitelistFunctions.playerTags[plr]
+    end
+
 	function WhitelistFunctions:IsSpecialIngame()
 		for i,v in pairs(playersService:GetPlayers()) do 
 			if WhitelistFunctions:CheckWhitelisted(v) then 
@@ -372,76 +446,38 @@ do
 		end
 		return false
 	end
-
-	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
-                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
-                local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
-                local tagText = ""
-                local tagColor = color or "" 
-                if plrPriority == 1 then
-                        tagText = "VAPE PRIVATE"
-                        tagColor = "#800080"
-                elseif plrPriority == 2 then
-                        tagText = "COPIUM'S"
-                        tagColor = "#00FFC1"
-                elseif plrPriority == 0 then
-                        tagText = text or "" 
-                end
-                if plrTags then
-                        for _, tagInfo in ipairs(plrTags) do
-                                tagText = tagText .. "[" .. tagInfo.text .. "] "
-                        end
-                end
-                WhitelistFunctions.playerTags[plr] = {
-                        Text = tagText,
-                        Color = tagColor
-		}
-                pcall(function() shared.vapeentity.fullEntityRefresh() end)
-                return WhitelistFunctions.playerTags[plr]
-        end
-end
-
-function WhitelistFunctions:CreateUserTag(plr)
-                WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
-                local plrPriority, ,  = WhitelistFunctions:GetWhitelist(plr)
-		tagText = "VAPE USER"
-		tagColor = "#F6F924"
-                if plrTags then
-                        for _, tagInfo in ipairs(plrTags) do
-                                tagText = tagText .. "[" .. tagInfo.text .. "] "
-                        end
-                end
-                WhitelistFunctions.playerTags[plr] = {
-                        Text = tagText,
-                        Color = tagColor
-		}
-                pcall(function() shared.vapeentity.fullEntityRefresh() end)
-                return WhitelistFunctions.playerTags[plr]
-        end
 end
 shared.vapewhitelist = WhitelistFunctions
+
+task.spawn(function()
+	local function chatfunc(plr)
+		table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+			vapeStore.MessageReceived:Fire(plr, message)
+		end))
+	end
+	table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+		local success, player = pcall(function() 
+			return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+		end)
+		if success then 
+			vapeStore.MessageReceived:Fire(player, data.Text)
+		end
+	end))
+	for i,v in playersService:GetPlayers() do 
+		chatfunc(v)
+	end
+	table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+end)
 
 local function renderNametag(plr)
     if not plr or not plr:IsA("Player") then
         return
     end
-    if not WhitelistFunctions:GetWhitelist(plr) then
-	if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '00FFC1') 
-        end
-    end
-    if WhitelistFunctions.LocalPriority == 2 then
-	if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '00FFC1') 
-        end  
-   end
-   if WhitelistFunctions.LocalPriority == 1 then
-	if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'PRIVATE USERS', '800080') 
-        end  
-   end
     if WhitelistFunctions.LocalPriority >= 1 then
         local plr = game.Players.LocalPlayer
+        if WhitelistFunctions.playerTags[plr] == nil then 
+	        WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '#800080') 
+	    end	
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
@@ -490,6 +526,7 @@ task.spawn(function()
         end
     end)
 end)
+
 
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
@@ -5821,6 +5858,69 @@ runFunction(function()
 	})
 end)
 
+textChatService.OnIncomingMessage = function(message) 
+	local properties = Instance.new('TextChatMessageProperties')
+	if message.TextSource then 
+		local player = playersService:GetPlayerByUserId(message.TextSource.UserId) 
+		local vapetag = (player and WhitelistFunctions.playerTags[player])
+		if vapetag and WhitelistFunctions.LocalPriority > 0 then 
+			properties.PrefixText = "<font color='#"..vapetag.Color.."'>["..vapetag.Text.."] </font> " ..message.PrefixText or message.PrefixText
+		end
+        end
+	return properties
+end
+
+if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
+	local chatTables = {}
+	local oldchatfunc
+	for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
+		if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
+			local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
+			if chatvalues and chatvalues.GetChannel then  
+				oldchatfunc = chatvalues.GetChannel 
+				chatvalues.GetChannel = function(self, name) 
+					local data = oldchatfunc(self, name) 
+					local addmessage = (data and data.AddMessageToChannel)
+					if data and data.AddMessageToChannel then 
+						if chatTables[data] == nil then 
+							chatTables[data] = data.AddMessageToChannel 
+						end 
+						data.AddMessageToChannel = function(self2, data2)
+							local plr = playersService:FindFirstChild(data2.FromSpeaker)
+							local vapetag = (plr and WhitelistFunctions.playerTags[plr])
+							if data2.FromSpeaker and vapetag and vapeInjected then 
+								local tagcolor = Color3.fromHex(vapetag.Color)
+								data2.ExtraData = {
+									Tags = {unpack(data2.ExtraData.Tags), {TagText = vapetag.Text, TagColor = tagcolor}},
+									NameColor = plr.Team == nil and Color3.fromRGB(tagcolor.R + 45, tagcolor.G + 45, tagcolor.B - 10) or plr.TeamColor.Color
+								}																																																																																																																																																																			
+							end
+							return addmessage(self2, data2)
+						end
+						return data
+					end
+				end
+			end
+		end
+	end
+end
+
+runFunction(function()
+	local function whitelistFunction(plr)
+		repeat task.wait() until WhitelistFunctions.Loaded
+		if WhitelistFunctions.LocalPriority == 0 then 
+			sendmessage(plr, 'I am using Inhaler Client')
+		end
+	end
+	for i,v in next, playersService:GetPlayers() do 
+		task.spawn(whitelistFunction, v) 
+	end 
+	table.insert(vapeConnections, playersService.PlayerAdded:Connect(whitelistFunction))
+	if WhitelistFunctions.LocalPriority > 0 then 
+		warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
+	end
+end)
+
 runFunction(function()
 	local Disabler = {Enabled = false}
 	local DisablerAntiKick = {Enabled = false}
@@ -5832,8 +5932,6 @@ runFunction(function()
 			return true
 		end
 	end
-	
-
 	Disabler = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "ClientKickDisabler",
 		Function = function(callback)
@@ -6016,4 +6114,4 @@ runFunction(function()
 	createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5))
 	createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5))
 	createKeystroke(Enum.KeyCode.Space, UDim2.new(0, 0, 0, 83), UDim2.new(0, 25, 0, -10))
-end)
+end)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
