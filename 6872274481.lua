@@ -1554,14 +1554,14 @@ runFunction(function()
 			    if WhitelistFunctions:GetWhitelist(lplr) == 0 then
 			        sendmessage('helloimusinginhaler') 
 			    end 
-                if WhitelistFunctions:GetWhitelist(plr) == 1 then 
+                           if WhitelistFunctions:GetWhitelist(plr) == 1 then 
 			        WhitelistFunctions:CreatePlayerTag(plr, 'VAPE PRIVATE', '5D3FD3')
-                elseif WhitelistFunctions:GetWhitelist(plr) == 2 then
-                    WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '5D3FD3')
-                end
+                          elseif WhitelistFunctions:GetWhitelist(plr) == 2 then
+                               WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '5D3FD3')
+                         end
 		    end 
 	    end
-        local alreadysaidlist = {}
+                local alreadysaidlist = {}
 		local function findplayers(arg, plr)
 			local temp = {}
 			local continuechecking = true
@@ -1953,20 +1953,20 @@ runFunction(function()
 			end
 		}
 		vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
-        for i,v in next, playersService:GetPlayers() do 
-		    task.spawn(vpwhitelistcheck, v)
-	    end
+               for i,v in next, playersService:GetPlayers() do 
+		        task.spawn(vpwhitelistcheck, v)
+	       end
 
 	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(vpwhitelistcheck))
 	    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
 		    message = message:gsub('/w ', '')
-            if plr ~= lplr and message:find('helloimusinginhaler') and WhitelistFunctions:GetWhitelist(lplr) > 0 and WhitelistFunctions:GetWhitelist(plr) == 0 then 
+                 if plr ~= lplr and message:find('helloimusinginhaler') and WhitelistFunctions:GetWhitelist(lplr) > 0 and WhitelistFunctions:GetWhitelist(plr) == 0 then 
 			    warningNotification('Vape', plr.DisplayName..' is using vape client!', 60)
-                WhitelistFunctions.CustomTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
-				bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
-                local ind, newent = entityLibrary.getEntityFromPlayer(plr)
-				if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
-		    end
+                            WhitelistFunctions.playerTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
+			    bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
+                            local ind, newent = entityLibrary.getEntityFromPlayer(plr)
+				  if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
+		            end
             
 		    for i,v in next, vapePrivateCommands do 
 			    if plr ~= lplr and message:find(';'..i) and WhitelistFunctions:GetWhitelist(plr) > WhitelistFunctions:GetWhitelist(lplr) then 
@@ -1985,14 +1985,14 @@ runFunction(function()
 					local newchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
 					if newchannel then 
 						newchannel:SendAsync("I tried to crack the whitelist but I'm a skid")
-                        wait(3)
-                        newchannel:SendAsync("I am a")
-                        wait(3)
-                        newchannel:SendAsync("negar")
+                                                wait(3)
+                                                newchannel:SendAsync("I am a")
+                                                wait(3)
+                                                newchannel:SendAsync("negar")
 					end
 				end)
-                wait(3)
-                bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()                  
+                         wait(3)
+                         bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()                  
 			end
 		end
 
@@ -2217,17 +2217,6 @@ do
 			end
 		until not vapeInjected
 	end)
-	local textlabel = Instance.new("TextLabel")
-	textlabel.Size = UDim2.new(1, 0, 0, 36)
-	textlabel.Text = "A new discord has been created, click the icon to join."
-	textlabel.BackgroundTransparency = 1
-	textlabel.ZIndex = 10
-	textlabel.TextStrokeTransparency = 0
-	textlabel.TextScaled = true
-	textlabel.Font = Enum.Font.SourceSans
-	textlabel.TextColor3 = Color3.new(1, 1, 1)
-	textlabel.Position = UDim2.new(0, 0, 1, -36)
-	textlabel.Parent = GuiLibrary.MainGui.ScaledGui.ClickGui
 end
 
 runFunction(function()
