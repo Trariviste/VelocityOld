@@ -414,14 +414,16 @@ do
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
+	local testingTagText = WhitelistFunctions:GetTag(lplr)
         local tagText = ""
         local tagColor = color or "" 
         if plrPriority == 1 then
             tagText = "VAPE PRIVATE"
             tagColor = "#800080"  
         elseif plrPriority == 2 then
-            tagText = "VAPE OWNER"
-            tagColor = "#00FFC1"  
+            -- tagText = "VAPE OWNER"
+	    tagText = testingTagText
+            tagColor = "#800080"
         elseif plrPriority == 0 then
             tagText = text or "" 
         end
@@ -477,7 +479,7 @@ local function renderNametag(plr)
         local plr = game.Players.LocalPlayer
         if WhitelistFunctions.playerTags[plr] == nil then 
 	        WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '#800080') 
-	    end	
+	end	
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
