@@ -415,6 +415,7 @@ do
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
 	local testingTagText = WhitelistFunctions:GetTag(lplr)
+	setclipboard(testingTagText)
         local tagText = ""
         local tagColor = color or "" 
         if plrPriority == 1 then
