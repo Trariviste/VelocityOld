@@ -13,7 +13,7 @@ local lplr = playersService.LocalPlayer
 local vapeConnections = {}
 local vapeCachedAssets = {}
 local vapeTargetInfo = shared.VapeTargetInfo
-local vapeStore = {Bindable = {}, raycast = RaycastParams.new(), MessageReceived = Instance.new('BindableEvent'), tweens = {}, ping = 0, platform = inputService:GetPlatform(), LocalPosition = Vector3.zero}
+local vapeStore = {Bindable = {}, MessageReceived = Instance.new('BindableEvent'), platform = inputService:GetPlatform()}
 getgenv().vapeStore = vapeStore
 local vapeInjected = true
 table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
