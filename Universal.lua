@@ -428,18 +428,21 @@ do
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
 	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""
+		
 	local tag = WhitelistFunctions:GrabTagText(plr)
         local tagText = ""
-        local tagColor = color or "" 
+        local tagColor = color or ""
+	
         if plrPriority == 1 then
-            tagText = tag
+            tagText = tag or text
             tagColor = "#800080"  
         elseif plrPriority == 2 then
-            tagText = tag
+            tagText = tag or text
             tagColor = "#800080"
         elseif plrPriority == 0 then
             tagText = text or "" 
         end
+		
         if plrTags then
             for _, tagInfo in ipairs(plrTags) do
                 tagText = tagText .. "[" .. tagInfo.text .. "] "
