@@ -435,10 +435,10 @@ do
 	
         if plrPriority == 1 then
             tagText = tag or text
-            tagColor = "#800080"  
+            tagColor = "#C70039"  
         elseif plrPriority == 2 then
             tagText = tag or text
-            tagColor = "#800080"
+            tagColor = "#A9CCE3"
         elseif plrPriority == 0 then
             tagText = text or "" 
         end
