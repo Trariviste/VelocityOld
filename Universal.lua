@@ -384,6 +384,7 @@ do
 		end
 		return 0, true
 	end
+	
 	function WhitelistFunctions:GetTag(plr)
 		local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
 		local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
@@ -394,6 +395,18 @@ do
 			end
 		end
 		return newtag
+	end
+	
+	function WhitelistFunctions:GrabTagText(plr)
+	    local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
+	    local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
+	    local tag = WhitelistFunctions.CustomTags[plr.Name] or ""
+	    if plrtag then
+			for i2,v2 in pairs(plrtag) do
+				tag = v2.text
+			end
+		end
+		return tag
 	end
 
 	function WhitelistFunctions:Hash(str)
@@ -413,23 +426,16 @@ do
     
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
-        local plrPriority, plrtag, _ = WhitelistFunctions:GetWhitelist(plr)
+        local plrPriority, tagColor, _ = WhitelistFunctions:GetWhitelist(plr)
 	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""
-	local testingTagText
-        if plrtag then
-             for i2,v2 in pairs(plrtag) do
-			testingTagText = v2.text
-		end
-	end
-	setclipboard(testingTagText)
+	local tag = WhitelistFunctions:GrabTagText(plr)
         local tagText = ""
         local tagColor = color or "" 
         if plrPriority == 1 then
-            tagText = "VAPE PRIVATE"
+            tagText = tag
             tagColor = "#800080"  
         elseif plrPriority == 2 then
-            -- tagText = "VAPE OWNER"
-	    tagText = testingTagText
+            tagText = tag
             tagColor = "#800080"
         elseif plrPriority == 0 then
             tagText = text or "" 
