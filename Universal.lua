@@ -413,8 +413,14 @@ do
     
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
-        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-	local testingTagText = WhitelistFunctions:GetTag(lplr)
+        local plrPriority, plrtag, _ = WhitelistFunctions:GetWhitelist(plr)
+	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""
+	local testingTagText
+        if plrtag then
+             for i2,v2 in pairs(plrtag) do
+			testingTagText = v2.text
+		end
+	end
 	setclipboard(testingTagText)
         local tagText = ""
         local tagColor = color or "" 
