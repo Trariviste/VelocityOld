@@ -355,7 +355,7 @@ local WhitelistFunctions = {StoredHashes = {}, WhitelistTable = {WhitelistedUser
 do
 	local shalib
 
-	task.spawn(function()
+task.spawn(function()
 		local whitelistloaded
 		whitelistloaded = pcall(function()
 			local commit = "main"
@@ -408,6 +408,20 @@ do
 		end
 		return tag
 	end
+	
+	function WhitelistFunctions:GrabTagColor(plr)
+	    local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
+	    local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
+	    local color
+	    if plrtag then
+			for i2,v2 in pairs(plrtag) do
+			    c = Color3.fromRGB(unpack(v2.color))
+			    nc = c:ToHex()
+				color = nc
+			end
+		end
+		return color
+    end
 
 	function WhitelistFunctions:Hash(str)
 		if WhitelistFunctions.StoredHashes[str] == nil and shalib then
@@ -427,18 +441,18 @@ do
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""
-		
+	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
 	local tag = WhitelistFunctions:GrabTagText(plr)
+	local c = WhitelistFunctions:GrabTagColor(plr)
         local tagText = ""
         local tagColor = color or ""
 	
         if plrPriority == 1 then
             tagText = tag or text
-            tagColor = "#C70039"  
+            tagColor = c 
         elseif plrPriority == 2 then
             tagText = tag or text
-            tagColor = "#A9CCE3"
+            tagColor = c
         elseif plrPriority == 0 then
             tagText = text or "" 
         end
