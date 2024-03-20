@@ -417,7 +417,7 @@ task.spawn(function()
 			for i2,v2 in pairs(plrtag) do
 			    c = Color3.fromRGB(unpack(v2.color))
 			    nc = c:ToHex()
-				color = nc
+			    color = nc
 			end
 		end
 		return color
