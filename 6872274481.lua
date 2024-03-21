@@ -11469,44 +11469,7 @@ Aquaripack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBu
     end,
     ["HoverText"] = "Credit = star.wtf"
 })
-runFunction(function()
-	local InfiniteJump = {Enabled = false}
-	local InfiniteJumpHold = {Enabled = false}
-	InfiniteJump = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = 'InfiniteJump',
-		HoverText = 'Jump without touching the ground',
-		Function = function(callback)
-			if callback then
-				local held = false
-				table.insert(InfiniteJump.Connections, inputService.InputBegan:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						held = true
-						if entityLibrary.isAlive then
-							if InfiniteJumpHold.Enabled then
-								repeat
-									entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-									task.wait()
-								until not held or not InfiniteJump.Enabled or not InfiniteJumpHold.Enabled or inputService:GetFocusedTextBox()
-							else
-								entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-							end
-						end
-					end
-				end))
-				table.insert(InfiniteJump.Connections, inputService.InputEnded:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						held = false
-					end
-				end))
-			end
-		end
-	})
-	InfiniteJumpHold = InfiniteJump.CreateToggle({
-		Name = 'Hold',
-		Function = function() end,
-		HoverText = 'Hold down space to jump'
-	})
-end)	
+
 runFunction(function()
     local DragonBreathFunny = {Enabled = false}
     DragonBreathFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
