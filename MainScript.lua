@@ -352,7 +352,7 @@ GUI.CreateButton({
 })
 GUI.CreateButton({
 	Name = "Velocity", 
-	Function = function(callback) World.SetVisible(callback) end, 
+	Function = function(callback) Velocity.SetVisible(callback) end, 
 	Icon = "vape/assets/RadarIcon2.png", 
 	IconSize = 17
 })
