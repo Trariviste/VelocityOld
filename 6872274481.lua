@@ -11504,84 +11504,6 @@ PartyPopperFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].
 })
 end)
 
-runFunction(function()
-    local Rain = {Enabled = false}
-    Rain = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "Rain",
-        Function = function(callback)
-            if callback then
-                task.spawn(function()	
-                    repeat
-                        task.wait(0.05)
-                        local Player = game:GetService('Players').LocalPlayer
-                        local Camera = workspace.CurrentCamera
-
-                        repeat wait() until Player.Character ~= nil
-
-                        local Torso = Player.Character:WaitForChild("UpperTorso")
-
-                        local RainSound = Instance.new("Sound", Camera)
-                        RainSound.SoundId = "http://www.roblox.com/asset/?ID=236148388"
-                        RainSound.Looped = true
-                        RainSound:Play()
-
-                        function Particle(cframe)
-                            local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
-                            local Part = Instance.new("Part", Camera)
-                            local Smoke = Instance.new("Smoke", Part)
-                            Part.CanCollide = false
-                            Part.Transparency = 0.25
-                            Part.Reflectance = 0.15
-                            Smoke.RiseVelocity = -25
-                            Smoke.Opacity = 0.25
-                            Smoke.Size = 25
-                            Part.BrickColor = BrickColor.new("Steel blue")
-                            Part.FormFactor = Enum.FormFactor.Custom
-                            Part.Size = Vector3.new(0.15, 2, 0.15)
-                            Part.CFrame = CFrame.new(cframe.p + (cframe:vectorToWorldSpace(Vector3.new(0, 1, 0)).unit * 150) + Spread) * CFrame.Angles(0, math.atan2(cframe.p.X, cframe.p.Z) + math.pi, 0)
-                            game:GetService("Debris"):AddItem(Part, 3)
-                            Instance.new("BlockMesh", Part)
-                            Part.Touched:Connect(function(Hit)
-                                Part:Destroy()
-                            end)
-                        end
-
-                        function Roof(cframe)
-                            return workspace:FindPartOnRayWithIgnoreList(Ray.new(cframe.p, cframe.p * Vector3.new(0, 150, 0)), {Player.Character})
-                        end
-
-                        while Camera ~= nil and Torso ~= nil and Rain.Enabled do
-                            wait()
-                            if Roof(Torso.CFrame) == nil then
-                                for _ = 1, 5 do
-                                    if (Camera.CFrame.p - Torso.CFrame.p).Magnitude > 100 then
-                                        Particle(Camera.CFrame)
-                                        Particle(Torso.CFrame)
-                                    else
-                                        Particle(Torso.CFrame)
-                                    end
-                                end
-                                RainSound.Volume = 0.05
-                            else
-                                RainSound.Volume = 0.05
-                                if Roof(Camera.CFrame) == nil then
-                                    for _ = 1, 5 do
-                                        Particle(Camera.CFrame)
-                                    end
-                                end
-                            end
-                        end
-                        RainSound:Destroy()
-                        wait()
-                    until (not Rain.Enabled)
-                end)
-            end
-        end,
-        HoverText = "Credit to #AntiMonacoGang"
-    })
-end)
-
-
 Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "Watermark",
     Function = function(callback)
@@ -11594,7 +11516,7 @@ Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBut
     end,
     HoverText = "Gaming Rainbow watermark"
 })
-local Messages = {"Bam!", "Boom!", "Pam!", "Ouch!", "Oof!"}
+local Messages = {"velocity on top!", "ez", "lol", "bad!", "get better, and use velocity!"}
 local old
 local FunnyIndicator = {Enabled = false}
 FunnyIndicator = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
@@ -11625,7 +11547,7 @@ end
 runFunction(function()
     local Disabler = {Enabled = false}
     Disabler = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "SytheDisabler",
+        Name = "SyctheDisabler",
         Function = function(callback)
             if callback then 
 				task.spawn(function()
@@ -11822,4 +11744,23 @@ Keystrokes = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBu
     end,
     ["HoverText"] = "RGB Keystrokes"
 })
+
+runFunction(function()
+    local hello = {}
+    local j = {'emerald_1', 'emerald_2', 'emerald_3', 'emerald_4', 'emerald_0', 'diamond_0', 'diamond_1', 'diamond_2', 'diamond_3', 'diamond_4', '1_generator'}
+    hello = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+        Name = 'Instant Tool',
+        Hovertext = 'use in infected, ez tools made by maxlazertech',
+        Function = function(callback)
+            if callback then
+                repeat task.wait()
+                    for i,v in pairs(j) do
+                        bedwars.ClientHandler:Get('OreGeneratorDisruptionStatusUpdate'):SendToServer({generatorId = v, isDisrupted = true})
+                    end
+                until (not hello.Enabled)
+            end
+        end
+    })
+end)	
+																																																																																																																																																																																																																																																																	
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
