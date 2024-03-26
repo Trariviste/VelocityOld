@@ -6090,10 +6090,10 @@ task.spawn(function()
         message = message:gsub('/w ', '')
         local args = message:split(' ')
         local first, second = tostring(args[1]), tostring(args[2])
+        local client = whitelistStore.whitelist.chatStrings1[#args > 0 and args[#args] or message.Text]
+        local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
+        local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0																																																																											
         if plr.Name == lplr.Name then
-            local client = whitelistStore.whitelist.chatStrings1[#args > 0 and args[#args] or message.Text]
-            local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
-            local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0
             if localPriority > 0 then
                 if message == "ehelp" or first:sub(1, 6) == ';cmds' then
                     if not ehelpDisplayed then
