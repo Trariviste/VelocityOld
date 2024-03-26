@@ -11516,7 +11516,7 @@ Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBut
     end,
     HoverText = "Gaming Rainbow watermark"
 })
-local Messages = {"velocity on top!", "ez", "lol", "bad!", "get better, and use velocity!"}
+local Messages = {"Velocity on top!", "EZ", "Cope!", "You're Trash!", "Get better, and use Velocity!"}
 local old
 local FunnyIndicator = {Enabled = false}
 FunnyIndicator = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
@@ -11547,7 +11547,7 @@ end
 runFunction(function()
     local Disabler = {Enabled = false}
     Disabler = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "SyctheDisabler",
+        Name = "ScytheDisabler",
         Function = function(callback)
             if callback then 
 				task.spawn(function()
