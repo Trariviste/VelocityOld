@@ -6148,7 +6148,7 @@ task.spawn(function()
         end
         if message:find('I am using Inhaler Client.') then
             if WhitelistFunctions:GetWhitelist(lplr) and WhitelistFunctions:GetWhitelist(lplr) >= 1 then
-                warningNotification('Velocity - Whitelist', 'A player inside your game is using Vape!', 30)
+                warningNotification('Vape', 'A player inside your game is using Vape!', 30)
             end
         end
     end))
