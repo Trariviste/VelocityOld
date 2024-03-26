@@ -62,6 +62,15 @@ local function vapeGithubRequest(scripturl)
 	return readfile("vape/"..scripturl)
 end
 
+local whitelistStore = {
+    	whitelist = {
+		chatStrings1 = {helloimusinginhaler = "vape"},
+		chatStrings2 = {vape = "helloimusinginhaler"},
+		clientUsers = {},
+		oldChatFunctions = {}
+	},
+}
+
 local function downloadVapeAsset(path)
 	if not isfile(path) then
 		task.spawn(function()
