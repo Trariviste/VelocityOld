@@ -2669,7 +2669,7 @@ runFunction(function()
 			if player:GetAttribute('Spectator') and table.find(legitgamers, player) == nil and friendActive(friends) == nil and bedwars.ClientStoreHandler:getState().Game.customMatch == nil then 
 				savestaffConfig(player, 'illegal_join')
 				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('StaffDetector', player.DisplayName..' is overwatching you.', 60)
+				warningNotification('StaffDetector', player.DisplayName..' is overwatching you. [illegal_join]', 60)
 				return staffactions[StaffDetectorMode.Value]()
 			end
 			if table.find(legitgamers, player) == nil and tostring(player.Team) ~= 'Neutral' and not player:GetAttribute('Spectator') then 
@@ -2678,7 +2678,7 @@ runFunction(function()
 			if table.find(staffconfig.staffaccounts, player.UserId) or table.find(knownstaff, player.UserId) then 
 				savestaffConfig(player, 'blacklisted_users')
 				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('StaffDetector', player.DisplayName..' is cached on staff json.', 60)
+				warningNotification('StaffDetector', player.DisplayName..' is cached on staff json. [blacklisted_users]', 60)
 				return staffactions[StaffDetectorMode.Value]()
 			end
 			local success, response = true, cachedroles[player]
