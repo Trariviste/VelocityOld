@@ -3564,6 +3564,10 @@ runFunction(function()
 			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.1},
 			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.1}
 		},
+		["Latest Fast"] = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.01},
+			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.01}
+		},
 		["Vertical Spin"] = {
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), math.rad(8), math.rad(5)), Time = 0.1},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(180), math.rad(3), math.rad(13)), Time = 0.1},
@@ -3580,7 +3584,113 @@ runFunction(function()
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.1},
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.05},
 			{CFrame = CFrame.new(0.63, -0.1, 1.37) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.15}
-		}
+		},
+		Funny = {
+			{CFrame = CFrame.new(0, 0, 1.5) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.15},
+			{CFrame = CFrame.new(0, 0, -1.5) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.15},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.15},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-55), math.rad(0), math.rad(0)), Time = 0.15}
+		},
+		FunnyFuture = {
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)),Time = 0.25},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25}
+		},
+		Goofy = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.25},
+			{CFrame = CFrame.new(-1, -1, 1) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(-33)),Time = 0.25}
+		},
+		Future = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.10) * CFrame.Angles(math.rad(295), math.rad(55), math.rad(290)), Time = 0.20},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25}
+		},
+		Pop = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.15},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-30), math.rad(80), math.rad(-90)), Time = 0.35},
+			{CFrame = CFrame.new(0, 1, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.35}
+		},
+		FunnyV2 = {
+			{CFrame = CFrame.new(0.10, -0.5, -1) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(300)), Time = 0.45},
+			{CFrame = CFrame.new(-5, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.45},
+			{CFrame = CFrame.new(5, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.45},
+		},
+		Smooth = {
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(80), math.rad(60)), Time = 0.25},
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(100), math.rad(60)), Time = 0.25},
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.25},
+		},
+		FasterSmooth = {
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(80), math.rad(60)), Time = 0.11},
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(100), math.rad(60)), Time = 0.11},
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.11},
+		},
+		PopV2 = {
+			{CFrame = CFrame.new(0.10, -0.3, -0.30) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(290)), Time = 0.09},
+			{CFrame = CFrame.new(0.10, 0.10, -1) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(300)), Time = 0.1},
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.15},
+		},
+		Bob = {
+			{CFrame = CFrame.new(-0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+			{CFrame = CFrame.new(-0.7, -2.5, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+		},
+		Knife = {
+			{CFrame = CFrame.new(-0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+			{CFrame = CFrame.new(1, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+			{CFrame = CFrame.new(4, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+		},
+		FunnyExhibition = {
+			{CFrame = CFrame.new(-1.5, -0.50, 0.20) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.10},
+			{CFrame = CFrame.new(-0.55, -0.20, 1.5) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+		},
+		Remake = {
+			{CFrame = CFrame.new(-0.10, -0.45, -0.20) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-50)), Time = 0.01},
+			{CFrame = CFrame.new(0.7, -0.71, -1) * CFrame.Angles(math.rad(-90), math.rad(50), math.rad(-38)), Time = 0.2},
+			{CFrame = CFrame.new(0.63, -0.1, 1.50) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.15}
+		},
+		PopV3 = {
+			{CFrame = CFrame.new(0.69, -0.10, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.1},
+			{CFrame = CFrame.new(0.69, -2, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1}
+		},
+		PopV4 = {
+			{CFrame = CFrame.new(0.69, -0.10, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.01},
+			{CFrame = CFrame.new(0.7, -0.30, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.01},
+			{CFrame = CFrame.new(0.69, -2, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.01}
+		},
+		Shake = {
+			{CFrame = CFrame.new(0.69, -0.8, 0.6) * CFrame.Angles(math.rad(-60), math.rad(30), math.rad(-35)), Time = 0.05},
+			{CFrame = CFrame.new(0.8, -0.71, 0.30) * CFrame.Angles(math.rad(-60), math.rad(39), math.rad(-55)), Time = 0.02},
+			{CFrame = CFrame.new(0.8, -2, 0.45) * CFrame.Angles(math.rad(-60), math.rad(30), math.rad(-55)), Time = 0.03}
+		},
+		Idk = {
+			{CFrame = CFrame.new(0, -0.1, -0.30) * CFrame.Angles(math.rad(-20), math.rad(20), math.rad(0)), Time = 0.30},
+			{CFrame = CFrame.new(0, -0.50, -0.30) * CFrame.Angles(math.rad(-40), math.rad(41), math.rad(0)), Time = 0.32},
+			{CFrame = CFrame.new(0, -0.1, -0.30) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)), Time = 0.32}
+		},
+		Block = {
+			{CFrame = CFrame.new(1, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
+			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(45), math.rad(0), math.rad(0)), Time = 0.2},
+			{CFrame = CFrame.new(1, 0, 0) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)), Time = 0.2},
+			{CFrame = CFrame.new(0.3, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+		},
+		BingChilling = {
+			{CFrame = CFrame.new(0.07, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+		},
+		['Womp Womp'] = {
+			{CFrame = CFrame.new(0.07, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(15), math.rad(-90)), Time = 0.1},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+		},
+		['Yomp Yomp'] = {
+			{CFrame = CFrame.new(0.07, -0.7, 0.6) * CFrame.Angles(math.rad(0), math.rad(15), math.rad(-20)), Time = 0.1},
+			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+		},
+		FunnyV3 = {
+			{CFrame = CFrame.new(0.8, 10.7, 3.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.1},
+            {CFrame = CFrame.new(5.7, -1.7, 5.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.15},
+            {CFrame = CFrame.new(2.95, -5.06, -6.25) * CFrame.Angles(math.rad(-179), math.rad(61), math.rad(80)), Time = 0.15}
+		},
 	}
 
 	local function closestpos(block, pos)
@@ -10494,9 +10604,6 @@ local DrawQuad; do
     end
 end
 
-
-
-
 function BindFrame(frame, properties)
     if binds[frame] then
         return binds[frame].parts
@@ -10820,13 +10927,13 @@ NovolithPack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptions
 	Function = function(callback)
 		if callback then
 			local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
-local objs = game:GetObjects("rbxassetid://14356045010")
-local import = objs[1]
-import.Parent = game:GetService("ReplicatedStorage")
-index = {
-    {
+			local ReplicatedStorage = game:GetService("ReplicatedStorage")
+			local Workspace = game:GetService("Workspace")
+			local objs = game:GetObjects("rbxassetid://14356045010")
+			local import = objs[1]
+			import.Parent = game:GetService("ReplicatedStorage")
+	index = {
+    	{
         name = "wood_sword",
         offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
         model = import:WaitForChild("Wood_Sword"),
@@ -10858,12 +10965,12 @@ index = {
     }, 
        {
         name = "fireball",
-				offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
         model = import:WaitForChild("Fireball"),
     }, 
     {
         name = "telepearl",
-				offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
         model = import:WaitForChild("Telepearl"),
     }, 
     {
@@ -11084,6 +11191,7 @@ runFunction(function()
 		end
 	})
 end)
+
 runFunction(function()
 	local uhbye
 	local byebye
@@ -11201,6 +11309,7 @@ runFunction(function()
 		end
 	})
 end)
+
 runFunction(function()
 	local function isHighlight(item)
 		local yes = false
@@ -11339,6 +11448,7 @@ runFunction(function()
 		end
 	})
 end)
+
 Aquaripack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "Aquari 16x Pack",
     Function = function(callback)
@@ -11449,39 +11559,6 @@ Aquaripack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBu
     ["HoverText"] = "Credit = star.wtf"
 })
 
-runFunction(function()
-    local DragonBreathFunny = {Enabled = false}
-    DragonBreathFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
-        Name = "DragonBreath",
-        Function = function(callback)
-            if callback then 
-                task.spawn(function()	
-                    repeat
-                        task.wait(0.3) 
-                        replicatedStorageService:WaitForChild("rbxts_include"):WaitForChild("node_modules"):WaitForChild("@rbxts"):WaitForChild("net"):WaitForChild("out"):WaitForChild("_NetManaged"):WaitForChild("DragonBreath"):FireServer({player = lplr})
-                    until not DragonBreathFunny.Enabled
-                end)
-            end
-        end
-    })
-end)
-
-
-runFunction(function()
-local PartyPopperFunny = {Enabled = false}
-PartyPopperFunny = GuiLibrary["ObjectsThatCanBeSaved"]["VelocityWindow"]["Api"].CreateOptionsButton({
-	Name = "PartyPopper",
-	Function = function(callback)
-		if callback then 
-			task.spawn(function()	
-				repeat task.wait(0.3) 
-				replicatedStorageService["events-@easy-games/game-core:shared/game-core-networking@getEvents.Events"].useAbility:FireServer("PARTY_POPPER")
-				until (not PartyPopperFunny.Enabled)
-			end)
-		end
-	end
-})
-end)
 
 Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "Watermark",
@@ -11495,6 +11572,7 @@ Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsBut
     end,
     HoverText = "Gaming Rainbow watermark"
 })
+
 local Messages = {"Velocity on top!", "EZ", "Cope!", "You're Trash!", "Get better, and use Velocity!"}
 local old
 local FunnyIndicator = {Enabled = false}
@@ -11543,15 +11621,15 @@ runFunction(function()
 		HoverText = "Credit - dxrk + storm"
     })
 end)
-game:GetService('RunService').RenderStepped:Connect(function()
 
+game:GetService('RunService').RenderStepped:Connect(function()
   local args = {
       [1] = {
           ["direction"] = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.LookVector
       }
   }
 
-         game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.ScytheDash:FireServer(unpack(args))
+    game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.ScytheDash:FireServer(unpack(args))
 end)
 x16Pack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "x16 Pack",
@@ -11666,6 +11744,7 @@ x16Pack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButto
     end,
     ["HoverText"] = "Ily Melo, turn off after."
 })
+
 tpem = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
     Name = "EmeraldTP",
     Function = function(callback)
