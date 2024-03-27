@@ -10,6 +10,7 @@ local collectionService = game:GetService("CollectionService")
 local replicatedStorageService = game:GetService("ReplicatedStorage")
 local gameCamera = workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
+local teleportService = game:GetService("TeleportService")
 local vapeConnections = {}
 local vapeCachedAssets = {}
 local vapeEvents = setmetatable({}, {
@@ -2586,176 +2587,154 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local AutoLeaveDelay = {Value = 1}
-	local AutoPlayAgain = {Enabled = false}
-	local AutoLeaveStaff = {Enabled = true}
-	local AutoLeaveStaff2 = {Enabled = true}
-	local AutoLeaveRandom = {Enabled = false}
-	local leaveAttempted = false
-
-	local function getRole(plr)
-		local suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
-		if not suc then 
-			repeat
-				suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
-				task.wait()
-			until suc
-		end
-		if plr.UserId == 1774814725 then 
-			return 200
-		end
-		return res
-	end
-
-	local flyAllowedmodules = {"Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", "AimAssist", "AutoLeave", "Reach"}
-	local function autoLeaveAdded(plr)
-		task.spawn(function()
-			if not shared.VapeFullyLoaded then
-				repeat task.wait() until shared.VapeFullyLoaded
-			end
-			if getRole(plr) >= 100 then
-				if AutoLeaveStaff.Enabled then
-					if #bedwars.ClientStoreHandler:getState().Party.members > 0 then 
-						bedwars.LobbyClientEvents.leaveParty()
+	local StaffDetector = {}
+	local StaffDetectorMode = {Value = 'Lobby'}
+	local legitgamers = {}
+	local staffconfig = {legitmessages = {}, staffaccounts = {}, legitmodules = {}}
+	local cachedfriends = {}
+	local cachedroles = {}
+	local knownstaff = {}
+	local staffactions = {
+		Uninject = GuiLibrary.SelfDestruct,
+		Lobby = function()
+			teleportService:Teleport(6872265039)
+		end,
+		LegitLobby = function()
+			GuiLibrary.SelfDestruct()
+			local messages = getrandomvalue(staffconfig.legitmessages)
+			if messages ~= '' then 
+				for i,v in next, messages do 
+					sendchatmessage(v)
+					if i < #messages then 
+						task.wait(math.random(0.5, 1.2)) 
 					end
-					if AutoLeaveStaff2.Enabled then 
-						warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name).." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
-						GuiLibrary.SaveSettings = function() end
-						for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-							if v.Type == "OptionsButton" then
-								if table.find(flyAllowedmodules, i:gsub("OptionsButton", "")) == nil and tostring(v.Object.Parent.Parent):find("Render") == nil then
-									if v.Api.Enabled then
-										v.Api.ToggleButton(false)
-									end
-									v.Api.SetKeybind("")
-									v.Object.TextButton.Visible = false
-								end
-							end
-						end
-					else
-						GuiLibrary.SelfDestruct()
-						game:GetService("StarterGui"):SetCore("SendNotification", {
-							Title = "Vape",
-							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
-							Duration = 60,
-						})
-					end
-					return
-				else
-					warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
 				end
 			end
+			teleportService:Teleport(6872265039)
+		end,
+		Config = function()
+			for i,v in next, GuiLibrary.ObjectsThatCanBeSaved do 
+				if v.Type == 'OptionsButton' and table.find(staffconfig.legitmodules, i:gsub('OptionsButton', '')) == nil then 
+					GuiLibrary.SaveSettings = function() end
+					if v.Api.Enabled then
+						v.Api.ToggleButton()
+					end
+					pcall(GuiLibrary.RemoveObject, i)
+				end
+			end
+		end
+	}
+	local function savestaffConfig(plr, detection)
+		local success, json = pcall(function() 
+			return httpService:JSONDecode(readfile('vape/Velocity/staffdata.json'))
 		end)
-	end
-
-	local function isEveryoneDead()
-		if #bedwars.ClientStoreHandler:getState().Party.members > 0 then
-			for i,v in pairs(bedwars.ClientStoreHandler:getState().Party.members) do
-				local plr = playersService:FindFirstChild(v.name)
-				if plr and isAlive(plr, true) then
-					return false
-				end
-			end
-			return true
+		if not success then 
+			json = {}
+		end
+		table.insert(json, {Username = plr.Name, DisplayName = plr.DisplayName, Detection = detection, Tick = tick()})
+		if isfolder('vape/Velocity') then 
+			writefile('vape/Velocity/staffdata.json', httpService:JSONEncode(json))
 		else
-			return true
+			makefolder('vape/Velocity')
+			writefile('vape/Velocity/staffdata.json', httpService:JSONEncode(json))
 		end
 	end
-
-	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "AutoLeave", 
+	local function GetRobloxFriends(plr)
+		local friends = {}
+		local success, page = pcall(function() return playersService:GetFriendsAsync(plr.UserId) end)
+		if success then
+		   repeat
+			   for i,v in next, page:GetCurrentPage() do
+				   table.insert(friends, v.UserId)
+			   end
+			   if not page.IsFinished then 
+				   page:AdvanceToNextPageAsync()
+			   end
+		   until page.IsFinished
+		end
+		return friends
+	end
+	local function friendActive(friendtab)
+		for i,v in next, friendtab do 
+			local friend = playersService:GetPlayerByUserId(v)
+			if friend then 
+				return friend 
+			end
+		end
+	end
+	local function staffDetectorFunction(player)
+		repeat 
+			local friends = (cachedfriends[player] or GetRobloxFriends(player))
+			cachedfriends[player] = friends
+			if player:GetAttribute('Spectator') and table.find(legitgamers, player) == nil and friendActive(friends) == nil and bedwars.ClientStoreHandler:getState().Game.customMatch == nil then 
+				savestaffConfig(player, 'illegal_join')
+				bedwars.LobbyEvents.leaveParty:FireServer()
+				warningNotification('StaffDetector', player.DisplayName..' is overwatching you.', 60)
+				return staffactions[StaffDetectorMode.Value]()
+			end
+			if table.find(legitgamers, player) == nil and tostring(player.Team) ~= 'Neutral' and not player:GetAttribute('Spectator') then 
+				table.insert(legitgamers, player)
+			end
+			if table.find(staffconfig.staffaccounts, player.UserId) or table.find(knownstaff, player.UserId) then 
+				savestaffConfig(player, 'blacklisted_users')
+				bedwars.LobbyEvents.leaveParty:FireServer()
+				warningNotification('StaffDetector', player.DisplayName..' is cached on staff json.', 60)
+				return staffactions[StaffDetectorMode.Value]()
+			end
+			local success, response = true, cachedroles[player]
+			if response == nil then 
+				success, response = pcall(player.GetRoleInGroup, lplr, 5774246)
+			end
+			cachedroles[player] = response 
+			if tonumber(response) and tonumber(response) >= 100 then 
+				savestaffConfig(player, 'group_rank')
+				bedwars.LobbyEvents.leaveParty:FireServer()
+				warningNotification('StaffDetector', player.DisplayName..' has a high role in the Easy.gg group (GetRoleInGroup() >= 100).', 60)
+				return staffactions[StaffDetectorMode.Value]()
+			end
+			task.wait()
+		until (not StaffDetector.Enabled)
+	end
+	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+		Name = 'StaffDetector',
+		HoverText = 'Notifies you when a staff joins. | <Credits RENDER>',
 		Function = function(callback)
-			if callback then
-				table.insert(AutoLeave.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
-					if (not leaveAttempted) and deathTable.finalKill and deathTable.entityInstance == lplr.Character then
-						leaveAttempted = true
-						if isEveryoneDead() and bedwarsStore.matchState ~= 2 then
-							task.wait(1 + (AutoLeaveDelay.Value / 10))
-							if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
-								if not AutoPlayAgain.Enabled then
-									bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-								else
-									if AutoLeaveRandom.Enabled then 
-										local listofmodes = {}
-										for i,v in pairs(bedwars.QueueMeta) do
-											if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
-										end
-										bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
-									else
-										bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
-									end
-								end
-							end
-						end
-					end
-				end))
-				table.insert(AutoLeave.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(deathTable)
-					task.wait(AutoLeaveDelay.Value / 10)
-					if not AutoLeave.Enabled then return end
-					if leaveAttempted then return end
-					leaveAttempted = true
-					if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
-						if not AutoPlayAgain.Enabled then
-							bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-						else
-							if bedwars.ClientStoreHandler:getState().Party.queueState == 0 then
-								if AutoLeaveRandom.Enabled then 
-									local listofmodes = {}
-									for i,v in pairs(bedwars.QueueMeta) do
-										if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
-									end
-									bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
-								else
-									bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
-								end
-							end
-						end
-					end
-				end))
-				table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoLeaveAdded))
-				for i, plr in pairs(playersService:GetPlayers()) do
-					autoLeaveAdded(plr)
+			if callback then 
+				local staffconfig = game:HttpGet("https://raw.githubusercontent.com/Copiums/Velocity/main/staffdetect/staffconfig.json")
+				makefolder('vape/Velocity')
+				wait(1)
+				if not isfile('vape/Velocity/staffconfig.json') then
+					writefile('vape/Velocity/staffconfig.json', staffconfig)
 				end
+				if not isfile('vape/Velocity/knownstaff.json') then
+					writefile('vape/Velocity/knownstaff.json', '[]')
+				end
+				pcall(function() 
+					for i,v in next, httpService:JSONDecode(readfile('vape/Velocity/staffdata.json')) do 
+						if table.find(knownstaff, v) == nil then 
+							table.insert(knownstaff, v)
+						end
+					end
+				end)
+				repeat task.wait() until (shared.VapeFullyLoaded or not StaffDetector.Enabled)
+				if not StaffDetector.Enabled then 
+					return 
+				end
+				for i,v in next, playersService:GetPlayers() do 
+					if v ~= lplr then
+						task.spawn(staffDetectorFunction, v)
+					end
+				end
+				table.insert(vapeConnections, playersService.PlayerAdded:Connect(staffDetectorFunction))
+				warningNotification('Vape', 'Finished setup, module is now ready to be used.', 4)
 			end
-		end,
-		HoverText = "Leaves if a staff member joins your game or when the match ends."
+		end
 	})
-	AutoLeaveDelay = AutoLeave.CreateSlider({
-		Name = "Delay",
-		Min = 0,
-		Max = 50,
-		Default = 0,
-		Function = function() end,
-		HoverText = "Delay before going back to the hub."
+	StaffDetectorMode = StaffDetector.CreateDropdown({
+		Name = 'Action',
+		List = dumptable(staffactions, 1),
+		Function = function() end
 	})
-	AutoPlayAgain = AutoLeave.CreateToggle({
-		Name = "Play Again",
-		Function = function() end,
-		HoverText = "Automatically queues a new game.",
-		Default = true
-	})
-	AutoLeaveStaff = AutoLeave.CreateToggle({
-		Name = "Staff",
-		Function = function(callback) 
-			if AutoLeaveStaff2.Object then 
-				AutoLeaveStaff2.Object.Visible = callback
-			end
-		end,
-		HoverText = "Automatically uninjects when staff joins",
-		Default = true
-	})
-	AutoLeaveStaff2 = AutoLeave.CreateToggle({
-		Name = "Staff AutoConfig",
-		Function = function() end,
-		HoverText = "Instead of uninjecting, It will now reconfig vape temporarily to a more legit config.",
-		Default = true
-	})
-	AutoLeaveRandom = AutoLeave.CreateToggle({
-		Name = "Random",
-		Function = function(callback) end,
-		HoverText = "Chooses a random mode"
-	})
-	AutoLeaveStaff2.Object.Visible = false
 end)
 
 runFunction(function()
@@ -9896,8 +9875,8 @@ runFunction(function()
 	ScytheDisabler = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
 		Name = 'FirewallBypass',
 		HoverText = 'Float disabler for scythe',
-		Function = function(calling)
-			if calling then 
+		Function = function(callback)
+			if callback then 
 				repeat
 					task.wait()
 					if killauraNearPlayer then 
@@ -11762,5 +11741,3 @@ runFunction(function()
         end
     })
 end)	
-																																																																																																																																																																																																																																																																	
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

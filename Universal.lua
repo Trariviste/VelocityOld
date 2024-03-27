@@ -450,9 +450,9 @@ task.spawn(function()
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
-	local tag = WhitelistFunctions:GrabTagText(plr)
-	local c = WhitelistFunctions:GrabTagColor(plr)
+		local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
+		local tag = WhitelistFunctions:GrabTagText(plr)
+		local c = WhitelistFunctions:GrabTagColor(plr)
         local tagText = ""
         local tagColor = color or ""
 	
@@ -472,8 +472,8 @@ task.spawn(function()
             end
         end
         WhitelistFunctions.playerTags[plr] = {
-                Text = tagText,
-                Color = tagColor
+            Text = tagText,
+            Color = tagColor
         }
         pcall(function() shared.vapeentity.fullEntityRefresh() end)
         return WhitelistFunctions.playerTags[plr]
@@ -488,15 +488,15 @@ task.spawn(function()
 		return false
 	end
 	function WhitelistFunctions:CheckPlayerType(plr)
-                local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-                if plrPriority == 0 then
-                        return 'DEFAULT'
-                elseif plrPriority == 1 then
-                        return 'VAPE PRIVATE'
-                elseif plrPriority == 2 then
-                        return 'VAPE OWNER'
-                end
+        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
+        if plrPriority == 0 then
+            return 'DEFAULT'
+        elseif plrPriority == 1 then
+            return 'VAPE PRIVATE'
+        elseif plrPriority == 2 then
+            return 'VAPE OWNER'
         end
+    end
 end
 shared.vapewhitelist = WhitelistFunctions
 
@@ -5998,13 +5998,14 @@ local function whitelistFunction(plr)
     repeat task.wait() until WhitelistFunctions.Loaded
     local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)                                                                                                                                            
     if WhitelistFunctions.LocalPriority >= 1 and not sent then                                                                                                                                                
-        warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
+        warningNotification('Velocity', 'You are now authenticated for whitelist. Time to troll velocity users!', 4.5)
         sent = true
     elseif WhitelistFunctions.LocalPriority == 0 and WhitelistFunctions:IsSpecialIngame() and not said then
         sendmessage('helloimusinginhaler')
         said = true                                                                                                                                                     
     end
 end
+
 whitelistFunction(lplr)
 
 runFunction(function()
@@ -6200,4 +6201,4 @@ runFunction(function()
 	createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5))
 	createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5))
 	createKeystroke(Enum.KeyCode.Space, UDim2.new(0, 0, 0, 83), UDim2.new(0, 25, 0, -10))
-end)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+end)
