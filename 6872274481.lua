@@ -2586,6 +2586,7 @@ runFunction(function()
 	})
 end)
 
+
 runFunction(function()
 	local StaffDetector = {}
 	local StaffDetectorMode = {Value = 'Lobby'}
@@ -2625,7 +2626,7 @@ runFunction(function()
 		end
 	}
 	local function savestaffConfig(plr, detection)
-		local success, json = pcall(function() 
+		local success, json = pcall(function()
 			return httpService:JSONDecode(readfile('vape/Velocity/staffdata.json'))
 		end)
 		if not success then 
@@ -2633,9 +2634,6 @@ runFunction(function()
 		end
 		table.insert(json, {Username = plr.Name, DisplayName = plr.DisplayName, Detection = detection, Tick = tick()})
 		if isfolder('vape/Velocity') then 
-			writefile('vape/Velocity/staffdata.json', httpService:JSONEncode(json))
-		else
-			makefolder('vape/Velocity')
 			writefile('vape/Velocity/staffdata.json', httpService:JSONEncode(json))
 		end
 	end
@@ -2669,7 +2667,7 @@ runFunction(function()
 			if player:GetAttribute('Spectator') and table.find(legitgamers, player) == nil and friendActive(friends) == nil and bedwars.ClientStoreHandler:getState().Game.customMatch == nil then 
 				savestaffConfig(player, 'illegal_join')
 				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('StaffDetector', player.DisplayName..' is overwatching you. [illegal_join]', 60)
+				warningNotification('Vape', player.DisplayName..' is overwatching you. (illegal_join)', 60)
 				return staffactions[StaffDetectorMode.Value]()
 			end
 			if table.find(legitgamers, player) == nil and tostring(player.Team) ~= 'Neutral' and not player:GetAttribute('Spectator') then 
@@ -2678,7 +2676,7 @@ runFunction(function()
 			if table.find(staffconfig.staffaccounts, player.UserId) or table.find(knownstaff, player.UserId) then 
 				savestaffConfig(player, 'blacklisted_users')
 				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('StaffDetector', player.DisplayName..' is cached on staff json. [blacklisted_users]', 60)
+				warningNotification('Vape', player.DisplayName..' is cached on staff json. (blacklisted_users)', 60)
 				return staffactions[StaffDetectorMode.Value]()
 			end
 			local success, response = true, cachedroles[player]
@@ -2689,7 +2687,7 @@ runFunction(function()
 			if tonumber(response) and tonumber(response) >= 100 then 
 				savestaffConfig(player, 'group_rank')
 				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('StaffDetector', player.DisplayName..' has a high role in the Easy.gg group (GetRoleInGroup() >= 100).', 60)
+				warningNotification('Vape', player.DisplayName..' has a high role in the Easy.gg group (GetRoleInGroup() >= 100).', 60)
 				return staffactions[StaffDetectorMode.Value]()
 			end
 			task.wait()
@@ -2697,18 +2695,15 @@ runFunction(function()
 	end
 	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = 'StaffDetector',
-		HoverText = 'Notifies you when a staff joins. | <Credits RENDER>',
-		Function = function(callback)
-			if callback then 
-				local staffconfig = game:HttpGet("https://raw.githubusercontent.com/Copiums/Velocity/main/staffdetect/staffconfig.json")
+		HoverText = 'Detects when bedwars staff are in the server (75% accuracy). | Credits render',
+		Function = function(calling)
+			if calling then 
+				pcall(function() staffconfig = httpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Copiums/Velocity/main/staffdetect/staffconfig.json")) end)
+				pcall(function() knownstaff = httpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/SystemXVoid/Render/source/Libraries/knownstaff.json")) end)
+				
 				makefolder('vape/Velocity')
-				wait(1)
-				if not isfile('vape/Velocity/staffconfig.json') then
-					writefile('vape/Velocity/staffconfig.json', staffconfig)
-				end
-				if not isfile('vape/Velocity/knownstaff.json') then
-					writefile('vape/Velocity/knownstaff.json', '[]')
-				end
+				writefile('vape/Velocity/staffdata.json', staffconfig)
+
 				pcall(function() 
 					for i,v in next, httpService:JSONDecode(readfile('vape/Velocity/staffdata.json')) do 
 						if table.find(knownstaff, v) == nil then 
