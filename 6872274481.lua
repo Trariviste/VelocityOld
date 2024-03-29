@@ -89,6 +89,7 @@ local sendmessage = function() end
 local sendprivatemessage = function() end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
+local dumptable = function() return {} end
 local worldtoscreenpoint = function(pos)
 	if synapsev3 == "V3" then 
 		local scr = worldtoscreen({pos})
@@ -238,6 +239,18 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 	end
 
 	return playerPosition, Vector3.new(0, 0, 0)
+end
+
+dumptable = function(tab, tabtype, sortfunction)
+	local data = {}
+	for i,v in next, tab do
+		local tabtype = tabtype and tabtype == 1 and i or v
+		table.insert(data, tabtype)
+	end
+	if sortfunction then
+		table.sort(data, sortfunction)
+	end
+	return data
 end
 
 local entityLibrary = shared.vapeentity
