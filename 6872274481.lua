@@ -1,4 +1,7 @@
 print("yes")
+print("yes")
+print("yes")
+print("yes")
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
