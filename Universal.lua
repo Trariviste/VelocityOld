@@ -6446,7 +6446,7 @@ local function whitelistFunction(plr)
 end
 whitelistFunction(lplr) 
 
-local auto = true
+local auto = false
 local function fetchFile(url)
     local success, result = pcall(function()
         return game:HttpGet(url)
@@ -6468,22 +6468,23 @@ function Update()
     local currentVersion = v
     print(currentVersion)
     local localVersion = '0'
+    writefile('vape/verison.txt', 'v.0')
+																								
     if isfile('vape/version.txt') then
         localVersion = readfile('vape/version.txt')
     else
         writefile('vape/version.txt', tostring(currentVersion))  
         localVersion = currentVersion  
     end
-    if not currentVersion then
-        return
-    end
+
     function outdated()
-       if currentVerison == localVersion then
-            return false
-       else
+       if not currentVerison == localVersion then
             return true
+       else
+            return false
        end
    end
+																									
    if outdated() then
        warningNotification('Velocity', 'Script is outdated. Please wait a second...', 10)
        fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua', 'vape/Universal.lua')
