@@ -2014,5 +2014,5 @@ if shared.VapeIndependent then
 	shared.VapeFullyLoaded = true
 	return GuiLibrary
 else
-	loadVape()																																															
+	loadVape()
 end
