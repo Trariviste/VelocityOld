@@ -10026,6 +10026,25 @@ task.spawn(function()
 	end
 end)
 
+runFunction(function() ----credits to _dremi for the method
+    local NightmareEmote = {}
+    local NightmareSlot = 1
+    local NightmareEmoteValue = {"Nightmare"}
+    NightmareEmote = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
+        Name = 'Nightmare Emote',
+        Function = function(calling)
+            if calling then
+                lplr:SetAttribute("emote_slot_"..tostring(NightmareSlot), NightmareEmoteValue.Value)
+                lplr:SetAttribute("EmoteTypeSlot"..tostring(NightmareSlot), NightmareEmoteValue.Value)
+            end
+        end
+    })
+    NightmareEmoteValue = NightmareEmote.CreateDropdown({
+        Name = 'Emote',
+        List = {'nightmare_1'},
+        Function = function() end
+    })
+end)
 --[[
 
 	reason why some modules look 'different' than others, is because they're from my older config, and i cba to rewrite them atm.
