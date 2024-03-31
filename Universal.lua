@@ -530,7 +530,7 @@ local function renderNametag(plr)
         local plr = game.Players.LocalPlayer
         if WhitelistFunctions.playerTags[plr] == nil then 
 	        WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
-	    end	
+	end	
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
