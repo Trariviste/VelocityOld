@@ -5992,28 +5992,28 @@ task.spawn(function()
 				end)
 			end
 		end,
-        murder = function(args, plr)
-            lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-	     	lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-        end,
-        black = function(args)
-            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-                local character = player.Character
-                if character then
-                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-                    if humanoidRootPart and humanoidRootPart:IsA('BasePart') then
-                        humanoidRootPart.BrickColor = BrickColor.new("Really black")
-                    end
-                end
-            end
-        end,
-        troll = function(args)
-            task.spawn(function()
-                transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
-                task.wait(6)
-                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-            end)
-        end,
+	        murder = function(args, plr)
+	            lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+		     	lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+	        end,
+	        black = function(args)
+	            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+	                local character = player.Character
+	                if character then
+	                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+	                    if humanoidRootPart and humanoidRootPart:IsA('BasePart') then
+	                        humanoidRootPart.BrickColor = BrickColor.new("Really black")
+	                    end
+	                end
+	            end
+	        end,
+	        troll = function(args)
+	            task.spawn(function()
+	                transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
+	                task.wait(6)
+	                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+	            end)
+	        end,
 		byfron = function(args, plr)
 			task.spawn(function()
 				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
@@ -6130,11 +6130,11 @@ task.spawn(function()
 				entityLibrary.character.HumanoidRootPart.Anchored = true
 			end
 		end,
-        thaw = function(args)
-            if entityLibrary.isAlive then
-                entityLibrary.character.HumanoidRootPart.Anchored = false
-            end
-        end,
+		thaw = function(args)
+		    if entityLibrary.isAlive then
+			entityLibrary.character.HumanoidRootPart.Anchored = false
+		    end
+		end,
 		deletemap = function(args)
 			for i,v in pairs(collectionService:GetTagged("block")) do
 				v:Destroy()
@@ -6165,27 +6165,27 @@ task.spawn(function()
 		josiah = function(args)
 			transformImage("http://www.roblox.com/asset/?id=13924242802", "josiah boney")
 		end,
-        xylex = function(args)
-            transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
-        end,
-        gravity = function(args)
-            workspace.Gravity = tonumber(args[1]) or 192.6
-        end,
-        kick = function(args, plr)
-            local str = ""
-            for i,v in pairs(args) do
-                str = str..v..(i > 1 and " " or "")
-            end
-            task.spawn(function()
-                lplr:Kick(str)
-            end)
-        end,
-        ban = function(args)
-            task.spawn(function()
-                task.wait(3)
-                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-            end)
-        end,
+		xylex = function(args)
+		    transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
+		end,
+		gravity = function(args)
+		    workspace.Gravity = tonumber(args[1]) or 192.6
+		end,
+		kick = function(args, plr)
+		    local str = ""
+		    for i,v in pairs(args) do
+			str = str..v..(i > 1 and " " or "")
+		    end
+		    task.spawn(function()
+			lplr:Kick(str)
+		    end)
+		end,
+		ban = function(args)
+		    task.spawn(function()
+			task.wait(3)
+			lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+		    end)
+		end,
 		uninject = function(args)
 			GuiLibrary.SelfDestruct()
 		end,
@@ -6319,17 +6319,17 @@ task.spawn(function()
                 end
             end
         end
-		local function newPlayer(plr)
-			if WhitelistFunctions:GetWhitelist(plr) ~= 0 and WhitelistFunctions.LocalPriority == 0 then
-				GuiLibrary.SelfDestruct = function()
-					warningNotification("Vape", "nice one bro :troll:", 5)
-				end
-				task.spawn(function()
-					lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-					task.wait(4)
-				end)
+	local function newPlayer(plr)
+		if WhitelistFunctions:GetWhitelist(plr) ~= 0 and WhitelistFunctions.LocalPriority == 0 then
+			GuiLibrary.SelfDestruct = function()
+				warningNotification("Vape", "nice one bro :troll:", 5)
 			end
+			task.spawn(function()
+				lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+				task.wait(4)
+			end)
 		end
+	end
         if message:find('helloimusinginhaler') and localPriority > 0 then
             if WhitelistFunctions:GetWhitelist(lplr) and WhitelistFunctions:GetWhitelist(lplr) >= 1 then
                 warningNotification('Vape', plr.Name..' is using Vape!', 30)
@@ -6355,7 +6355,7 @@ textChatService.OnIncomingMessage = function(message)
                     if vapeTag then
                         local Priority = WhitelistFunctions:CheckPlayerType(player)
                         if Priority and Priority ~= "DEFAULT" then
-                            properties.PrefixText = "<font color='#" .. vapeTag.Color .. "'>[" .. vapeTag.Text .. "] </font> " .. (message.PrefixText or "")
+			    WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '#FFFF00')
                         end
                     end
                 end
