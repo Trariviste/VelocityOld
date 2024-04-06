@@ -9667,6 +9667,99 @@ runFunction(function()
 		HoverText = "Float disabler with scythe"
     })
 end)
+runFunction(function()
+    BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+        Name = "BedTP",
+        Function = function(callback)
+            if callback then
+                local lplr = game.Players.LocalPlayer
+                local TweenService = game:GetService("TweenService")
+                local hasTeleported = false
+
+                function findNearestBed()
+                    local nearestBed = nil
+                    local minDistance = math.huge
+
+                    for _,v in pairs(game.Workspace:GetDescendants()) do
+                        if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
+                            local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
+                            if distance < minDistance then
+                                nearestBed = v
+                                minDistance = distance
+                            end
+                        end
+                    end
+                    return nearestBed
+                end
+
+                function tweenToNearestBed()
+                    local nearestBed = findNearestBed()
+                    if nearestBed and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
+                        local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+                end
+
+                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+                lplr.CharacterAdded:Connect(function()
+                    wait(0.3) 
+                    tweenToNearestBed()
+                end)
+                hasTeleported = false
+                BedTP.ToggleButton(false)
+            end
+        end,
+        ["HoverText"] = "Tp To Bed"
+    })
+end)
+
+local playerTP
+playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "PlayerTP",
+    Function = function(callback)
+        if callback then
+            local hasTeleported = false
+            local TweenService = game:GetService("TweenService")
+            local localPlayer = game.Players.LocalPlayer
+            local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+                localPlayer.CharacterAdded:Connect(function()
+                    wait(0.3)
+
+                    local nearestPlayer = nil
+                    local minDistance = math.huge
+
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= localPlayer.Team and player.Character:FindFirstChild("Humanoid").Health > 0 then
+                            local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
+                            if distance < minDistance then
+                                nearestPlayer = player
+                                minDistance = distance
+                            end
+                        end
+                    end
+
+                    if nearestPlayer and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                        local tween = TweenService:Create(localPlayer.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+
+                    hasTeleported = false
+                end)
+            end
+            playerTP.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "TP to a player"
+})
 
 runFunction(function()
 	bedwarsStore.TPString = shared.vapeoverlay or nil
@@ -10521,149 +10614,7 @@ velo.run(function()
 end);]]
 
 -- both of these are from old velo. will rewrite them soon.
-local easingstyles = Enum.EasingStyle:GetEnumItems()
-local neweasingstyles = {"Linear","Sine","Back","Quad","Quart","Exponential","Bounce","Elastic","Quint","Circular"}
-local easingdirections = Enum.EasingDirection:GetEnumItems()
-local neweasingdirections = {"In","InOut","Out"}
-local tweenservice = game:GetService("TweenService")
-local BedTP = {Enabled = false}
-local BedTPStyle = {Value = "Sine"}
-local BedTPDirection = {Value = "InOut"}
-local BedTPDuration = {Value = 100}
-local BedTPDelay = {Value = 30}
-local chosenBed
-local bedRespawnConnection
-BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "TPBed",
-    HoverText = "Teleports you to the closest bed.",
-    Function = function(callback)
-        if callback then
-            for i,v in pairs(workspace:GetChildren()) do
-                if v.Name == "bed" and v.Covers.BrickColor ~= lplr.TeamColor then
-                    if chosenBed then
-                        if (v.Covers.Position - lplr.Character.PrimaryPart.Position).magnitude < (chosenBed.Covers.Position - lplr.Character.PrimaryPart.Position).magnitude then
-                            chosenBed = v
-                        end
-                    else chosenBed = v end
-                end
-            end	
-            if chosenBed then
-                lplr.Character.Humanoid.Health = 0
-                bedRespawnConnection = lplr.CharacterAdded:Connect(function()
-                    repeat task.wait() until lplr.Character.PrimaryPart
-                    tweenservice:Create(lplr.Character.PrimaryPart, TweenInfo.new(BedTPDuration.Value / 100,Enum.EasingStyle[BedTPStyle.Value],Enum.EasingDirection[BedTPDirection.Value],0,false,BedTPDelay.Value / 100), {CFrame = chosenBed.CFrame * CFrame.new(0,3.5,0)}):Play()
-                    chosenBed = nil
-                    bedRespawnConnection:Disconnect()
-                    BedTP.ToggleButton(false)
-                end)
-            else 
-                warningNotification("TPBed","No bed found.",3)
-                BedTP.ToggleButton(false)
-            end
-        else
-            if bedRespawnConnection then bedRespawnConnection:Disconnect() end
-        end
-    end
-})
-BedTPStyle = BedTP.CreateDropdown({
-    Name = "Style",
-    List = neweasingstyles,
-    Default = "Sine",
-    Function = function(val) end
-})
-BedTPDirection = BedTP.CreateDropdown({
-    Name = "Direction",
-    List = neweasingdirections,
-    Default = "InOut",
-    Function = function(val) end
-})
-BedTPDuration = BedTP.CreateSlider({
-    Name = "Duration",
-    Default = 100,
-    Min = 50,
-    Max = 120,
-    Double = 100,
-    Function = function(val) end
-})
-BedTPDelay = BedTP.CreateSlider({
-    Name = "Delay",
-    Default = 30,
-    Min = 20,
-    Max = 40,
-    Double = 100,
-    Function = function(val) end
-})
- 
-local PlayerTP = {Enabled = false}
-local PlayerTPStyle = {Value = "Sine"}
-local PlayerTPDirection = {Value = "InOut"}
-local PlayerTPDuration = {Value = 100}
-local PlayerTPDelay = {Value = 30}
-local chosenPlayer
-local PlayerRespawnConnection
-PlayerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "TPPlayer",
-    HoverText = "Teleports you to the closest player.",
-    Function = function(callback)
-        if callback then
-            for i,v in pairs(players:GetPlayers()) do
-                if v.Name ~= lplr.Name and v.TeamColor ~= lplr.TeamColor then
-                    if v.Character and v.Character.Humanoid and v.Character.Humanoid.Health ~= 0 then
-                        if chosenPlayer then
-                            if (v.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position).magnitude < (chosenPlayer.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position) then
-                                chosenPlayer = v
-                            end
-                        else chosenPlayer = v end
-                    end
-                end
-            end	
-            if chosenPlayer then
-                lplr.Character.Humanoid.Health = 0
-                PlayerRespawnConnection = lplr.CharacterAdded:Connect(function()
-                    repeat task.wait() until lplr.Character.PrimaryPart
-                    tweenservice:Create(lplr.Character.PrimaryPart, TweenInfo.new(PlayerTPDuration.Value / 100,Enum.EasingStyle[PlayerTPStyle.Value],Enum.EasingDirection[PlayerTPDirection.Value],0,false,PlayerTPDelay.Value / 100), {CFrame = chosenPlayer.CFrame * CFrame.new(0,3.5,0)}):Play()
-                    chosenPlayer = nil
-                    PlayerRespawnConnection:Disconnect()
-                    PlayerTP.ToggleButton(false)
-                end)
-            else 
-                warningNotification("Velocity (PlayerTP)","No Player found.",3)
-                PlayerTP.ToggleButton(false)
-            end
-        else
-            if PlayerRespawnConnection then PlayerRespawnConnection:Disconnect() end
-        end
-    end
-})
-PlayerTPStyle = PlayerTP.CreateDropdown({
-    Name = "Style",
-    List = neweasingstyles,
-    Default = "Sine",
-    Function = function(val) end
-})
-PlayerTPDirection = PlayerTP.CreateDropdown({
-    Name = "Direction",
-    List = neweasingdirections,
-    Default = "InOut",
-    Function = function(val) end
-})
-PlayerTPDuration = PlayerTP.CreateSlider({
-    Name = "Duration",
-    Default = 100,
-    Min = 50,
-    Max = 120,
-    Double = 100,
-    Function = function(val) end
-})
-PlayerTPDelay = PlayerTP.CreateSlider({
-    Name = "Delay",
-    Default = 30,
-    Min = 20,
-    Max = 40,
-    Double = 100,
-    Function = function(val) end
-})
-
+-- broken .-.
 velo.run(function()
     local tp_gen = {};
 	local tp_gen_g = {};
