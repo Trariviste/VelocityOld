@@ -5909,541 +5909,6 @@ runFunction(function()
 	})
 end)
 
--- didn't want to add this tbh
-runFunction(function()
-    local anim = {["Enabled"] = false}
-    anim = GuiLibrary["ObjectsThatCanBeSaved"]["UtilityWindow"]["Api"].CreateOptionsButton({
-        ["Name"] = "AnimationChanger",
-        ["HoverText"] = "gives you a FE Animation Pack. Its also customizable",
-        ["Function"] = function(callback)
-            if callback then
-                task.spawn(function()
-                    local Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-                    if not Hum then
-                        repeat task.wait() until Hum
-                    end
-                    local Animate = game:GetService("Players").LocalPlayer.Character.Animate
-
-                    ----Cartoony
-                    if animrun.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921076136"
-                    end
-                    if animwalk.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921082452"
-                    end
-                    if animfall.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921077030"
-                    end
-                    if animjump.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921078135"
-                    end
-                    if animidle.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921071918"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921072875"
-                    end
-                    if animclimb.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921070953"
-                    end
-                    ----Levitation
-                    if animrun.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921135644"
-                    end
-                    if animwalk.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921140719"
-                    end
-                    if animfall.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-                    if animjump.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                    end
-                    if animidle.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921132962"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921133721"
-                    end
-                    if animclimb.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921132092"
-                    end
-                    ----Robot
-                    if animrun.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921250460"
-                    end
-                    if animwalk.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921255446"
-                    end
-                    if animfall.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251156"
-                    end
-                    if animjump.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251519"
-                    end
-                    if animidle.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921247776"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921248461"
-                    end
-                    if animclimb.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921245669"
-                    end
-                    ----Stylish
-                    if animrun.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921529786"
-                    end
-                    if animwalk.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921539727"
-                    end
-                    if animfall.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921531448"
-                    end
-                    if animjump.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921533736"
-                    end
-                    if animidle.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921527750"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921528141"
-                    end
-                    if animclimb.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921525854"
-                    end
-                    ----Superhero
-                    if animrun.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350016"
-                    end
-                    if animwalk.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921353493"
-                    end
-                    if animfall.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350451"
-                    end
-                    if animjump.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921351314"
-                    end
-                    if animidle.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921348319"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921349011"
-                    end
-                    if animclimb.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921346417"
-                    end
-                    ----Zombie
-                    if animrun.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921472697"
-                    end
-                    if animwalk.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474987"
-                    end
-                    if animfall.Value == "Zombie" and animtype.Value == "Custom" then
-                        warn("Zombies don't work well with spider fall animation")
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921473341"
-                    end
-                    if animjump.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474136"
-                    end
-                    if animidle.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921470171"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921470752"
-                    end
-                    if animclimb.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921469135"
-                    end
-                    ----Ninja
-                    if animrun.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10920910496"
-                    end
-                    if animwalk.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10920915507"
-                    end
-                    if animfall.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10920912824"
-                    end
-                    if animjump.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10920913905"
-                    end
-                    if animidle.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10920909751"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10920910154"
-                    end
-                    if animclimb.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10920908048"
-                    end                   
-                    if animrun.Value == "Knight" and animtype.Value == "Custom" then
-	                    Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921121197" 	
-                    end
-                    if animwalk.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921127095"
-                    end
-                    if animfall.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921122579"
-                    end
-
-                    if animjump.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921123517"
-                    end
-
-                    if animidle.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921117521"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921118894"
-                    end
-
-                    if animclimb.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921116196"
-                    end
-
-                    --- Mage
-                    if animrun.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148209" 	
-                    end
-
-                    if animwalk.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921152678"
-                    end
-
-                    if animfall.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148939"
-                    end
-
-                    if animjump.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921149743"
-                    end
-
-                    if animidle.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921144709"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921145797"
-                    end
-
-                    if animclimb.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921143404"
-                    end
-
-                    --- Pirate
-                    if animrun.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=750783738" 	
-                    end
-
-                    if animwalk.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=750785693"
-                    end
-
-                    if animfall.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=750780242"
-                    end
-
-                    if animjump.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=750782230"
-                    end
-
-                    if animidle.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=750781874"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=750782770"
-                    end
-
-                    if animclimb.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=750779899"
-                    end
-
-                    --- Elder
-                    if animrun.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921104374" 	
-                    end
-
-                    if animwalk.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921111375"
-                    end
-
-                    if animfall.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921105765"
-                    end
-
-                    if animjump.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921107367"
-                    end
-
-                    if animidle.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921101664"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921102574"
-                    end
-
-                    if animclimb.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921100400"
-                    end
-
-                    --- Toy (my favorite)
-                    if animrun.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285" 	
-                    end
-
-                    if animwalk.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
-                    end
-
-                    if animfall.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921307241"
-                    end
-
-                    if animjump.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921308158"
-                    end
-
-                    if animidle.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
-                    end
-
-                    if animclimb.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921300839"
-                    end
-
-                    --- Bubbly
-                    if animrun.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921057244" 	
-                    end
-
-                    if animwalk.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10980888364"
-                    end
-
-                    if animfall.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921061530"
-                    end
-
-                    if animjump.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921062673"
-                    end
-
-                    if animidle.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921054344"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921055107"
-                    end
-
-                    if animclimb.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921053544"
-                    end
-
-                    --- Astronaut
-                    if animrun.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921039308" 	
-                    end
-
-                    if animwalk.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921046031"
-                    end
-
-                    if animfall.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921040576"
-                    end
-
-                    if animjump.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921042494"
-                    end
-
-                    if animidle.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
-                    end
-
-                    if animclimb.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921032124"
-                    end
-
-                    --- Vampire
-                    if animrun.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921320299" 	
-                    end
-
-                    if animwalk.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921326949"
-                    end
-
-                    if animfall.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921321317"
-                    end
-
-                    if animjump.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921322186"
-                    end
-
-                    if animidle.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921315373"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921316709"
-                    end
-
-                    if animclimb.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921314188"
-                    end
-
-                    --- Werewolf
-                    if animrun.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921336997" 	
-                    end
-
-                    if animwalk.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921342074"
-                    end
-
-                    if animfall.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921337907"
-                    end
-
-                    if animjump.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=1083218792"
-                    end
-
-                    if animidle.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921330408"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921333667"
-                    end
-
-                    if animclimb.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921329322"
-                    end
-
-                    --- Rthro
-                    if animrun.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921261968" 	
-                    end
-
-                    if animwalk.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921269718"
-                    end
-
-                    if animfall.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921262864"
-                    end
-
-                    if animjump.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921263860"
-                    end
-
-                    if animidle.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921258489"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921259953"
-                    end
-
-                    if animclimb.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921257536"
-                    end
-
-                    --- Oldschool
-                    if animrun.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921240218" 	
-                    end
-
-                    if animwalk.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921244891"
-                    end
-
-                    if animfall.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921241244"
-                    end
-
-                    if animjump.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
-                    end
-
-                    if animidle.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921230744"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921232093"
-                    end
-
-                    if animclimb.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921229866"
-                    end
-
-                    --- Mr.Toilet
-                    if animrun.Value == "Toilet" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645" 	
-                    end
-
-                    if animidle.Value == "Toilet" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
-                    end
-
-                    --- Ud'Zal
-                    if animrun.Value == "Rthro Heavy Run" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=3236836670" 	
-                    end
-
-                    if animidle.Value == "Ud'zal" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=3303162274"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=3303162549"
-                    end
-
-                    if animwalk.Value == "Ud'zal" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=3303162967"
-                    end
-
-                    if animtype.Value == "Tryhard" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921157929"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-
-                    if animtype.Value == "Goofy" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-
-                    if animtype.Value == "Tanqr" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-                end) 
-            end
-        end  
-    })  
-    animtype = anim.CreateDropdown({
-        Name = "Type",
-        List = {"Custom", "Tryhard", "Goofy", "Tanqr"},
-        Function = function() end
-    })
-    animrun = anim.CreateDropdown({
-        Name = "Run",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Toilet", "Rthro Heavy Run"},
-        Function = function() end
-    })
-
-    animwalk = anim.CreateDropdown({
-        Name = "Walk",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Ud'zal"},
-        Function = function() end
-    })
-
-    animfall = anim.CreateDropdown({
-        Name = "Fall",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
-        Function = function() end
-    })
-
-    animjump = anim.CreateDropdown({
-        Name = "Jump",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
-        Function = function() end
-    })
-
-    animidle = anim.CreateDropdown({
-        Name = "Idle",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Toilet", "Ud'zal"},
-        Function = function() end
-    })
-
-    animclimb = anim.CreateDropdown({
-        Name = "Climb",
-        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
-        Function = function() end
-    })
-end)
-
 task.spawn(function()
     local priolist = {
         DEFAULT = 0,
@@ -7233,4 +6698,538 @@ runFunction(function()
 	createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5))
 	createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5))
 	createKeystroke(Enum.KeyCode.Space, UDim2.new(0, 0, 0, 83), UDim2.new(0, 25, 0, -10))
+end)
+
+runFunction(function()
+    local anim = {["Enabled"] = false}
+    anim = GuiLibrary["ObjectsThatCanBeSaved"]["UtilityWindow"]["Api"].CreateOptionsButton({
+        ["Name"] = "AnimationChanger",
+        ["HoverText"] = "gives you a FE Animation Pack. Its also customizable",
+        ["Function"] = function(callback)
+            if callback then
+                task.spawn(function()
+                    local Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+                    if not Hum then
+                        repeat task.wait() until Hum
+                    end
+                    local Animate = game:GetService("Players").LocalPlayer.Character.Animate
+
+                    ----Cartoony
+                    if animrun.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921076136"
+                    end
+                    if animwalk.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921082452"
+                    end
+                    if animfall.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921077030"
+                    end
+                    if animjump.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921078135"
+                    end
+                    if animidle.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921071918"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921072875"
+                    end
+                    if animclimb.Value == "Cartoony" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921070953"
+                    end
+                    ----Levitation
+                    if animrun.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921135644"
+                    end
+                    if animwalk.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921140719"
+                    end
+                    if animfall.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                    end
+                    if animjump.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                    end
+                    if animidle.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921132962"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921133721"
+                    end
+                    if animclimb.Value == "Levitation" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921132092"
+                    end
+                    ----Robot
+                    if animrun.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921250460"
+                    end
+                    if animwalk.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921255446"
+                    end
+                    if animfall.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251156"
+                    end
+                    if animjump.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251519"
+                    end
+                    if animidle.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921247776"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921248461"
+                    end
+                    if animclimb.Value == "Robot" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921245669"
+                    end
+                    ----Stylish
+                    if animrun.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921529786"
+                    end
+                    if animwalk.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921539727"
+                    end
+                    if animfall.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921531448"
+                    end
+                    if animjump.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921533736"
+                    end
+                    if animidle.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921527750"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921528141"
+                    end
+                    if animclimb.Value == "Stylish" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921525854"
+                    end
+                    ----Superhero
+                    if animrun.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350016"
+                    end
+                    if animwalk.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921353493"
+                    end
+                    if animfall.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350451"
+                    end
+                    if animjump.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921351314"
+                    end
+                    if animidle.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921348319"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921349011"
+                    end
+                    if animclimb.Value == "Superhero" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921346417"
+                    end
+                    ----Zombie
+                    if animrun.Value == "Zombie" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921472697"
+                    end
+                    if animwalk.Value == "Zombie" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474987"
+                    end
+                    if animfall.Value == "Zombie" and animtype.Value == "Custom" then
+                        warn("Zombies don't work well with spider fall animation")
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921473341"
+                    end
+                    if animjump.Value == "Zombie" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474136"
+                    end
+                    if animidle.Value == "Zombie" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921470171"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921470752"
+                    end
+                    if animclimb.Value == "Zombie" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921469135"
+                    end
+                    ----Ninja
+                    if animrun.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10920910496"
+                    end
+                    if animwalk.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10920915507"
+                    end
+                    if animfall.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10920912824"
+                    end
+                    if animjump.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10920913905"
+                    end
+                    if animidle.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10920909751"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10920910154"
+                    end
+                    if animclimb.Value == "Ninja" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10920908048"
+                    end                   
+                    if animrun.Value == "Knight" and animtype.Value == "Custom" then
+	                    Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921121197" 	
+                    end
+                    if animwalk.Value == "Knight" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921127095"
+                    end
+                    if animfall.Value == "Knight" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921122579"
+                    end
+
+                    if animjump.Value == "Knight" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921123517"
+                    end
+
+                    if animidle.Value == "Knight" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921117521"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921118894"
+                    end
+
+                    if animclimb.Value == "Knight" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921116196"
+                    end
+
+                    --- Mage
+                    if animrun.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148209" 	
+                    end
+
+                    if animwalk.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921152678"
+                    end
+
+                    if animfall.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148939"
+                    end
+
+                    if animjump.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921149743"
+                    end
+
+                    if animidle.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921144709"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921145797"
+                    end
+
+                    if animclimb.Value == "Mage" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921143404"
+                    end
+
+                    --- Pirate
+                    if animrun.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=750783738" 	
+                    end
+
+                    if animwalk.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=750785693"
+                    end
+
+                    if animfall.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=750780242"
+                    end
+
+                    if animjump.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=750782230"
+                    end
+
+                    if animidle.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=750781874"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=750782770"
+                    end
+
+                    if animclimb.Value == "Pirate" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=750779899"
+                    end
+
+                    --- Elder
+                    if animrun.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921104374" 	
+                    end
+
+                    if animwalk.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921111375"
+                    end
+
+                    if animfall.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921105765"
+                    end
+
+                    if animjump.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921107367"
+                    end
+
+                    if animidle.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921101664"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921102574"
+                    end
+
+                    if animclimb.Value == "Elder" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921100400"
+                    end
+
+                    --- Toy (my favorite)
+                    if animrun.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285" 	
+                    end
+
+                    if animwalk.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
+                    end
+
+                    if animfall.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921307241"
+                    end
+
+                    if animjump.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921308158"
+                    end
+
+                    if animidle.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
+                    end
+
+                    if animclimb.Value == "Toy" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921300839"
+                    end
+
+                    --- Bubbly
+                    if animrun.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921057244" 	
+                    end
+
+                    if animwalk.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10980888364"
+                    end
+
+                    if animfall.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921061530"
+                    end
+
+                    if animjump.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921062673"
+                    end
+
+                    if animidle.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921054344"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921055107"
+                    end
+
+                    if animclimb.Value == "Bubbly" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921053544"
+                    end
+
+                    --- Astronaut
+                    if animrun.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921039308" 	
+                    end
+
+                    if animwalk.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921046031"
+                    end
+
+                    if animfall.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921040576"
+                    end
+
+                    if animjump.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921042494"
+                    end
+
+                    if animidle.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
+                    end
+
+                    if animclimb.Value == "Astronaut" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921032124"
+                    end
+
+                    --- Vampire
+                    if animrun.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921320299" 	
+                    end
+
+                    if animwalk.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921326949"
+                    end
+
+                    if animfall.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921321317"
+                    end
+
+                    if animjump.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921322186"
+                    end
+
+                    if animidle.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921315373"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921316709"
+                    end
+
+                    if animclimb.Value == "Vampire" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921314188"
+                    end
+
+                    --- Werewolf
+                    if animrun.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921336997" 	
+                    end
+
+                    if animwalk.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921342074"
+                    end
+
+                    if animfall.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921337907"
+                    end
+
+                    if animjump.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=1083218792"
+                    end
+
+                    if animidle.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921330408"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921333667"
+                    end
+
+                    if animclimb.Value == "Werewolf" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921329322"
+                    end
+
+                    --- Rthro
+                    if animrun.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921261968" 	
+                    end
+
+                    if animwalk.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921269718"
+                    end
+
+                    if animfall.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921262864"
+                    end
+
+                    if animjump.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921263860"
+                    end
+
+                    if animidle.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921258489"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921259953"
+                    end
+
+                    if animclimb.Value == "Rthro" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921257536"
+                    end
+
+                    --- Oldschool
+                    if animrun.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921240218" 	
+                    end
+
+                    if animwalk.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921244891"
+                    end
+
+                    if animfall.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921241244"
+                    end
+
+                    if animjump.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
+                    end
+
+                    if animidle.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921230744"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921232093"
+                    end
+
+                    if animclimb.Value == "Oldschool" and animtype.Value == "Custom" then
+                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921229866"
+                    end
+
+                    --- Mr.Toilet
+                    if animrun.Value == "Toilet" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645" 	
+                    end
+
+                    if animidle.Value == "Toilet" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
+                    end
+
+                    --- Ud'Zal
+                    if animrun.Value == "Rthro Heavy Run" and animtype.Value == "Custom" then
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=3236836670" 	
+                    end
+
+                    if animidle.Value == "Ud'zal" and animtype.Value == "Custom" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=3303162274"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=3303162549"
+                    end
+
+                    if animwalk.Value == "Ud'zal" and animtype.Value == "Custom" then
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=3303162967"
+                    end
+
+                    if animtype.Value == "Tryhard" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921157929"
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                    end
+
+                    if animtype.Value == "Goofy" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645"
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                    end
+
+                    if animtype.Value == "Tanqr" then
+                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
+                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
+                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
+                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285"
+                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
+                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                    end
+                end) 
+            end
+        end  
+    })  
+    animtype = anim.CreateDropdown({
+        Name = "Type",
+        List = {"Custom", "Tryhard", "Goofy", "Tanqr"},
+        Function = function() end
+    })
+    animrun = anim.CreateDropdown({
+        Name = "Run",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Toilet", "Rthro Heavy Run"},
+        Function = function() end
+    })
+
+    animwalk = anim.CreateDropdown({
+        Name = "Walk",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Ud'zal"},
+        Function = function() end
+    })
+
+    animfall = anim.CreateDropdown({
+        Name = "Fall",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
+        Function = function() end
+    })
+
+    animjump = anim.CreateDropdown({
+        Name = "Jump",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
+        Function = function() end
+    })
+
+    animidle = anim.CreateDropdown({
+        Name = "Idle",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool", "Toilet", "Ud'zal"},
+        Function = function() end
+    })
+
+    animclimb = anim.CreateDropdown({
+        Name = "Climb",
+        List = {"Cartoony", "Levitation", "Robot", "Stylish", "Superhero", "Zombie", "Ninja", "Knight", "Mage", "Pirate", "Elder", "Toy", "Bubbly", "Astronaut", "Vampire", "Werewolf", "Rthro", "Oldschool"},
+        Function = function() end
+    })
 end)
