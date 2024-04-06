@@ -9669,7 +9669,7 @@ runFunction(function()
 end)
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "BedTP",
+        Name = "TPBed",
         Function = function(callback)
             if callback then
                 local lplr = game.Players.LocalPlayer
@@ -9718,7 +9718,7 @@ end)
 
 local playerTP
 playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "PlayerTP",
+    Name = "TPPlayer",
     Function = function(callback)
         if callback then
             local hasTeleported = false
