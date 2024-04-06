@@ -1184,17 +1184,13 @@ end)
 
 runFunction(function()
 	local function getWhitelistedBed(bed)
-		if bed then
-			for i,v in pairs(playersService:GetPlayers()) do
-				if v:GetAttribute("Team") and bed and bed:GetAttribute("Team"..(v:GetAttribute("Team") or 0).."NoBreak") then
-					local plrtype, plrattackable = WhitelistFunctions:GetWhitelist(v)
-					if not plrattackable then 
-						return true
-					end
-				end
-			end
-		end
-		return false
+        local bedteam = bed:GetAttribute('id'):sub(1, 1)
+	    for i,v in next, WhitelistFunctions:GetWhitelist(plr) do 
+		    if WhitelistFunctions:GetWhitelist(plr) > WhitelistFunctions:GetWhitelist(lplr) and v:GetAttribute('Team') == bedteam then 
+			    return true
+		    end
+	    end
+        return false
 	end
 
 	local function dumpRemote(tab)
@@ -9667,31 +9663,40 @@ runFunction(function()
 		HoverText = "Float disabler with scythe"
     })
 end)
+
+-- credits, Render made by blxnked. Update fucked BedTP
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "TPBed",
+        Name = "BedTP",
         Function = function(callback)
             if callback then
                 local lplr = game.Players.LocalPlayer
                 local TweenService = game:GetService("TweenService")
                 local hasTeleported = false
-
                 function findNearestBed()
-                    local nearestBed = nil
-                    local minDistance = math.huge
-
-                    for _,v in pairs(game.Workspace:GetDescendants()) do
-                        if v.Name:lower() == "bed" and v:FindFirstChild("Covers") and v:FindFirstChild("Covers").BrickColor ~= lplr.Team.TeamColor then
-                            local distance = (v.Position - lplr.Character.HumanoidRootPart.Position).magnitude
-                            if distance < minDistance then
-                                nearestBed = v
-                                minDistance = distance
-                            end
-                        end
-                    end
-                    return nearestBed
-                end
-
+                    local magnitude, bed = (range or math.huge), nil
+                    local beds = collectionService:GetTagged('bed')
+	                if not entityLibrary.isAlive and not lplr.Character.HumanoidRootPart.Position then 
+		                return nil 
+	                end
+                    for i,v in next, beds do 
+			            local localpos = entityLibrary.isAlive and lplr.Character.HumanoidRootPart.Position or Vector3.zero
+			            local bedmagnitude = (localpos - v.Position).Magnitude 
+			            local bedteam = v:GetAttribute('id'):sub(1, 1)
+			            if bedteam == lplr:GetAttribute('Team') then 
+				            continue 
+			            end
+                        
+			            if noshield and v:GetAttribute('BedShieldEndTime') and v:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() then 
+				            continue  
+			            end
+			            if bedmagnitude < magnitude then 
+				            bed = v
+				            magnitude = bedmagnitude
+			            end
+		            end
+                    return bed
+	            end
                 function tweenToNearestBed()
                     local nearestBed = findNearestBed()
                     if nearestBed and not hasTeleported then
@@ -9702,14 +9707,15 @@ runFunction(function()
                         tween:Play()
                     end
                 end
-
-                lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
-                lplr.CharacterAdded:Connect(function()
-                    wait(0.3) 
-                    tweenToNearestBed()
-                end)
-                hasTeleported = false
-                BedTP.ToggleButton(false)
+                if bedwarsStore.matchState ~= 0 then
+                    lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+                    lplr.CharacterAdded:Connect(function()
+                        wait(0.3) 
+                        tweenToNearestBed()
+                    end)
+                    hasTeleported = false
+                    BedTP.ToggleButton(false)
+                end
             end
         end,
         ["HoverText"] = "Tp To Bed"
@@ -9718,7 +9724,7 @@ end)
 
 local playerTP
 playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "TPPlayer",
+    Name = "PlayerTP",
     Function = function(callback)
         if callback then
             local hasTeleported = false
@@ -9726,7 +9732,7 @@ playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButt
             local localPlayer = game.Players.LocalPlayer
             local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
 
-            if humanoid then
+            if humanoid and bedwarsStore.matchState ~= 0 then
                 humanoid:ChangeState(Enum.HumanoidStateType.Dead)
                 localPlayer.CharacterAdded:Connect(function()
                     wait(0.3)
@@ -10614,7 +10620,7 @@ velo.run(function()
 end);]]
 
 -- both of these are from old velo. will rewrite them soon.
--- broken .-.
+
 velo.run(function()
     local tp_gen = {};
 	local tp_gen_g = {};
