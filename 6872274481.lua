@@ -10459,165 +10459,109 @@ velo.run(function()
 	});
 end);
 
---[[velo.run(function()
-	local tp_plr = {};
-	local tp_plr_s = {};
-	local tp_plr_h = {};
-	tp_plr = velo.tab().CreateOptionsButton({
-		Name = 'TPPlayer',
-		HoverText = 'Teleports you to the closest player.',
-		Function = function(callback)
-			if callback then
-				local tp = {};
-				tp.__index = tp;
-				function tp.n(a : Number, b : Number, c : Number, d : Number, e : Boolean)
-					local self = velo.meta({}, tp);
-					self.a = a;
-					self.b = b;
-					self.c = c;
-					self.d = d;
-					self.e = e;
-					return self;
-				end;
-				function tp:s()
-					local a = self.a;
-					local b = self.b;
-					local c = self.c;
-					local d = self.d;
-					local e = self.e;
-					local tp_meta = {
-						__index = function(self, x)
-							if x == 'on' then
-								return function()
-									if not velo.check(lplr) then
-										velo.notify('TPPlayer', 'You don\'t have a bed.', 3)
-										tp_plr.ToggleButton(e);
-									end;
-									local x = velo.plr(math.huge);
-									if x then
-										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
-										lplr.CharacterAdded:Connect(function()
-											velo.del(d + 0.3);
-											repeat velo.del() until lplr.Character.HumanoidRootPart;
-											tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
-												CFrame = x.Character.HumanoidRootPart.CFrame + velo.vec3(d, b, d)
-											}):Play();
-										end);
-									end;
-									tp_plr.ToggleButton(e);
-								end;
-							end;
-						end;
-					};
-					local tp_val = velo.meta({}, tp_meta);
-					tp_val:on();
-				end;
-				local tp_vd = tp.n(
-					tp_plr_s.Value,
-					tp_plr_h.Value,
-					100, 0, false
-				);
-				tp_vd:s();
-			end;
-		end;
-	});
-	tp_plr_s = tp_plr.CreateSlider({
-		Name = 'Speed',
-		Min = 10,
-		Max = 100,
-		HoverText = 'Speed to tween to the player.',
-		Function = function() end,
-		Default = 60;
-	});
-	tp_plr_h = tp_plr.CreateSlider({
-		Name = 'Height',
-		Min = 0,
-		Max = 5,
-		HoverText = 'Height to tween above the player.',
-		Function = function() end,
-		Default = 2;
-	});
-end);
+--- credits, Render made by blxnked. Update fucked BedTP
 
-velo.run(function()
-	local tp_bed = {};
-	local tp_bed_s = {};
-	local tp_bed_h = {};
-    tp_bed = velo.tab().CreateOptionsButton({
-        Name = 'TPBed',
-		HoverText = 'Teleports you to the closest bed.',
+runFunction(function()
+    BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+        Name = "BedTP",
         Function = function(callback)
             if callback then
-				local tp = {};
-				tp.__index = tp;
-				function tp.n(a : Number, b : Number, c : Number, d : Number, e : Boolean)
-					local self = velo.meta({}, tp);
-					self.a = a;
-					self.b = b;
-					self.c = c;
-					self.d = d;
-					self.e = e;
-					return self;
-				end;
-				function tp:s()
-					local a = self.a;
-					local b = self.b;
-					local c = self.c;
-					local d = self.d;
-					local e = self.e;
-					local tp_meta = {
-						__index = function(self, x)
-							if x == 'on' then
-								return function()
-									if not velo.check(lplr) then
-										velo.notify('TPBed', 'You don\'t have a bed.', 3)
-										tp_bed.ToggleButton(e);
-									end;
-									local x = velo.bed(math.huge)
-									if x then
-										lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead);
-										lplr.CharacterAdded:Connect(function()
-											velo.del(0.3);
-											repeat velo.del() until lplr.Character.HumanoidRootPart;
-											tweenService:Create(lplr.Character.HumanoidRootPart, velo.tw(a / c), {
-												CFrame = x.CFrame + velo.vec3(d, b, d)
-											}):Play();
-										end);
-									end;
-									tp_bed.ToggleButton(e);
-								end;
-							end;
-						end;
-					};
-					local tp_val = velo.meta({}, tp_meta);
-					tp_val:on();
-				end;
-				local tp_vd = tp.n(
-					tp_bed_s.Value,
-					tp_bed_h.Value,
-					100, 0, false
-				);
-				tp_vd:s();
-            end;
-        end;
-    });
-	tp_bed_s = tp_bed.CreateSlider({
-		Name = 'Speed',
-		Min = 10,
-		Max = 100,
-		HoverText = 'Speed to tween to the bed.',
-		Function = function() end,
-		Default = 60;
-	});
-	tp_bed_h = tp_bed.CreateSlider({
-		Name = 'Height',
-		Min = 1,
-		Max = 30,
-		HoverText = 'Height to tween above the bed.',
-		Function = function() end,
-		Default = 20;
-	});
-end);]]
+                local lplr = game.Players.LocalPlayer
+                local TweenService = game:GetService("TweenService")
+                local hasTeleported = false
+                function findNearestBed()
+                    local magnitude, bed = (range or math.huge), nil
+                    local beds = collectionService:GetTagged('bed')
+	                if not entityLibrary.isAlive and not lplr.Character.HumanoidRootPart.Position then 
+		                return nil 
+	                end
+                    for i,v in next, beds do 
+			            local localpos = entityLibrary.isAlive and lplr.Character.HumanoidRootPart.Position or Vector3.zero
+			            local bedmagnitude = (localpos - v.Position).Magnitude 
+			            local bedteam = v:GetAttribute('id'):sub(1, 1)
+			            if bedteam == lplr:GetAttribute('Team') then 
+				            continue 
+			            end
+                        
+			            if noshield and v:GetAttribute('BedShieldEndTime') and v:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() then 
+				            continue  
+			            end
+			            if bedmagnitude < magnitude then 
+				            bed = v
+				            magnitude = bedmagnitude
+			            end
+		            end
+                    return bed
+	            end
+                function tweenToNearestBed()
+                    local nearestBed = findNearestBed()
+                    if nearestBed and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
+                        local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+                end
+                if bedwarsStore.matchState ~= 0 then
+                    lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
+                    lplr.CharacterAdded:Connect(function()
+                        wait(0.3) 
+                        tweenToNearestBed()
+                    end)
+                    hasTeleported = false
+                    BedTP.ToggleButton(false)
+                end
+            end
+        end,
+        ["HoverText"] = "Tp To Bed"
+    })
+end)
+
+local playerTP
+playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+    Name = "PlayerTP",
+    Function = function(callback)
+        if callback then
+            local hasTeleported = false
+            local TweenService = game:GetService("TweenService")
+            local localPlayer = game.Players.LocalPlayer
+            local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+            if humanoid and bedwarsStore.matchState ~= 0 then
+                humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+                localPlayer.CharacterAdded:Connect(function()
+                    wait(0.3)
+
+                    local nearestPlayer = nil
+                    local minDistance = math.huge
+
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= localPlayer.Team and player.Character:FindFirstChild("Humanoid").Health > 0 then
+                            local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
+                            if distance < minDistance then
+                                nearestPlayer = player
+                                minDistance = distance
+                            end
+                        end
+                    end
+
+                    if nearestPlayer and not hasTeleported then
+                        hasTeleported = true
+
+                        local targetCFrame = nearestPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
+                        local tween = TweenService:Create(localPlayer.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
+                        tween:Play()
+                    end
+
+                    hasTeleported = false
+                end)
+            end
+            playerTP.ToggleButton(false)
+        end
+    end,
+    ["HoverText"] = "TP to a player"
+})
 
 -- both of these are from old velo. will rewrite them soon.
 
