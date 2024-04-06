@@ -5920,10 +5920,14 @@ runFunction(function()
                 task.spawn(function()
                     local Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
                     if not Hum then
-                        repeat task.wait() until Hum
+                        repeat task.wait() until game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+                        Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
                     end
-                    local Animate = game:GetService("Players").LocalPlayer.Character.Animate
-
+                    local Animate = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChild("Animator")
+                    if not Animate then
+                        repeat task.wait() until game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChild("Animator")
+                        Animate = game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):FindFirstChild("Animator")
+                    end
                     ----Cartoony
                     if animrun.Value == "Cartoony" and animtype.Value == "Custom" then
                         Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921076136"
