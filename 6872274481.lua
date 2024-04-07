@@ -8644,32 +8644,6 @@ runFunction(function()
 	})
 end)
 
-runFunction(function()
-	local SetMechanic = {Enabled = false}
-	local SetMechanicList = {Value = 'capture_points'}
-
-	SetMechanic = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = 'SetMechanic',
-		Function = function(callback)
-			if callback and store.matchState == 0 then
-				bedwars.ClientHandler:GetNamespace('CustomMatches'):Get('SetMatchMechanic'):CallServerAsync(SetMechanicList.Value)
-			end
-		end,
-		HoverText = 'average bw dev iq'
-	})
-	local list = {}
-	for i, v in require(replicatedStorageService.TS.match.mechanics["match-mechanic-types"]).MatchMechanic do table.insert(list, v) end
-	SetMechanicList = SetMechanic.CreateDropdown({
-		Name = 'Mechanic',
-		List = list,
-		Function = function(val)
-			if SetMechanic.Enabled then
-				SetMechanic.ToggleButton(false)
-				SetMechanic.ToggleButton(false)
-			end
-		end
-	})
-end)
 
 runFunction(function()
 	local BowExploit = {Enabled = false}
