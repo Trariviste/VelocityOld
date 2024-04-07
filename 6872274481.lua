@@ -8645,25 +8645,6 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local Disabler = {Enabled = false}
-
-	Disabler = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = 'AnticheatDisabler',
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					repeat
-						bedwars.ClientHandler:Get('RocketImpulse'):CallServer({velocity = Vector3.new(math.huge, math.huge, math.huge)})
-						task.wait(0.1)
-					until (not Disabler.Enabled)
-				end)
-			end
-		end,
-		HoverText = 'funny'
-	})
-end)
-
-runFunction(function()
 	local SetMechanic = {Enabled = false}
 	local SetMechanicList = {Value = 'capture_points'}
 
