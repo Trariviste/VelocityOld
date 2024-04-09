@@ -6869,7 +6869,7 @@ runFunction(function()
 		for i,v in pairs(collectionService:GetTagged("BedwarsItemShop")) do
 			table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = true, Id = v.Name})
 		end
-		for i,v in pairs(collectionService:GetTagged("BedwarsTeamUpgrader")) do
+		for i,v in pairs(collectionService:GetTagged("TeamUpgradeShopkeeper")) do
 			table.insert(bedwarsshopnpcs, {Position = v.Position, TeamUpgradeNPC = false, Id = v.Name})
 		end
 	end)
@@ -6929,25 +6929,6 @@ runFunction(function()
 		end
 	end
 
-	local function buyUpgrade(upgradetype, inv, upgrades)
-		if not AutoBuyUpgrades.Enabled then return end
-		local teamupgrade = bedwars.Shop.getUpgrade(bedwars.Shop.TeamUpgrades, upgradetype)
-		local teamtier = teamupgrade.tiers[upgrades[upgradetype] and upgrades[upgradetype] + 2 or 1]
-		if teamtier then 
-			local teamcurrency = getItem(teamtier.currency, inv.items)
-			if teamcurrency and teamcurrency.amount >= teamtier.price then 
-				bedwars.ClientHandler:Get("BedwarsPurchaseTeamUpgrade"):CallServerAsync({
-					upgradeId = upgradetype, 
-					tier = upgrades[upgradetype] and upgrades[upgradetype] + 1 or 0
-				}):andThen(function(suc)
-					if suc then
-						bedwars.SoundManager:playSound(bedwars.SoundList.BEDWARS_PURCHASE_ITEM)
-					end
-				end)
-			end
-		end
-	end
-
 	local function getAxeNear(inv)
 		for i5, v5 in pairs(inv or bedwarsStore.localInventory.inventory.items) do
 			if v5.itemType:find("axe") and v5.itemType:find("pickaxe") == nil then
@@ -6992,7 +6973,7 @@ runFunction(function()
 				local shopitem = getShopItem(armors[i])
 				if shopitem and (AutoBuyTierSkip.Enabled or i == armorindex) then 
 					local currency = getItem(shopitem.currency, inv.items)
-					if currency and currency.amount >= shopitem.price then 
+					if shopitem and i == armorindex then 
 						highestbuyable = shopitem
 						bedwars.ClientStoreHandler:dispatch({
 							type = "BedwarsAddItemPurchased", 
@@ -7013,7 +6994,7 @@ runFunction(function()
 			local highestbuyable = nil
 			for i = swordindex, #swords, 1 do 
 				local shopitem = getShopItem(swords[i])
-				if shopitem then 
+				if shopitem and i == swordindex then
 					local currency = getItem(shopitem.currency, inv.items)
 					if currency and currency.amount >= shopitem.price and (shopitem.category ~= "Armory" or upgrades.armory) then 
 						highestbuyable = shopitem
@@ -7135,45 +7116,6 @@ runFunction(function()
 		Function = function() end, 
 		Default = true
 	})
-	AutoBuyUpgrades = AutoBuy.CreateToggle({
-		Name = "Buy Team Upgrades",
-		Function = function(callback) 
-			if AutoBuyUpgrades.Object then AutoBuyUpgrades.Object.ToggleArrow.Visible = callback end
-			if AutoBuyGen.Object then AutoBuyGen.Object.Visible = callback end
-			if AutoBuyProt.Object then AutoBuyProt.Object.Visible = callback end
-			if AutoBuySharp.Object then AutoBuySharp.Object.Visible = callback end
-			if AutoBuyDestruction.Object then AutoBuyDestruction.Object.Visible = callback end
-			if AutoBuyDiamond.Object then AutoBuyDiamond.Object.Visible = callback end
-			if AutoBuyAlarm.Object then AutoBuyAlarm.Object.Visible = callback end
-		end, 
-		Default = true
-	})
-	AutoBuyGen = AutoBuy.CreateToggle({
-		Name = "Buy Team Generator",
-		Function = function() end, 
-	})
-	AutoBuyProt = AutoBuy.CreateToggle({
-		Name = "Buy Protection",
-		Function = function() end, 
-		Default = true
-	})
-	AutoBuySharp = AutoBuy.CreateToggle({
-		Name = "Buy Sharpness",
-		Function = function() end, 
-		Default = true
-	})
-	AutoBuyDestruction = AutoBuy.CreateToggle({
-		Name = "Buy Destruction",
-		Function = function() end, 
-	})
-	AutoBuyDiamond = AutoBuy.CreateToggle({
-		Name = "Buy Diamond Generator",
-		Function = function() end, 
-	})
-	AutoBuyAlarm = AutoBuy.CreateToggle({
-		Name = "Buy Alarm",
-		Function = function() end, 
-	})
 	AutoBuyGui = AutoBuy.CreateToggle({
 		Name = "Shop GUI Check",
 		Function = function() end, 	
@@ -7183,30 +7125,6 @@ runFunction(function()
 		Function = function() end, 
 		Default = true
 	})
-	AutoBuyGen.Object.BackgroundTransparency = 0
-	AutoBuyGen.Object.BorderSizePixel = 0
-	AutoBuyGen.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuyGen.Object.Visible = AutoBuyUpgrades.Enabled
-	AutoBuyProt.Object.BackgroundTransparency = 0
-	AutoBuyProt.Object.BorderSizePixel = 0
-	AutoBuyProt.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuyProt.Object.Visible = AutoBuyUpgrades.Enabled
-	AutoBuySharp.Object.BackgroundTransparency = 0
-	AutoBuySharp.Object.BorderSizePixel = 0
-	AutoBuySharp.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuySharp.Object.Visible = AutoBuyUpgrades.Enabled
-	AutoBuyDestruction.Object.BackgroundTransparency = 0
-	AutoBuyDestruction.Object.BorderSizePixel = 0
-	AutoBuyDestruction.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuyDestruction.Object.Visible = AutoBuyUpgrades.Enabled
-	AutoBuyDiamond.Object.BackgroundTransparency = 0
-	AutoBuyDiamond.Object.BorderSizePixel = 0
-	AutoBuyDiamond.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuyDiamond.Object.Visible = AutoBuyUpgrades.Enabled
-	AutoBuyAlarm.Object.BackgroundTransparency = 0
-	AutoBuyAlarm.Object.BorderSizePixel = 0
-	AutoBuyAlarm.Object.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-	AutoBuyAlarm.Object.Visible = AutoBuyUpgrades.Enabled
 	AutoBuyCustom = AutoBuy.CreateTextList({
 		Name = "BuyList",
 		TempText = "item/amount/priority/after",
