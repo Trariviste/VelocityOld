@@ -157,34 +157,32 @@ local function vapeGithubRequest(scripturl)
 end
 
 local function downloadVapeAsset(path)
-    if customassetcheck then
-        if not isfile(path) then
-            task.spawn(function()
-                local textlabel = Instance.new("TextLabel")
-                textlabel.Size = UDim2.new(1, 0, 0, 36)
-                textlabel.Text = "Downloading "..path
-                textlabel.BackgroundTransparency = 1
-                textlabel.TextStrokeTransparency = 0
-                textlabel.TextSize = 30
-                textlabel.Font = Enum.Font.SourceSans
-                textlabel.TextColor3 = Color3.new(1, 1, 1)
-                textlabel.Position = UDim2.new(0, 0, 0, -36)
-                textlabel.Parent = GuiLibrary.MainGui
-                repeat task.wait() until isfile(path)
-                textlabel:Destroy()
-            end)
-            local newUrl = "https://raw.githubusercontent.com/Copiums/Velocity/main/assets/" .. path:gsub("vape/assets", "assets")
-            local suc, req = pcall(function() return httpGet(newUrl) end)
-            if suc and req then
-                writefile(path, req)
-            else
-                return ""
-            end
-        end
-    end
-    return getcustomasset(path) 
+	if customassetcheck then
+		if not isfile(path) then
+			task.spawn(function()
+				local textlabel = Instance.new("TextLabel")
+				textlabel.Size = UDim2.new(1, 0, 0, 36)
+				textlabel.Text = "Downloading "..path
+				textlabel.BackgroundTransparency = 1
+				textlabel.TextStrokeTransparency = 0
+				textlabel.TextSize = 30
+				textlabel.Font = Enum.Font.SourceSans
+				textlabel.TextColor3 = Color3.new(1, 1, 1)
+				textlabel.Position = UDim2.new(0, 0, 0, -36)
+				textlabel.Parent = GuiLibrary.MainGui
+				repeat task.wait() until isfile(path)
+				textlabel:Destroy()
+			end)
+			local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
+			if suc and req then
+				writefile(path, req)
+			else
+				return ""
+			end
+		end
+	end
+	return getcustomasset(path) 
 end
-
 
 assert(not shared.VapeExecuted, "Vape Already Injected")
 shared.VapeExecuted = true
