@@ -10013,8 +10013,7 @@ velo.run(function()
 	});
 end);
 
---- credits, Render made by blxnked. Update fucked BedTP
-
+--- credits, Render made by blxnked for the bed check. Update fucked BedTP
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
         Name = "BedTP",
@@ -10052,7 +10051,7 @@ runFunction(function()
                     if nearestBed and not hasTeleported then
                         hasTeleported = true
 
-                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
+                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0)
                         local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
                         tween:Play()
                     end
@@ -11919,7 +11918,7 @@ velo.run(function()
 								return function()
 									task.spawn(function()
 										repeat task.wait(z)
-											for _, v in next, velo.bed2('Covers', 'bed') do
+											for _, v in next, velo.bed2('Blanket', 'bed') do
 												if (v.Position - entityLibrary.character.HumanoidRootPart.Position).Magnitude <= rv then
 													local r = RaycastParams.new();
 													r.IgnoreWater = true;
