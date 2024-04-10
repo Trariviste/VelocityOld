@@ -6701,6 +6701,45 @@ runFunction(function()
 end)
 
 runFunction(function()
+	local I = {Enabled = false}
+	local H = {Enabled = false}
+	I = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
+		Name = 'InfiniteJump',
+		HoverText = 'Jump without touching the ground',
+		Function = function(callback)
+			if callback then
+				local x = false
+				table.insert(I.Connections, inputService.InputBegan:Connect(function(input)
+					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
+						x = true
+						if entityLibrary.isAlive then
+							if H.Enabled then
+								repeat
+									entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+									task.wait()
+								until not x or not I.Enabled or not H.Enabled or inputService:GetFocusedTextBox()
+							else
+								entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+							end
+						end
+					end
+				end))
+				table.insert(I.Connections, inputService.InputEnded:Connect(function(input)
+					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
+						x = false
+					end
+				end))
+			end
+		end
+	})
+	H = I.CreateToggle({
+		Name = 'Hold',
+		Function = function() end,
+		HoverText = 'Hold down space to jump'
+	})
+end)
+
+runFunction(function()
     local anim = {["Enabled"] = false}
     anim = GuiLibrary["ObjectsThatCanBeSaved"]["UtilityWindow"]["Api"].CreateOptionsButton({
         ["Name"] = "AnimationChanger",
