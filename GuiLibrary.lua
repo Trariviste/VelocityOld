@@ -61,7 +61,7 @@ if shared.VapeExecuted then
 		["vape/assets/UpArrow.png"] = "rbxassetid://13350793386",
 		["vape/assets/UtilityIcon.png"] = "rbxassetid://13350793918",
 		["vape/assets/WarningNotification.png"] = "rbxassetid://13350794868",
-                ["vape/assets/WarningNotification2.png"] = "rbxassetid://17060134655",
+                ["vape/assets/WarningNotification2.png"] = "rbxassetid://17060134626",
 		["vape/assets/WindowBlur.png"] = "rbxassetid://13350795660",
 		["vape/assets/WorldIcon.png"] = "rbxassetid://13350796199",
 		["vape/assets/VapeIcon.png"] = "rbxassetid://13350808582",
