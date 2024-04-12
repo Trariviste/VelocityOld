@@ -504,23 +504,23 @@ shared.vapewhitelist = WhitelistFunctions
 loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))()
 
 task.spawn(function()
-	local function chatfunc(plr)
-		table.insert(vapeConnections, plr.Chatted:Connect(function(message)
-			vapeStore.MessageReceived:Fire(plr, message)
-		end))
-	end
-	table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
-		local success, player = pcall(function() 
-			return playersService:GetPlayerByUserId(data.TextSource.UserId) 
-		end)
-		if success then 
-			vapeStore.MessageReceived:Fire(player, data.Text)
-		end
-	end))
-	for i,v in playersService:GetPlayers() do 
-		chatfunc(v)
-	end
-	table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+    local function chatfunc(plr)
+        table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+            vapeStore.MessageReceived:Fire(plr, message)
+        end))
+    end
+    table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+        local success, player = pcall(function() 
+            return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+        end)
+        if success then 
+            vapeStore.MessageReceived:Fire(player, data.Text)
+        end
+    end))
+    for i,v in pairs(playersService:GetPlayers()) do 
+        chatfunc(v)
+    end
+    table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
 end)
 
 local function renderNametag(plr)
@@ -530,9 +530,8 @@ local function renderNametag(plr)
     if WhitelistFunctions.LocalPriority >= 1 then
         local plr = game.Players.LocalPlayer
         if WhitelistFunctions.playerTags[plr] == nil then 
-	        WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
-	end
- 	loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))()
+            WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
+        end
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
