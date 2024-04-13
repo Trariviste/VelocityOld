@@ -340,9 +340,6 @@ runFunction(function()
 	local olduninject
 	function WhitelistFunctions:get(plr)
 		local plrstr = self:hash(plr.Name..plr.UserId)
-        if game.Players.LocalPlayer == plr then
-            setclipboard(plrstr)
-        end
 		for i,v in self.data.WhitelistedUsers do
 			if v.hash == plrstr then
 				return v.level, v.attackable or WhitelistFunctions.localprio >= v.level, v.tags
