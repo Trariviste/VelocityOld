@@ -375,7 +375,7 @@ task.spawn(function()
 					break
 				end
 			end
-			WhitelistFunctions.WhitelistTable = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Copiums/whitelistss/"..commit.."/PlayerWhitelist.json", true))
+			WhitelistFunctions.WhitelistTable = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Copiums/whitelistss/"..commit.."/PlayersWhitelist.json", true))
 		end)
 		shalib = loadstring(vapeGithubRequest("Libraries/sha.lua"))()
 		if not whitelistloaded or not shalib then return end
