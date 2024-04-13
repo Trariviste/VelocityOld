@@ -1,4 +1,33 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after commits.
+--[[
+
+    __     __   _            _ _         
+    \ \   / /__| | ___   ___(_) |_ _   _ 
+     \ \ / / _ \ |/ _ \ / __| | __| | | |
+      \ V /  __/ | (_) | (__| | |_| |_| |
+       \_/ \___|_|\___/ \___|_|\__|\__, |
+                                    |___/ 
+
+	The #1 bedwars config on the market.
+	
+	Credits:
+	- vex - modules & rewrite
+	- luc - modules
+	- lr - modules
+	- blanked - modules
+	- star - texture pack
+	- melo - texture pack
+
+                                                         
+         _ _                       _                 __         _            
+      __| (_)___  ___ ___  _ __ __| |  __ _  __ _   / /_      _| |_   _  ___ 
+     / _` | / __|/ __/ _ \| '__/ _` | / _` |/ _` | / /\ \ /\ / / | | | |/ __|
+    | (_| | \__ \ (_| (_) | | | (_| || (_| | (_| |/ /  \ V  V /| | |_| | (__ 
+     \__,_|_|___/\___\___/|_|  \__,_(_)__, |\__, /_/    \_/\_/ |_|\__,_|\___|
+                                      |___/ |___/                                
+
+]]
+
 local ver = 'v.0'
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
