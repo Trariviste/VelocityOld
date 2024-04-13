@@ -516,7 +516,7 @@ task.spawn(function()
             vapeStore.MessageReceived:Fire(player, data.Text)
         end
     end))
-    for i,v in pairs(playersService:GetPlayers()) do 
+    for i,v in playersService:GetPlayers() do 
         chatfunc(v)
     end
     table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
