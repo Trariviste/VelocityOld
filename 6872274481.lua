@@ -12511,7 +12511,7 @@ velo.run(function()
             if entityLibrary.isAlive and isnetworkowner(lplr.Character.HumanoidRootPart) then
                 lplr.Character.HumanoidRootPart.Transparency = 1
                 K = lplr.Character.HumanoidRootPart.Color
-                A2:Play(0.1, 9e9, 0.1)
+                A2:Play(0.1, 1e9, 0.1)
             else
                 if I.Enabled then
                     I.ToggleButton()
