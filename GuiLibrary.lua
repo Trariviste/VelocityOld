@@ -60,8 +60,8 @@ if shared.VapeExecuted then
 		["vape/assets/ToggleArrow.png"] = "rbxassetid://13350792786",
 		["vape/assets/UpArrow.png"] = "rbxassetid://13350793386",
 		["vape/assets/UtilityIcon.png"] = "rbxassetid://13350793918",
-		["vape/assets/WarningNotification.png"] = "rbxassetid://13350794868",
-                ["vape/assets/WarningNotification2.png"] = "rbxassetid://17060134626",
+		["vape/assets/WarningNotification.png"] = "rbxassetid://17060134626",
+        ["vape/assets/WarningNotification2.png"] = "rbxassetid://17060134626",
 		["vape/assets/WindowBlur.png"] = "rbxassetid://13350795660",
 		["vape/assets/WorldIcon.png"] = "rbxassetid://13350796199",
 		["vape/assets/VapeIcon.png"] = "rbxassetid://13350808582",
@@ -171,8 +171,10 @@ if shared.VapeExecuted then
 					repeat task.wait() until isfile(path)
 					textlabel:Destroy()
 				end)
-				local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
-				if suc and req then
+                local newUrl = "https://raw.githubusercontent.com/Copiums/Velocity/main/assets/" .. path:gsub("vape/assets", "assets")
+				--local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
+                local suc, req = pcall(function() return httpGet(newUrl) end)
+ 				if suc and req then
 					writefile(path, req)
 				else
 					return ""
@@ -483,7 +485,12 @@ if shared.VapeExecuted then
 		touchButton.MouseButton1Down:Connect(function()
 			touchedButton = true
 			local touchtick = tick()
-			repeat task.wait() until (tick() - touchtick) > 1 or not touchedButton
+            local touchposition = inputService:GetMouseLocation()
+			repeat
+				task.wait()
+				if not touchedButton then break end
+				touchedButton = (inputService:GetMouseLocation() - touchposition).Magnitude < 6
+			until (tick() - touchtick) > 1 or not touchedButton
 			if touchedButton then 
 				local ind = table.find(GuiLibrary.MobileButtons, touchButton)
 				if ind then table.remove(GuiLibrary.MobileButtons, ind) end
@@ -5784,30 +5791,28 @@ if shared.VapeExecuted then
 			button.MouseButton1Click:Connect(function() 
 				buttonapi["ToggleButton"](true) 
 			end)
-			if inputService.TouchEnabled then 
+			if inputService.TouchEnabled then
 				local touchedButton = false
 				button.MouseButton1Down:Connect(function()
 					touchedButton = true
-					local oldbuttonposition = button.AbsolutePosition
 					local touchtick = tick()
-					repeat 
+					local touchposition = inputService:GetMouseLocation()
+					repeat
 						task.wait()
-						if button.AbsolutePosition ~= oldbuttonposition then 
-						        touchedButton = false
-                                                        break
-						end
+						if not touchedButton then break end
+						touchedButton = (inputService:GetMouseLocation() - touchposition).Magnitude < 6
 					until (tick() - touchtick) > 1 or not touchedButton or not clickgui.Visible
-					if touchedButton and clickgui.Visible then 
+					if touchedButton and clickgui.Visible then
 						clickgui.Visible = false
 						--runService:SetRobloxGuiFocused(guiService:GetErrorType() ~= Enum.ConnectionError.OK)
-						for _, mobileButton in pairs(GuiLibrary.MobileButtons) do mobileButton.Visible = not clickgui.Visible end	
+						for _, mobileButton in pairs(GuiLibrary.MobileButtons) do mobileButton.Visible = not clickgui.Visible end
 						local touchconnection
 						touchconnection = inputService.InputBegan:Connect(function(inputType)
-							if inputType.UserInputType == Enum.UserInputType.Touch then 
+							if inputType.UserInputType == Enum.UserInputType.Touch then
 								createMobileButton(buttonapi, inputType.Position + Vector3.new(0, guiService:GetGuiInset().Y, 0))
 								clickgui.Visible = true
 								--runService:SetRobloxGuiFocused((clickgui.Visible or guiService:GetErrorType() ~= Enum.ConnectionError.OK) and mainapi.Blur.Enabled)
-								for _, mobileButton in pairs(GuiLibrary.MobileButtons) do mobileButton.Visible = not clickgui.Visible end	
+								for _, mobileButton in pairs(GuiLibrary.MobileButtons) do mobileButton.Visible = not clickgui.Visible end
 								touchconnection:Disconnect()
 							end
 						end)
@@ -6851,8 +6856,8 @@ if shared.VapeExecuted then
 		icon2.ImageTransparency = 0.5
 		icon2.Parent = icon
 		local textlabel1 = Instance.new("TextLabel")
-		textlabel1.Font = Enum.Font.Arial
-		textlabel1.TextSize = 14
+		textlabel1.Font = Enum.Font.GothamBold
+		textlabel1.TextSize = 13
 		textlabel1.RichText = true
 		textlabel1.TextTransparency = 0.1
 		textlabel1.TextColor3 = Color3.new(1, 1, 1)
@@ -6864,7 +6869,7 @@ if shared.VapeExecuted then
 		textlabel1.Parent = frame
 		local textlabel2 = textlabel1:Clone()
 		textlabel2.Position = UDim2.new(0, 46, 0, 44)
-		textlabel2.Font = Enum.Font.Arial
+		textlabel2.Font = Enum.Font.Gotham
 		textlabel2.TextTransparency = 0
 		textlabel2.TextColor3 = Color3.fromRGB(170, 170, 170)
 		textlabel2.RichText = true
