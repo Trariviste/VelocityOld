@@ -160,7 +160,7 @@ if shared.VapeExecuted then
 				task.spawn(function()
 					local textlabel = Instance.new("TextLabel")
 					textlabel.Size = UDim2.new(1, 0, 0, 36)
-					textlabel.Text = "Downloading "..path
+					textlabel.Text = "Installing "..path
 					textlabel.BackgroundTransparency = 1
 					textlabel.TextStrokeTransparency = 0
 					textlabel.TextSize = 30
@@ -171,10 +171,8 @@ if shared.VapeExecuted then
 					repeat task.wait() until isfile(path)
 					textlabel:Destroy()
 				end)
-                local newUrl = "https://raw.githubusercontent.com/Copiums/Velocity/main/assets/" .. path:gsub("vape/assets", "assets")
-				--local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
-                local suc, req = pcall(function() return httpGet(newUrl) end)
- 				if suc and req then
+				local suc, req = pcall(function() return vapeGithubRequest(path:gsub("vape/assets", "assets")) end)
+				if suc and req then
 					writefile(path, req)
 				else
 					return ""
