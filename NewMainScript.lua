@@ -1,6 +1,5 @@
 --Velocity unpatched
 local lplr = game:GetService("Players").LocalPlayer
-lplr:Kick("Please reinstall Velocity for Update by joining the discord server, discord.gg/wluc")
 local errorPopupShown = false
 local setidentity = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end
 local getidentity = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8 end
