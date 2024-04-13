@@ -71,11 +71,14 @@ local bedwarsStore = {
 		hotbar = {}
 	},
 	localHand = {},
+        LocalPosition = {},
 	matchState = 0,
 	matchStateChanged = tick(),
 	pots = {},
 	queueType = "bedwars_test",
+        ping = 0,
 	scythe = tick(),
+        switchdelay = tick(),
 	statistics = {
 		beds = 0,
 		kills = 0,
@@ -94,7 +97,6 @@ local bedwarsStore = {
 }
 bedwarsStore.blockRaycast.FilterType = Enum.RaycastFilterType.Include
 local AutoLeave = {Enabled = false}
-
 table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 	gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA("Camera")
 end))
@@ -177,7 +179,7 @@ end
 	return (suc and res)
 end]]
 
-local NotifyColor = Color3.fromRGB(236, 129, 44)
+local NotifyColor = Color3.fromRGB(93, 63, 211)
 local NotifyIcon = 'assets/WarningNotification.png'
 
 local function warningNotification(title, text, delay)
@@ -447,7 +449,7 @@ local function getSpeed()
 			speed = speed + 90
 		end
 		if bedwarsStore.scythe > tick() then 
-			speed = speed + 5
+			speed = speed + 65
 		end
 		if lplr.Character:GetAttribute("GrimReaperChannel") then 
 			speed = speed + 20
@@ -1185,8 +1187,8 @@ end)
 runFunction(function()
 	local function getWhitelistedBed(bed)
         local bedteam = bed:GetAttribute('id'):sub(1, 1)
-	    for i,v in next, WhitelistFunctions:GetWhitelist(plr) do 
-		    if WhitelistFunctions:GetWhitelist(plr) > WhitelistFunctions:GetWhitelist(lplr) and v:GetAttribute('Team') == bedteam then 
+	    for i,v in next, WhitelistFunctions:get(plr) do 
+		    if WhitelistFunctions:get(plr) > WhitelistFunctions:get(lplr) and v:GetAttribute('Team') == bedteam then 
 			    return true
 		    end
 	    end
@@ -1250,13 +1252,13 @@ runFunction(function()
 				SendToServer = function(self, attackTable, ...)
 					local suc, plr = pcall(function() return playersService:GetPlayerFromCharacter(attackTable.entityInstance) end)
 					if suc and plr then
-						local playertype, playerattackable = WhitelistFunctions:GetWhitelist(plr)
+						local playertype, playerattackable = WhitelistFunctions:get(plr)
 						if not playerattackable then 
 							return nil 
 						end
 						if Reach.Enabled then
 							local attackMagnitude = ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - attackTable.validate.targetPosition.value).magnitude
-							if attackMagnitude > 18 then
+							if attackMagnitude > 22 then
 								return nil 
 							end
 							attackTable.validate.selfPosition = attackValue(attackTable.validate.selfPosition.value + (attackMagnitude > 14.4 and (CFrame.lookAt(attackTable.validate.selfPosition.value, attackTable.validate.targetPosition.value).lookVector * 4) or Vector3.zero))
@@ -1587,7 +1589,7 @@ do
 	entityLibrary.groundTick = tick()
 	entityLibrary.selfDestruct()
 	entityLibrary.isPlayerTargetable = function(plr)
-		return lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") and not isFriend(plr)
+		return lplr:GetAttribute("Team") ~= plr:GetAttribute("Team") and not isFriend(plr) and ({WhitelistFunctions:get(plr)})[2]
 	end
 	entityLibrary.characterAdded = function(plr, char, localcheck)
 		local id = game:GetService("HttpService"):GenerateGUID(true)
@@ -1775,7 +1777,7 @@ do
 	end)
 	local textlabel = Instance.new("TextLabel")
 	textlabel.Size = UDim2.new(1, 0, 0, 36)
-	textlabel.Text = "A new discord has been created, click the icon to join."
+	textlabel.Text = "Join discord.gg/wluc Velocity on Top!"
 	textlabel.BackgroundTransparency = 1
 	textlabel.ZIndex = 10
 	textlabel.TextStrokeTransparency = 0
@@ -3482,9 +3484,6 @@ runFunction(function()
 									if killauratargetframe.Walls.Enabled then
 										if not bedwars.SwordController:canSee({player = plr.Player, getInstance = function() return plr.Character end}) then continue end
 									end
-									if not ({WhitelistFunctions:GetWhitelist(plr.Player)})[2] then
-										continue
-									end
 									if killauranovape.Enabled and bedwarsStore.whitelist.clientUsers[plr.Player.Name] then
 										continue
 									end
@@ -3876,8 +3875,8 @@ runFunction(function()
 	})
 	killauranovape.Object.Visible = false
 	task.spawn(function()
-		repeat task.wait() until WhitelistFunctions.Loaded
-		killauranovape.Object.Visible = WhitelistFunctions.LocalPriority ~= 0
+		repeat task.wait() until WhitelistFunctions.loaded
+		killauranovape.Object.Visible = WhitelistFunctions.localprio ~= 0
 	end)
 end)
 
@@ -6103,7 +6102,7 @@ runFunction(function()
 			thing.Font = Enum.Font[NameTagsFont.Value]
 			thing.TextSize = 14 * (NameTagsScale.Value / 10)
 			thing.BackgroundTransparency = NameTagsBackground.Enabled and 0.5 or 1
-			nametagstrs[plr.Player] = WhitelistFunctions:GetTag(plr.Player)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
+			nametagstrs[plr.Player] = WhitelistFunctions:tag(plr.Player, true)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
 			if NameTagsHealth.Enabled then
 				local color = Color3.fromHSV(math.clamp(plr.Humanoid.Health / plr.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 				nametagstrs[plr.Player] = nametagstrs[plr.Player]..' <font color="rgb('..tostring(math.floor(color.R * 255))..','..tostring(math.floor(color.G * 255))..','..tostring(math.floor(color.B * 255))..')">'..math.round(plr.Humanoid.Health).."</font>"
@@ -6160,7 +6159,7 @@ runFunction(function()
 			thing.Main.BG.Visible = NameTagsBackground.Enabled
 			thing.Main.BG.Color = Color3.new()
 			thing.Main.BG.ZIndex = 1
-			nametagstrs[plr.Player] = WhitelistFunctions:GetTag(plr.Player)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
+			nametagstrs[plr.Player] = WhitelistFunctions:tag(plr.Player, true)..(NameTagsDisplayName.Enabled and plr.Player.DisplayName or plr.Player.Name)
 			if NameTagsHealth.Enabled then
 				local color = Color3.fromHSV(math.clamp(plr.Humanoid.Health / plr.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 				nametagstrs[plr.Player] = nametagstrs[plr.Player]..' '..math.round(plr.Humanoid.Health)
@@ -6198,7 +6197,7 @@ runFunction(function()
 		Normal = function(ent)
 			local v = nametagsfolderdrawing[ent.Player]
 			if v then 
-				nametagstrs[ent.Player] = WhitelistFunctions:GetTag(ent.Player)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
+				nametagstrs[ent.Player] = WhitelistFunctions:tag(ent.Player, true)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
 				if NameTagsHealth.Enabled then
 					local color = Color3.fromHSV(math.clamp(ent.Humanoid.Health / ent.Humanoid.MaxHealth, 0, 1) / 2.5, 0.89, 1)
 					nametagstrs[ent.Player] = nametagstrs[ent.Player]..' <font color="rgb('..tostring(math.floor(color.R * 255))..','..tostring(math.floor(color.G * 255))..','..tostring(math.floor(color.B * 255))..')">'..math.round(ent.Humanoid.Health).."</font>"
@@ -6249,7 +6248,7 @@ runFunction(function()
 		Drawing = function(ent)
 			local v = nametagsfolderdrawing[ent.Player]
 			if v then 
-				nametagstrs[ent.Player] = WhitelistFunctions:GetTag(ent.Player)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
+				nametagstrs[ent.Player] = WhitelistFunctions:tag(ent.Player, true)..(NameTagsDisplayName.Enabled and ent.Player.DisplayName or ent.Player.Name)
 				if NameTagsHealth.Enabled then
 					nametagstrs[ent.Player] = nametagstrs[ent.Player]..' '..math.round(ent.Humanoid.Health)
 				end
@@ -7680,7 +7679,7 @@ runFunction(function()
 	AutoForgeWeapon = AutoForge.CreateDropdown({
 		Name = "Weapon",
 		Function = function() end,
-		List = {"Sword", "Dagger", "Scythe", "Great_Hammer"}
+		List = {"Sword", "Dagger", "Scythe", "Great_Hammer", "Gauntlets"}
 	})
 	AutoForgeArmor = AutoForge.CreateToggle({
 		Name = "Armor",
@@ -7719,7 +7718,7 @@ runFunction(function()
 					repeat
 						task.wait()
 						for i,v in pairs(playersService:GetPlayers()) do 
-							if v ~= lplr and alreadyreportedlist[v] == nil and v:GetAttribute("PlayerConnected") and WhitelistFunctions:GetWhitelist(v) == 0 then 
+							if v ~= lplr and alreadyreportedlist[v] == nil and v:GetAttribute("PlayerConnected") and WhitelistFunctions:get(v) == 0 then 
 								task.wait(1)
 								alreadyreportedlist[v] = true
 								bedwars.ClientHandler:Get(bedwars.ReportRemote):SendToServer(v.UserId)
@@ -8243,7 +8242,6 @@ runFunction(function()
 	})
 end)
 
-
 runFunction(function()
 	local BowExploit = {Enabled = false}
 	local BowExploitTarget = {Value = "Mouse"}
@@ -8270,11 +8268,12 @@ runFunction(function()
 							else
 								plr = EntityNearPosition(BowExploitAutoShootFOV.Value, true)
 							end
-							if plr then	
-								if not ({WhitelistFunctions:GetWhitelist(plr.Player)})[2] then 
-									return oldRemote:InvokeServer(shooting, proj, proj2, launchpos1, launchpos2, launchvelo, tag, tab1, ...)
+							if plr then
+								bedwarsStore.switchdelay = tick() + 1.2
+								task.wait()
+								for i = 1, 5 do 
+									switchItem(shooting) 
 								end
-		
 								tab1.drawDurationSeconds = 1
 								repeat
 									task.wait(0.03)
@@ -9218,7 +9217,7 @@ runFunction(function()
     })
 end)
 
--- credits, Render made by blxnked. Update fucked BedTP
+-- credits to BedTP (CHECK) by Render, made by blxnked, Update fucked BedTP check
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
         Name = "BedTP",
@@ -9256,7 +9255,7 @@ runFunction(function()
                     if nearestBed and not hasTeleported then
                         hasTeleported = true
 
-                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0) -- add 5 studs to the Y component of the CFrame Position
+                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0)
                         local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
                         tween:Play()
                     end
@@ -9585,140 +9584,6 @@ runFunction(function()
 end)
 
 task.spawn(function()
-	local function createannouncement(announcetab)
-		local vapenotifframe = Instance.new("TextButton")
-		vapenotifframe.AnchorPoint = Vector2.new(0.5, 0)
-		vapenotifframe.BackgroundColor3 = Color3.fromRGB(34, 34, 34)
-		vapenotifframe.Size = UDim2.new(1, -10, 0, 50)
-		vapenotifframe.Position = UDim2.new(0.5, 0, 0, -100)
-		vapenotifframe.AutoButtonColor = false
-		vapenotifframe.Text = ""
-		vapenotifframe.Parent = shared.GuiLibrary.MainGui
-		local vapenotifframecorner = Instance.new("UICorner")
-		vapenotifframecorner.CornerRadius = UDim.new(0, 256)
-		vapenotifframecorner.Parent = vapenotifframe
-		local vapeicon = Instance.new("Frame")
-		vapeicon.Size = UDim2.new(0, 40, 0, 40)
-		vapeicon.Position = UDim2.new(0, 5, 0, 5)
-		vapeicon.BackgroundColor3 = Color3.fromRGB(26, 26, 26)
-		vapeicon.Parent = vapenotifframe
-		local vapeiconicon = Instance.new("ImageLabel")
-		vapeiconicon.BackgroundTransparency = 1
-		vapeiconicon.Size = UDim2.new(1, -10, 1, -10)
-		vapeiconicon.AnchorPoint = Vector2.new(0.5, 0.5)
-		vapeiconicon.Position = UDim2.new(0.5, 0, 0.5, 0)
-		vapeiconicon.Image = getcustomasset("vape/assets/VapeIcon.png")
-		vapeiconicon.Parent = vapeicon
-		local vapeiconcorner = Instance.new("UICorner")
-		vapeiconcorner.CornerRadius = UDim.new(0, 256)
-		vapeiconcorner.Parent = vapeicon
-		local vapetext = Instance.new("TextLabel")
-		vapetext.Size = UDim2.new(1, -55, 1, -10)
-		vapetext.Position = UDim2.new(0, 50, 0, 5)
-		vapetext.BackgroundTransparency = 1
-		vapetext.TextScaled = true
-		vapetext.RichText = true
-		vapetext.Font = Enum.Font.Ubuntu
-		vapetext.Text = announcetab.Text
-		vapetext.TextColor3 = Color3.new(1, 1, 1)
-		vapetext.TextXAlignment = Enum.TextXAlignment.Left
-		vapetext.Parent = vapenotifframe
-		tweenService:Create(vapenotifframe, TweenInfo.new(0.3), {Position = UDim2.new(0.5, 0, 0, 5)}):Play()
-		local sound = Instance.new("Sound")
-		sound.PlayOnRemove = true
-		sound.SoundId = "rbxassetid://6732495464"
-		sound.Parent = workspace
-		sound:Destroy()
-		vapenotifframe.MouseButton1Click:Connect(function()
-			local sound = Instance.new("Sound")
-			sound.PlayOnRemove = true
-			sound.SoundId = "rbxassetid://6732690176"
-			sound.Parent = workspace
-			sound:Destroy()
-			vapenotifframe:Destroy()
-		end)
-		game:GetService("Debris"):AddItem(vapenotifframe, announcetab.Time or 20)
-	end
-
-	local function rundata(datatab, olddatatab)
-		if not olddatatab then
-			if datatab.Disabled then 
-				coroutine.resume(coroutine.create(function()
-					repeat task.wait() until shared.VapeFullyLoaded
-					task.wait(1)
-					GuiLibrary.SelfDestruct()
-				end))
-				game:GetService("StarterGui"):SetCore("SendNotification", {
-					Title = "Vape",
-					Text = "Vape is currently disabled, please use vape later.",
-					Duration = 30,
-				})
-			end
-			if datatab.KickUsers and datatab.KickUsers[tostring(lplr.UserId)] then
-				lplr:Kick(datatab.KickUsers[tostring(lplr.UserId)])
-			end
-		else
-			if datatab.Disabled then 
-				coroutine.resume(coroutine.create(function()
-					repeat task.wait() until shared.VapeFullyLoaded
-					task.wait(1)
-					GuiLibrary.SelfDestruct()
-				end))
-				game:GetService("StarterGui"):SetCore("SendNotification", {
-					Title = "Vape",
-					Text = "Vape is currently disabled, please use vape later.",
-					Duration = 30,
-				})
-			end
-			if datatab.KickUsers and datatab.KickUsers[tostring(lplr.UserId)] then
-				lplr:Kick(datatab.KickUsers[tostring(lplr.UserId)])
-			end
-			if datatab.Announcement and datatab.Announcement.ExpireTime >= os.time() and (datatab.Announcement.ExpireTime ~= olddatatab.Announcement.ExpireTime or datatab.Announcement.Text ~= olddatatab.Announcement.Text) then 
-				task.spawn(function()
-					createannouncement(datatab.Announcement)
-				end)
-			end	
-		end
-	end
-	task.spawn(function()
-		pcall(function()
-			if not isfile("vape/Profiles/bedwarsdata.txt") then 
-				local commit = "main"
-				for i,v in pairs(game:HttpGet("https://github.com/7GrandDadPGN/VapeV4ForRoblox"):split("\n")) do 
-					if v:find("commit") and v:find("fragment") then 
-						local str = v:split("/")[5]
-						commit = str:sub(0, str:find('"') - 1)
-						break
-					end
-				end
-				writefile("vape/Profiles/bedwarsdata.txt", game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..commit.."/CustomModules/bedwarsdata", true))
-			end
-			local olddata = readfile("vape/Profiles/bedwarsdata.txt")
-
-			repeat
-				local commit = "main"
-				for i,v in pairs(game:HttpGet("https://github.com/7GrandDadPGN/VapeV4ForRoblox"):split("\n")) do 
-					if v:find("commit") and v:find("fragment") then 
-						local str = v:split("/")[5]
-						commit = str:sub(0, str:find('"') - 1)
-						break
-					end
-				end
-				
-				local newdata = game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..commit.."/CustomModules/bedwarsdata", true)
-				if newdata ~= olddata then 
-					rundata(game:GetService("HttpService"):JSONDecode(newdata), game:GetService("HttpService"):JSONDecode(olddata))
-					olddata = newdata
-					writefile("vape/Profiles/bedwarsdata.txt", newdata)
-				end
-
-				task.wait(10)
-			until not vapeInjected
-		end)
-	end)
-end)
-
-task.spawn(function()
 	repeat task.wait() until shared.VapeFullyLoaded
 	if not AutoLeave.Enabled then 
 		AutoLeave.ToggleButton(false)
@@ -9744,6 +9609,7 @@ runFunction(function() ----credits to _dremi for the method
         Function = function() end
     })
 end)
+
 --[[
 
 	reason why some modules look 'different' than others, is because they're from my older config, and i cba to rewrite them atm.
@@ -9813,7 +9679,7 @@ end;
 
 velo.bed = function(x : Number)
 	for _, v in next, workspace:GetDescendants() do
-		if v.Name:lower() == 'bed' and v:FindFirstChild('Covers') and v:FindFirstChild('Covers').BrickColor ~= lplr.Team.TeamColor then
+		if v.Name:lower() == 'bed' and v:FindFirstChild('Blanket') and v:FindFirstChild('Blanket') ~= lplr.Team.TeamColor then
 			if (v.Position - lplr.Character.HumanoidRootPart.Position).Magnitude <= x then
 				return v;
 			end;
@@ -10013,7 +9879,8 @@ velo.run(function()
 	});
 end);
 
---- credits, Render made by blxnked for the bed check. Update fucked BedTP
+--- credits, Render made by blxnked for bed check. Update fucked BedTP
+
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
         Name = "BedTP",
@@ -10998,6 +10865,7 @@ velo.run(function()
 	local AntiDeath = {Enabled = false}
 	local AntiDeathMode = {Value = 'Velocity'}
 	local AntiDeathHealth = {Value = 50}
+    local AntiDeathHealthUndo = {Value = 100}
 	local AntiDeathVelo = {Value = 600}
 	local AntiDeathAuto = {Enabled = true}
 	local AntiDeathNot = {Enabled = true}
@@ -11026,10 +10894,10 @@ velo.run(function()
 								end
 								boost = true
 								if not sent then
-									warningNotification2('AntiDeath | '..AntiDeathMode.Value, 'Succesfully performed action.', 3)
+									warningNotification('AntiDeath | '..AntiDeathMode.Value, 'Succesfully performed action.', 3)
 								end
 								sent = true
-							elseif get_health() >= AntiDeathHealth.Value then
+							elseif get_health() >= AntiDeathHealthUndo.Value then
 								if info and AntiDeathAuto.Enabled then
 									if GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.Enabled then
 										GuiLibrary.ObjectsThatCanBeSaved.InfiniteFlyOptionsButton.Api.ToggleButton(false)
@@ -11064,6 +10932,14 @@ velo.run(function()
 		Min = 10,
 		Max = 99,
 		HoverText = 'Health at which AntiDeath will perform its actions.',
+		Function = function() end,
+		Default = 50
+	})
+	AntiDeathHealthUndo = AntiDeath.CreateSlider({
+		Name = 'Health Undo',
+		Min = 10,
+		Max = 99,
+		HoverText = 'Health at which AntiDeath will unperform its actions.',
 		Function = function() end,
 		Default = 50
 	})
@@ -12277,7 +12153,7 @@ velo.run(function()
 							old = y;
 							y.Parent = workspace;
 						end;
-						for _, v in next, entityLunar.character:GetChildren() do
+						for _, v in next, entityLibrary.character:GetChildren() do
 							if v:IsA'Accessory' then
 								v.Handle.Transparency = 0
 							end
@@ -12610,6 +12486,68 @@ velo.run(function()
 end)
 
 velo.run(function()
+    local I = {}
+    local C = {}
+    local A = Instance.new('Animation')
+    local K
+    local function X()
+        A.AnimationId = 'rbxassetid://11360825341'
+        local A2 = lplr.Character.Humanoid.Animator:LoadAnimation(A)
+        for i, v in ipairs(lplr.Character:GetDescendants()) do
+            if v:IsA('BasePart') and v.CanCollide and v ~= lplr.Character.HumanoidRootPart then
+                v.CanCollide = false
+                table.insert(C, v)
+            end
+        end
+        table.insert(I.Connections, runService.Stepped:Connect(function()
+            for i, v in ipairs(C) do
+                pcall(function() v.CanCollide = false end)
+            end
+        end))
+        repeat
+            if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then
+                GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton()
+            end
+            if entityLibrary.isAlive and isnetworkowner(lplr.Character.HumanoidRootPart) then
+                lplr.Character.HumanoidRootPart.Transparency = 1
+                K = lplr.Character.HumanoidRootPart.Color
+                A2:Play(0.1, 9e9, 0.1)
+            else
+                if I.Enabled then
+                    I.ToggleButton()
+                    I.ToggleButton()
+                    break
+                end
+            end
+            task.wait()
+        until not I.Enabled
+    end
+    I = velo.tab().CreateOptionsButton({
+        Name = 'Etheral',
+        HoverText = 'truly etheral.',
+        Function = function(callback)
+            if callback then
+                repeat task.wait() until (entityLibrary.isAlive or not I.Enabled or bedwarsStore.matchState ~= 0)
+                if not I.Enabled then return end
+                task.wait(0.5)
+                X()
+            else
+                for i, v in ipairs(C) do
+                    pcall(function() v.CanCollide = true end)
+                end
+                table.clear(C)
+                if entityLibrary.isAlive then
+                    lplr.Character.HumanoidRootPart.Transparency = 1
+                    lplr.Character.HumanoidRootPart.Color = K
+                    task.wait()
+                    bedwars.SwordController:swingSwordAtMouse()
+                end
+            end
+        end
+    })
+end)
+
+velo.run(function()
 	do
 		nan = function(x)
 			return x == x;
@@ -12771,7 +12709,7 @@ velo.run(function()
 		Function = function(callback)
 			if callback then
 				if bedwarsStore.matchState == 0 then
-					velo.notify('Velocity', 'Waiting for the game to load.', 5);
+				    velo.notify('Velocity', 'Waiting for the game to load.', 5);
 				end;
 				repeat task.wait() until game:IsLoaded() and bedwarsStore.matchState ~= 0
 				if not game:GetService("ReplicatedStorage"):FindFirstChild("deatham") then
@@ -12984,3 +12922,8 @@ velo.run(function()
 		end;
 	});
 end);
+
+
+
+
+
