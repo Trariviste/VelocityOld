@@ -6978,7 +6978,6 @@ runFunction(function()
 		Function = function(callback)
 			if callback then
 				local x = false
-                                table.insert(I.Connections, inputService.JumpRequest:Connect(function()
 				table.insert(I.Connections, inputService.InputBegan:Connect(function(input)
 					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
 						x = true
