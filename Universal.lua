@@ -6970,41 +6970,42 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local I = {Enabled = true}
-	local H = {Enabled = true}
+	local I = {}
+	local IGM = {Value = 'Hold'}
+	local op
 	I = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
 		Name = 'InfiniteJump',
-		HoverText = 'Jump without touching the ground',
+		HoverText = 'Infinite Jump but dont use it when BetterAntivoid',
 		Function = function(callback)
-			if callback then
-				local x = false
-				table.insert(I.Connections, inputService.InputBegan:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						x = true
-						if entityLibrary.isAlive then
-							if H.Enabled then
-								repeat
-									entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-									task.wait()
-								until not x or not I.Enabled or not H.Enabled or inputService:GetFocusedTextBox()
-							else
-								entityLibrary.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-							end
+			if callback then 
+				op = lplr.Character.Humanoid.JumpPower
+				table.insert(I.Connections, inputService.JumpRequest:Connect(function()
+					if entityLibrary.isAlive then 
+						if IGM.Value == 'Hold' then 
+							lplr.Character.Humanoid.JumpPower = op
+							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+						else
+							lplr.Character.HumanoidRootPart.Velocity = Vector3.new(lplr.Character.HumanoidRootPart.Velocity.X, lplr.Character.Humanoid.JumpPower, lplr.Character.HumanoidRootPart.Velocity.Y) 
 						end
-					end
+					end 
 				end))
-				table.insert(I.Connections, inputService.InputEnded:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space and not inputService:GetFocusedTextBox() then
-						x = false
-					end
-				end))
+			else
+				if op then 
+					pcall(function() lplr.Character.Humanoid.JumpPower = op end) 
+					op = nil
+				end
 			end
 		end
 	})
-	H = I.CreateToggle({
-		Name = 'Hold',
-		Function = function() end,
-		HoverText = 'Hold down space to jump'
+	IGM = I.CreateDropdown({
+		Name = 'Mode',
+		List = {'Hold', 'Tap'},
+		Function = function()
+			if I.Enabled then 
+				I.ToggleButton()
+				I.ToggleButton()
+			end
+		end
 	})
 end)
 
