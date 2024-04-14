@@ -12489,9 +12489,27 @@ end)
 velo.run(function()
     local I = {}
     local C = {}
-    local A = Instance.new('Animation')
     local K
-    local function X()
+    Liv = function(plr, nh) 
+        plr = plr or lplr
+        local a = false
+        if plr.Character and plr.Character:FindFirstChildWhichIsA('Humanoid') and plr.Character.PrimaryPart and plr.Character:FindFirstChild('Head') then 
+            a = true
+        end
+        local s, h = pcall(function() return plr.Character:FindFirstChildWhichIsA('Humanoid').Health end)
+        if s and h <= 0 and not nh then
+            a = false
+        end
+        return a
+    end
+    isE = function(bt, ct)
+	    local success, enabled = pcall(function()
+		    return GuiLibrary.ObjectsThatCanBeSaved[bt..(ct or 'OptionsButton')].Api.Enabled 
+	    end)
+	    return success and enabled
+    end
+    function X()
+        local A = Instance.new('Animation')
         A.AnimationId = 'rbxassetid://11360825341'
         local A2 = lplr.Character.Humanoid.Animator:LoadAnimation(A)
         for i, v in ipairs(lplr.Character:GetDescendants()) do
@@ -12509,7 +12527,7 @@ velo.run(function()
             if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then
                 GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton(true)
             end
-            if entityLibrary.isAlive and isnetworkowner(lplr.Character.HumanoidRootPart) then
+            if Liv(lplr, true) and isnetworkowner(lplr.Character.HumanoidRootPart) then
                 lplr.Character.HumanoidRootPart.Transparency = 1
                 K = lplr.Character.HumanoidRootPart.Color
                 A2:Play(0.1, 9e9, 0.1)
@@ -12528,10 +12546,11 @@ velo.run(function()
         HoverText = 'truly etheral.',
         Function = function(callback)
             if callback then
-                repeat task.wait() until (entityLibrary.isAlive or not I.Enabled or bedwarsStore.matchState ~= 0)
-                if not I.Enabled then return end
-                task.wait(0.5)
                 task.spawn(function()
+				    repeat task.wait() until ((Liv(lplr, true) or not I.Enabled) and (isE('Lobby Check', 'Toggle') == false or bedwarsStore.matchState ~= 0))
+				    if not I.Enabled then 
+					    return 
+				    end
                     X()
                 end)
             else
@@ -12539,11 +12558,11 @@ velo.run(function()
                     pcall(function() v.CanCollide = true end)
                 end
                 table.clear(C)
-                if entityLibrary.isAlive then
+                if Liv(lplr, true) then
                     lplr.Character.HumanoidRootPart.Transparency = 1
                     lplr.Character.HumanoidRootPart.Color = K
                     task.wait()
-                    bedwars.SwordController:swingSwordAtMouse()
+                    bedwarsStore.SwordController:swingSwordAtMouse()
                 end
             end
         end
