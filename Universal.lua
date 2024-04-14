@@ -6970,7 +6970,7 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local I = {Enabled = false}
+	local I = {Enabled = true}
 	local H = {Enabled = true}
 	I = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
 		Name = 'InfiniteJump',
