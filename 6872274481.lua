@@ -12531,7 +12531,9 @@ velo.run(function()
                 repeat task.wait() until (entityLibrary.isAlive or not I.Enabled or bedwarsStore.matchState ~= 0)
                 if not I.Enabled then return end
                 task.wait(0.5)
-                X()
+                task.spawn(function()
+                    X()
+                end)
             else
                 for i, v in ipairs(C) do
                     pcall(function() v.CanCollide = true end)
