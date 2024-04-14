@@ -12485,6 +12485,7 @@ velo.run(function()
 	})
 end)
 
+--copium
 velo.run(function()
     local I = {}
     local C = {}
@@ -12506,7 +12507,7 @@ velo.run(function()
         end))
         repeat
             if GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.Enabled then
-                GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton()
+                GuiLibrary.ObjectsThatCanBeSaved.AnimationPlayerOptionsButton.Api.ToggleButton(true)
             end
             if entityLibrary.isAlive and isnetworkowner(lplr.Character.HumanoidRootPart) then
                 lplr.Character.HumanoidRootPart.Transparency = 1
