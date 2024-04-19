@@ -12945,7 +12945,27 @@ velo.run(function()
 	});
 end);
 
-
+velo.run(function()
+    local b = {Enabled = false}
+    b = velo.tab().CreateOptionsButton({
+        Name = "4BigGuysExploit",
+        Function = function(callback)
+            if callback then
+                task.spawn(function()
+                    repeat
+                        task.wait()
+                        game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.HellBladeRelease:FireServer({
+                            ["chargeTime"] = 0.999,
+                            ["player"] = game:GetService("Players").LocalPlayer,
+                            ["weapon"] = game:GetService("ReplicatedStorage").Inventories:FindFirstChild(lplr.Name.."infernal_saber"),
+                        })
+                    until not b.Enabled
+                end)
+            end
+        end, 
+        HoverText = "bedwars fucked up again!!!"
+    })
+end)
 
 
 
