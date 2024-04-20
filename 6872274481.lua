@@ -3079,6 +3079,7 @@ runFunction(function()
 	local killauraaimcircle = {Enabled = false}
 	local killauraaimcirclepart
 	local killauraparticle = {Enabled = false}
+    local killauracolor = {Hue = 0, Sat = 0, Value = 0}
 	local killauraparticlepart
     local Killauranear = false
     local killauraplaying = false
@@ -3356,7 +3357,6 @@ runFunction(function()
 				if killauraaimcirclepart then killauraaimcirclepart.Parent = gameCamera end
 				if killaurarangecirclepart then killaurarangecirclepart.Parent = gameCamera end
 				if killauraparticlepart then killauraparticlepart.Parent = gameCamera end
-
 				task.spawn(function()
 					local oldNearPlayer
 					repeat
@@ -3827,12 +3827,22 @@ runFunction(function()
 				particle.Size = NumberSequence.new(0.3)
 				particle.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(67, 10, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 98, 255))})
 				particle.Parent = killauraparticlepart
+				task.spawn(function()
+					repeat task.wait() until killauracolor.Object
+					particle.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value)), ColorSequenceKeypoint.new(1, Color3.fromHSV(killauracolor.Hue, killauracolor.Sat, killauracolor.Value))})
+				end)
 			else
 				if killauraparticlepart then 
 					killauraparticlepart:Destroy()
 					killauraparticlepart = nil
 				end
 			end
+		end
+	})
+	killauracolor = Killaura.CreateColorSlider({
+		Name = 'Particle Color',
+		Function = function(h, s, v)
+			pcall(function() killauraparticlepart.ParticleEmitter.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromHSV(h, s, v)), ColorSequenceKeypoint.new(1, Color3.fromHSV(h, s, v))}) end)
 		end
 	})
     killaurasound = Killaura.CreateToggle({
