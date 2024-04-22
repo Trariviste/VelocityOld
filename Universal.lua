@@ -7184,9 +7184,9 @@ runFunction(function()
                 RunLoops:BindToHeartbeat('AnimationChanger', function()
 					pcall(function()
 				        task.spawn(function()
-					        if not entityLibrary.isAlive then repeat task.wait() until entityLibrary.isAlive end
+					        if not entityLibrary.isAlive then repeat task.wait(10) until entityLibrary.isAlive end
 					        table.insert(AnimationChanger.Connections, lplr.CharacterAdded:Connect(function()
-					        if not entityLibrary.isAlive then repeat task.wait() until entityLibrary.isAlive end
+					        if not entityLibrary.isAlive then repeat task.wait(10) until entityLibrary.isAlive end
 					            pcall(AnimateCharacter)
 					        end))                        
 					        pcall(AnimateCharacter)
