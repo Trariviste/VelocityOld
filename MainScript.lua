@@ -1951,7 +1951,30 @@ GeneralSettings.CreateButton2({
 	Name = "UNINJECT",
 	Function = GuiLibrary.SelfDestruct
 })
-
+GeneralSettings.CreateButton2({
+	Name = "REINJECT",
+	Function = function() 
+	local commit = isfile("vape/commithash.txt") and readfile("vape/commithash.txt") or "main"
+	GuiLibrary.SelfDestruct()
+	if isfile("vape/NewMainScript.lua") then
+		loadstring(readfile("vape/MainScript.lua"))()
+	else
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/Copiums/Velocity/main/NewMainScript.lua", true))()
+	end
+	end
+})
+GeneralSettings.CreateButton2({
+	Name = "UNINSTALL VELOCITY",
+	Function = function() 
+	local commit = isfile("vape/commithash.txt") and readfile("vape/commithash.txt") or "main"
+	GuiLibrary.SelfDestruct()
+	if isfile("vape/NewMainScript.lua") then
+		loadstring(readfile("vape/MainScript.lua"))()
+	else
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..commit.."/MainScript.lua", true))()
+	end
+	end
+})
 local function loadVape()
 	if not shared.VapeIndependent then
 		loadstring(vapeGithubRequest("Universal.lua"))()
