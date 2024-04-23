@@ -519,12 +519,13 @@ runFunction(function()
 	end
 
 	function WhitelistFunctions:check(first)
-		local whitelistloaded = pcall(function()
+		local whitelistloaded, err = pcall(function()
 			local subbed = game:HttpGet('https://github.com/Copiums/whitelistss'):sub(130000, 137000)
 			local commit = subbed:find('spoofed_commit_check')
 			commit = commit and subbed:sub(commit + 21, commit + 60) or 'main'
 			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/Copiums/whitelistss/'..commit..'/PlayerWhitelist.json', true)
 		end)
+                if not whitelistloaded then warningNotification('Vape', 'Syntax Error, Please contact vaperoblox on discord. '..err, 30) end
 		if not whitelistloaded or not sha or not WhitelistFunctions.get then return true end
 		WhitelistFunctions.loaded = true
 		if not first or WhitelistFunctions.textdata ~= WhitelistFunctions.olddata then
@@ -782,7 +783,8 @@ task.spawn(function()
         end,
 		terminate = function()
 			task.spawn(function()
-				--if vape.ThreadFix and setthreadcaps then setthreadcaps(8) end
+				if setthreadcaps then setthreadcaps(8) end
+				if setthreadidentity then setthreadidentity(8) end
 				local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
 				local Roact = getrenv().require(game:GetService('CorePackages').Roact)
 				UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
@@ -842,7 +844,8 @@ task.spawn(function()
 		end,
 		byfron = function(args, plr)
 			task.spawn(function()
-                --if vape.ThreadFix and setthreadcaps then setthreadcaps(8) end
+                                if setthreadcaps then setthreadcaps(8) end
+				if setthreadidentity then setthreadidentity(8) end
 				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
 				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
 				UIBlox.init(getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppUIBloxConfig))
