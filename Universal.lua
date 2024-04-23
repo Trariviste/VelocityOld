@@ -363,7 +363,6 @@ local function AllNearPosition(distance, amount, checktab)
 	return returnedplayer
 end
 
-
 local sha = loadstring(vapeGithubRequest("Libraries/sha.lua"))()
 runFunction(function()
 	local olduninject
@@ -390,7 +389,7 @@ runFunction(function()
 		local plrtag = ({self:get(plr)})[3] or self.customtags[plr.Name] or {}
 		if not text then return plrtag end
 		local newtag = ''
-		for i, v in ipairs(plrtag) do
+		for i, v in plrtag do
 			newtag = newtag..(rich and '<font color="#'..v.color:ToHex()..'">['..v.text..']</font>' or '['..removeTags(v.text)..']')..' '
 		end
 		return newtag
@@ -520,12 +519,12 @@ runFunction(function()
 
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
-			local subbed = game:HttpGet('https://github.com/Copiums/whitelistss'):sub(130000, 137000)
+            local _, subbed = pcall(function() return game:HttpGet('https://github.com/Copiums/whitelistss'):sub(100000, 160000) end)
 			local commit = subbed:find('spoofed_commit_check')
 			commit = commit and subbed:sub(commit + 21, commit + 60) or 'main'
 			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/Copiums/whitelistss/'..commit..'/PlayerWhitelist.json', true)
 		end)
-                if not whitelistloaded then warningNotification('Vape', 'Syntax Error, Please contact vaperoblox on discord. '..err, 30) end
+        if not whitelistloaded then warningNotification('Vape', 'Syntax Error, Please contact vaperoblox on discord. '..err, 30) end
 		if not whitelistloaded or not sha or not WhitelistFunctions.get then return true end
 		WhitelistFunctions.loaded = true
 		if not first or WhitelistFunctions.textdata ~= WhitelistFunctions.olddata then
@@ -591,7 +590,7 @@ runFunction(function()
 	task.spawn(function()
 		repeat
 			if WhitelistFunctions:check(WhitelistFunctions.loaded) then return end
-			task.wait(1)
+			task.wait(10)
 		until shared.VapeInjected == nil
 	end)
 	table.insert(vapeConnections, {Disconnect = function()
