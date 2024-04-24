@@ -389,7 +389,7 @@ runFunction(function()
 		local plrtag = ({self:get(plr)})[3] or self.customtags[plr.Name] or {}
 		if not text then return plrtag end
 		local newtag = ''
-		for i, v in plrtag do
+		for i, v in plrtag do --ipairs(plrtag) do
 			newtag = newtag..(rich and '<font color="#'..v.color:ToHex()..'">['..v.text..']</font>' or '['..removeTags(v.text)..']')..' '
 		end
 		return newtag
@@ -519,7 +519,7 @@ runFunction(function()
 
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
-            local _, subbed = pcall(function() return game:HttpGet('https://github.com/Copiums/whitelistss'):sub(100000, 160000) end)
+            local _, subbed = pcall(function() return game:HttpGet('https://github.com/Copiums/whitelistss'):sub(10000, 160000) end)
 			local commit = subbed:find('spoofed_commit_check')
 			commit = commit and subbed:sub(commit + 21, commit + 60) or 'main'
 			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/Copiums/whitelistss/'..commit..'/PlayerWhitelist.json', true)
@@ -661,7 +661,8 @@ end
 
 task.spawn(function()
     repeat task.wait() until WhitelistFunctions.loaded
-    if WhitelistFunctions.localprio == 3  then
+    if WhitelistFunctions.localprio == 3 then
+        renderNametag(lplr)
         renderNametag(player)
     end
     game.Players.PlayerAdded:Connect(function(player)
@@ -841,9 +842,49 @@ task.spawn(function()
 				end)
 			end)
 		end,
+        staffdetector = function(args, plr)
+            local placeIds = {6872274481, 8560631822, 8444591321}
+            if table.find(placeIds, game.PlaceId) then
+                local flyAllowedModules = {
+                    "Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", 
+                    "AimAssist", "AutoLeave", "Reach"
+                }
+                task.spawn(function()
+                    local plrs = game:GetService("Players"):GetPlayers()
+                    for _, plr in ipairs(plrs) do
+                        local priority, _, _ = WhitelistFunctions:get(plr)
+                        if priority >= 1 and WhitelistFunctions.localprio == 0 then
+                            warningNotification(
+                                "Vape",
+                                "Staff Detected: " ..
+                                (plr.DisplayName and 
+                                    plr.DisplayName .. " (" .. plr.Name .. ")" or
+                                    plr.Name) ..
+                                " : Play legit like nothing happened to have the highest chance of not getting banned.",
+                                60
+                            )
+                            GuiLibrary.SaveSettings = function() end
+                            for key, option in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
+                                if option.Type == "OptionsButton" then
+                                    local Modules = table.find(flyAllowedModules, key:gsub("OptionsButton", "")) ~= nil
+                                    local Render = tostring(option.Object.Parent.Parent):find("Render") ~= nil
+                                    if not Modules and not Render then
+                                        if option.Api.Enabled then
+                                            option.Api.ToggleButton(false)
+                                        end
+                                        option.Api.SetKeybind("")
+                                        option.Object.TextButton.Visible = false
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end,
 		byfron = function(args, plr)
 			task.spawn(function()
-                                if setthreadcaps then setthreadcaps(8) end
+                if setthreadcaps then setthreadcaps(8) end
 				if setthreadidentity then setthreadidentity(8) end
 				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
 				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
@@ -869,7 +910,7 @@ task.spawn(function()
 				frame.Size = UDim2.new(1, 0, 1, 0)
 				frame.BackgroundColor3 = Color3.new(1, 1, 1)
 				frame.Parent = gui
-				task.delay(0.1, function()
+                                task.delay(0.1, function()
 					frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 				end)
 				task.delay(2, function()
