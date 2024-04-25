@@ -6759,8 +6759,8 @@ if hookmetamethod and httpServiceRun == nil then
     end)
 end
 
-local auto = false
-
+local auto = true
+local localVersion = nil
 local function fetchFile(url)
     local success, result = pcall(function()
         return game:HttpGet(url)
@@ -6768,53 +6768,53 @@ local function fetchFile(url)
     return success and result or nil
 end
 
-function newUpdate()
-    local function downloadFile(url, filePath)
-        local body = fetchFile(url)
-        if body then
-            writefile(filePath, body)
-        else
-            print("Failed to fetch file from URL:", url)
-            warningNotification("Velocity", "Failed to fetch a file. Please report this to a developer.", 100)
-        end
-    end
-
-    local versionURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/version.txt"
-    local current = fetchFile(versionURL)
-    local localVersion = nil
-    
-    if isfile('vape/version.txt') then
-        localVersion = readfile('vape/version.txt')
+local function Outdated(localVer, remoteVer)
+    return localVer ~= remoteVer
+end
+local function downloadFile(url, filePath)
+    local body = fetchFile(url)
+    if body then
+        writefile(filePath, body)
     else
-        warn("File wasn't found. Creating file and kicking player.")
-        writefile('vape/version.txt', 'v30432')  
-        lplr:Kick("Hey! If you see this message. Just rejoin the game and execute Velocity again! Thank you!")
+        print("Failed to fetch file from URL:", url)
+        warningNotification("Velocity", "Failed to fetch a file. Please report this to a developer.", 100)
+    end
+end
+
+local function newUpdate()
+    local versionURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt"
+    local currentVersion = fetchFile(versionURL)
+    if not currentVersion then
+        warningNotification("Velocity", "Unable to fetch the current version. Check your internet connection.", 100)
         return
     end
-
-    local function checkOutdated()
-        return localVersion ~= current
+    if isfile("vape/version.txt") then
+        localVersion = readfile("vape/version.txt")
+    else
+        writefile("vape/version.txt", "v30432")
+        lplr:Kick("Hey! Please rejoin and run Velocity again!")
+        return
     end
-
-    if checkOutdated() then
-        warningNotification("Velocity", "A newer version is available. Please wait while we fetch the version.", 60)
-        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua', 'vape/MainScript.lua')
-        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua', 'vape/GuiLibrary.lua')
-        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua', 'vape/CustomModules/6872274481.lua')
-        downloadFile('https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua', 'vape/CustomModules/6872265039.lua')
-        warningNotification("Velocity", "Success! Please wait as we do some final things.", 10)
-
-        writefile('vape/version.txt', current)
-        lplr:Kick("Velocity - Autoupdate was a success! If you see this message more than once, please report this to a developer!")
+    if Outdated(localVersion, currentVersion) then
+        warningNotification("Velocity", "New version available. Updating...", 60)
+        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua", "vape/MainScript.lua")
+        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua", "vape/GuiLibrary.lua")
+        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua", "vape/CustomModules/6872274481.lua")
+        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua", "vape/CustomModules/6872265039.lua")
+        writefile("vape/version.txt", tostring(currentVersion))
+        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua", "vape/CustomModules/Universal.lua")
+        lplr:Kick("Velocity - Auto-update was a success!")
     else
         warningNotification("Velocity", "No new version available. Continuing..", 5)
     end
 end
 
-if auto then
+if auto and WhitelistFunctions.localprio == 0 then
     newUpdate()
-else
+elseif auto and WhitelistFunctions.localprio > 0 then
     warningNotification("Velocity", "Autoupdate has been disabled. Continuing..", 3)
+elseif not auto then
+    print("disabled")
 end 
                                                                                                                                                                                                                                                                                                                             
 runFunction(function()
@@ -7199,9 +7199,7 @@ runFunction(function()
         }
     }
     local function AnimateCharacter()
-        --local lplr = game.Players.LocalPlayer
-        --local character = lplr.Character or lplr.CharacterAdded:Wait()
-        local animate = lplr.Character:FindFirstChild("Animate") --character:WaitForChild("Animate")
+        local animate = lplr.Character:FindFirstChild("Animate") 
         if AnimFreeze.Enabled then
             animate.Enabled = false
         end
