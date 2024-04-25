@@ -27,6 +27,9 @@
 
 ]]
 print("Velocity on top")
+print("Velocity on top")
+print("Velocity on top")
+print("Velocity on top")
 local velo_load = tick();
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
