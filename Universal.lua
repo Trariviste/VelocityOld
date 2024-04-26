@@ -6759,7 +6759,7 @@ if hookmetamethod and httpServiceRun == nil then
     end)
 end
 
-local auto = true
+local auto = false
 local localVersion = nil
 local function fetchFile(url)
     local success, result = pcall(function()
