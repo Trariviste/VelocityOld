@@ -561,7 +561,6 @@ runFunction(function()
 							local TItle = Instance.new("TextLabel")
 							local desc = Instance.new("TextLabel")
 							local UIStroke = Instance.new("UIStroke")
-
 							function generate(l)
 								local charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?,./;:[]{}|\\"
 								local result = ""
@@ -571,12 +570,10 @@ runFunction(function()
 								end
 								return result
 							end
-							
 							local r = generate(45)
 							AIEJWDSOPK.Name = r
 							AIEJWDSOPK.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 							AIEJWDSOPK.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-							
 							Main.Name = "Main"
 							Main.Parent = AIEJWDSOPK
 							Main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -586,16 +583,13 @@ runFunction(function()
 							Main.Position = UDim2.new(0.5, 0, 0.509, -700)
 							Main.Size = UDim2.new(0, 612, 0, 65)
 							Main.Visible = false
-							
 							UICorner.Parent = Main
-							
 							DropShadowHolder.Name = "DropShadowHolder"
 							DropShadowHolder.Parent = Main
 							DropShadowHolder.BackgroundTransparency = 1.000
 							DropShadowHolder.BorderSizePixel = 0
 							DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
 							DropShadowHolder.ZIndex = 0
-							
 							DropShadow.Name = "DropShadow"
 							DropShadow.Parent = DropShadowHolder
 							DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -609,7 +603,6 @@ runFunction(function()
 							DropShadow.ImageTransparency = 0.500
 							DropShadow.ScaleType = Enum.ScaleType.Slice
 							DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-							
 							TItle.Name = "TItle"
 							TItle.Parent = Main
 							TItle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -622,7 +615,6 @@ runFunction(function()
 							TItle.Text = "VELOCITY ANNOUNCEMENT"
 							TItle.TextColor3 = Color3.fromRGB(255, 255, 255)
 							TItle.TextSize = 14.000
-							
 							desc.Name = "desc"
 							desc.Parent = Main
 							desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -637,20 +629,15 @@ runFunction(function()
 							desc.TextColor3 = Color3.fromRGB(255, 255, 255)
 							desc.TextSize = 13.000
 							desc.TextWrapped = true
-							
 							UIStroke.Color = Color3.fromRGB(255, 255, 255)
 							UIStroke.Thickness = 2
 							UIStroke.Parent = Main
 						end
-							
 						function announcement(text, ms)
 							local x = Main
-							
 							x.Visible = true
 							desc.Text = text
-							
 							wait(3.5)
-							
 							tweenService:Create(x, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
 							wait(.10)
 							wait(ms)
@@ -660,16 +647,12 @@ runFunction(function()
 							x.Visible = false
 							desc.Text = ""
 						end
-	
 						announcement(WhitelistFunctions.data.Announcement.text, WhitelistFunctions.data.Announcement.time)
 					end
-
-					
 				end
 				WhitelistFunctions.olddata = WhitelistFunctions.textdata
 				pcall(function() writefile('vape/profiles/whitelist.json', WhitelistFunctions.textdata) end)
 			end
-
 			if WhitelistFunctions.data.KillVape then
 				GuiLibrary.SelfDestruct()
 				return true
