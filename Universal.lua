@@ -526,98 +526,91 @@ runFunction(function()
 		local TItle = Instance.new("TextLabel")
 		local desc = Instance.new("TextLabel")
 		local UIStroke = Instance.new("UIStroke")
-
-			function generate(l)
-				local charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?,./;:[]{}|\\"
-				local result = ""
-				for i = 1, l do
-					local randomIndex = math.random(1, #charset)
-					result = result .. string.sub(charset, randomIndex, randomIndex)
-				end
-				return result
+		function generate(l)
+			local charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?,./;:[]{}|\\"
+			local result = ""
+			for i = 1, l do
+				local randomIndex = math.random(1, #charset)
+				result = result .. string.sub(charset, randomIndex, randomIndex)
 			end
-			local r = generate(45)
+			return result
+		end
+		local r = generate(45)
 			
-			AIEJWDSOPK.Name = r
-			AIEJWDSOPK.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-			AIEJWDSOPK.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-			Main.Name = "Main"
-			Main.Parent = AIEJWDSOPK
-			Main.AnchorPoint = Vector2.new(0.5, 0.5)
-			Main.BackgroundColor3 = Color3.fromRGB(68, 68, 68)
-			Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			Main.BorderSizePixel = 0
-			Main.Position = UDim2.new(0.5, 0, 0.509, -700)
-			Main.Size = UDim2.new(0, 612, 0, 65)
-			Main.Visible = false
-			UICorner.Parent = Main
-			DropShadowHolder.Name = "DropShadowHolder"
-			DropShadowHolder.Parent = Main
-			DropShadowHolder.BackgroundTransparency = 1.000
-			DropShadowHolder.BorderSizePixel = 0
-			DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
-			DropShadowHolder.ZIndex = 0
-			DropShadow.Name = "DropShadow"
-			DropShadow.Parent = DropShadowHolder
-			DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-			DropShadow.BackgroundTransparency = 1.000
-			DropShadow.BorderSizePixel = 0
-			DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-			DropShadow.Size = UDim2.new(1, 47, 1, 47)
-			DropShadow.ZIndex = 0
-			DropShadow.Image = "rbxassetid://6014261993"
-			DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-			DropShadow.ImageTransparency = 0.500
-			DropShadow.ScaleType = Enum.ScaleType.Slice
-			DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-			TItle.Name = "TItle"
-			TItle.Parent = Main
-			TItle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			TItle.BackgroundTransparency = 1.000
-			TItle.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			TItle.BorderSizePixel = 0
-			TItle.Position = UDim2.new(0, 0, 0.123076923, 0)
-			TItle.Size = UDim2.new(0, 612, 0, 15)
-			TItle.Font = Enum.Font.GothamBold
-			TItle.Text = "VELOCITY ANNOUNCEMENT"
-			TItle.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TItle.TextSize = 14.000
-			desc.Name = "desc"
-			desc.Parent = Main
-			desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			desc.BackgroundTransparency = 1.000
-			desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			desc.BorderSizePixel = 0
-			desc.ClipsDescendants = true
-			desc.Position = UDim2.new(0.00816993508, 0, 0.353846163, 0)
-			desc.Size = UDim2.new(0, 602, 0, 34)
-			desc.Font = Enum.Font.GothamBold
-			desc.Text = ""
-			desc.TextColor3 = Color3.fromRGB(255, 255, 255)
-			desc.TextSize = 13.000
-			desc.TextWrapped = true
-			UIStroke.Color = Color3.fromRGB(255, 255, 255)
-			UIStroke.Thickness = 2
-			UIStroke.Parent = Main
-		end
-
-		function announcement(text, ms)
-			local x = Main
-			x.Visible = true
-			desc.Text = text
-			wait(3.5)
-			tweenService:Create(x, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
-			wait(.10)
-			wait(ms)
-			tweenService:Create(x, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
-			wait(.10)
-			wait(ms)
-			x.Visible = false
-			desc.Text = ""
-		end
-
+		AIEJWDSOPK.Name = r
+		AIEJWDSOPK.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+		AIEJWDSOPK.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		Main.Name = "Main"
+		Main.Parent = AIEJWDSOPK
+		Main.AnchorPoint = Vector2.new(0.5, 0.5)
+		Main.BackgroundColor3 = Color3.fromRGB(68, 68, 68)
+		Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		Main.BorderSizePixel = 0
+		Main.Position = UDim2.new(0.5, 0, 0.509, -700)
+		Main.Size = UDim2.new(0, 612, 0, 65)
+		Main.Visible = false
+		UICorner.Parent = Main
+		DropShadowHolder.Name = "DropShadowHolder"
+		DropShadowHolder.Parent = Main
+		DropShadowHolder.BackgroundTransparency = 1.000
+		DropShadowHolder.BorderSizePixel = 0
+		DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
+		DropShadowHolder.ZIndex = 0
+		DropShadow.Name = "DropShadow"
+		DropShadow.Parent = DropShadowHolder
+		DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+		DropShadow.BackgroundTransparency = 1.000
+		DropShadow.BorderSizePixel = 0
+		DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+		DropShadow.Size = UDim2.new(1, 47, 1, 47)
+		DropShadow.ZIndex = 0
+		DropShadow.Image = "rbxassetid://6014261993"
+		DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+		DropShadow.ImageTransparency = 0.500
+		DropShadow.ScaleType = Enum.ScaleType.Slice
+		DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+		TItle.Name = "TItle"
+		TItle.Parent = Main
+		TItle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		TItle.BackgroundTransparency = 1.000
+		TItle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TItle.BorderSizePixel = 0
+		TItle.Position = UDim2.new(0, 0, 0.123076923, 0)
+		TItle.Size = UDim2.new(0, 612, 0, 15)
+		TItle.Font = Enum.Font.GothamBold
+		TItle.Text = "VELOCITY ANNOUNCEMENT"
+		TItle.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TItle.TextSize = 14.000
+		desc.Name = "desc"
+		desc.Parent = Main
+		desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		desc.BackgroundTransparency = 1.000
+		desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		desc.BorderSizePixel = 0
+		desc.ClipsDescendants = true
+		desc.Position = UDim2.new(0.00816993508, 0, 0.353846163, 0)
+		desc.Size = UDim2.new(0, 602, 0, 34)
+		desc.Font = Enum.Font.GothamBold
+		desc.Text = ""
+		desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+		desc.TextSize = 13.000
+		desc.TextWrapped = true
+		UIStroke.Color = Color3.fromRGB(255, 255, 255)
+		UIStroke.Thickness = 2
+		UIStroke.Parent = Main
+                local function announcement(text, duration)
+                        Main.Visible = true
+                        desc.Text = text
+                        tweenService:Create(Main, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
+                        wait(3.5)
+                        wait(duration)
+                        tweenService:Create(Main, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
+                        wait(1.3)
+                        Main.Visible = false
+                        desc.Text = ""
+                end
 		announcement(t, l)
-    end
+        end
 
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
