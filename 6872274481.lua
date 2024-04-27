@@ -26,10 +26,7 @@
                                       |___/ |___/                                
 
 ]]
-print("Velocity on top")
-print("Velocity on top")
-print("Velocity on top")
-print("Velocity on top")
+
 local velo_load = tick();
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
@@ -2158,179 +2155,6 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local AutoLeaveDelay = {Value = 1}
-	local AutoPlayAgain = {Enabled = false}
-	local AutoLeaveStaff = {Enabled = true}
-	local AutoLeaveStaff2 = {Enabled = true}
-	local AutoLeaveRandom = {Enabled = false}
-	local leaveAttempted = false
-
-	local function getRole(plr)
-		local suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
-		if not suc then 
-			repeat
-				suc, res = pcall(function() return plr:GetRankInGroup(5774246) end)
-				task.wait()
-			until suc
-		end
-		if plr.UserId == 1774814725 then 
-			return 200
-		end
-		return res
-	end
-
-	local flyAllowedmodules = {"Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", "AimAssist", "AutoLeave", "Reach"}
-	local function autoLeaveAdded(plr)
-		task.spawn(function()
-			if not shared.VapeFullyLoaded then
-				repeat task.wait() until shared.VapeFullyLoaded
-			end
-			if getRole(plr) >= 100 then
-				if AutoLeaveStaff.Enabled then
-					if #bedwars.ClientStoreHandler:getState().Party.members > 0 then 
-						bedwars.LobbyClientEvents.leaveParty()
-					end
-					if AutoLeaveStaff2.Enabled then 
-						warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name).." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
-						GuiLibrary.SaveSettings = function() end
-						for i,v in pairs(GuiLibrary.ObjectsThatCanBeSaved) do 
-							if v.Type == "OptionsButton" then
-								if table.find(flyAllowedmodules, i:gsub("OptionsButton", "")) == nil and tostring(v.Object.Parent.Parent):find("Render") == nil then
-									if v.Api.Enabled then
-										v.Api.ToggleButton(false)
-									end
-									v.Api.SetKeybind("")
-									v.Object.TextButton.Visible = false
-								end
-							end
-						end
-					else
-						GuiLibrary.SelfDestruct()
-						game:GetService("StarterGui"):SetCore("SendNotification", {
-							Title = "Vape",
-							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
-							Duration = 60,
-						})
-					end
-					return
-				else
-					warningNotification("Vape", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
-				end
-			end
-		end)
-	end
-
-	local function isEveryoneDead()
-		if #bedwars.ClientStoreHandler:getState().Party.members > 0 then
-			for i,v in pairs(bedwars.ClientStoreHandler:getState().Party.members) do
-				local plr = playersService:FindFirstChild(v.name)
-				if plr and isAlive(plr, true) then
-					return false
-				end
-			end
-			return true
-		else
-			return true
-		end
-	end
-
-	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "AutoLeave", 
-		Function = function(callback)
-			if callback then
-				table.insert(AutoLeave.Connections, vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
-					if (not leaveAttempted) and deathTable.finalKill and deathTable.entityInstance == lplr.Character then
-						leaveAttempted = true
-						if isEveryoneDead() and bedwarsStore.matchState ~= 2 then
-							task.wait(1 + (AutoLeaveDelay.Value / 10))
-							if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
-								if not AutoPlayAgain.Enabled then
-									bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-								else
-									if AutoLeaveRandom.Enabled then 
-										local listofmodes = {}
-										for i,v in pairs(bedwars.QueueMeta) do
-											if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
-										end
-										bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
-									else
-										bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
-									end
-								end
-							end
-						end
-					end
-				end))
-				table.insert(AutoLeave.Connections, vapeEvents.MatchEndEvent.Event:Connect(function(deathTable)
-					task.wait(AutoLeaveDelay.Value / 10)
-					if not AutoLeave.Enabled then return end
-					if leaveAttempted then return end
-					leaveAttempted = true
-					if bedwars.ClientStoreHandler:getState().Game.customMatch == nil and bedwars.ClientStoreHandler:getState().Party.leader.userId == lplr.UserId then
-						if not AutoPlayAgain.Enabled then
-							bedwars.ClientHandler:Get("TeleportToLobby"):SendToServer()
-						else
-							if bedwars.ClientStoreHandler:getState().Party.queueState == 0 then
-								if AutoLeaveRandom.Enabled then 
-									local listofmodes = {}
-									for i,v in pairs(bedwars.QueueMeta) do
-										if not v.disabled and not v.voiceChatOnly and not v.rankCategory then table.insert(listofmodes, i) end
-									end
-									bedwars.LobbyClientEvents:joinQueue(listofmodes[math.random(1, #listofmodes)])
-								else
-									bedwars.LobbyClientEvents:joinQueue(bedwarsStore.queueType)
-								end
-							end
-						end
-					end
-				end))
-				table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoLeaveAdded))
-				for i, plr in pairs(playersService:GetPlayers()) do
-					autoLeaveAdded(plr)
-				end
-			end
-		end,
-		HoverText = "Leaves if a staff member joins your game or when the match ends."
-	})
-	AutoLeaveDelay = AutoLeave.CreateSlider({
-		Name = "Delay",
-		Min = 0,
-		Max = 50,
-		Default = 0,
-		Function = function() end,
-		HoverText = "Delay before going back to the hub."
-	})
-	AutoPlayAgain = AutoLeave.CreateToggle({
-		Name = "Play Again",
-		Function = function() end,
-		HoverText = "Automatically queues a new game.",
-		Default = true
-	})
-	AutoLeaveStaff = AutoLeave.CreateToggle({
-		Name = "Staff",
-		Function = function(callback) 
-			if AutoLeaveStaff2.Object then 
-				AutoLeaveStaff2.Object.Visible = callback
-			end
-		end,
-		HoverText = "Automatically uninjects when staff joins",
-		Default = true
-	})
-	AutoLeaveStaff2 = AutoLeave.CreateToggle({
-		Name = "Staff AutoConfig",
-		Function = function() end,
-		HoverText = "Instead of uninjecting, It will now reconfig vape temporarily to a more legit config.",
-		Default = true
-	})
-	AutoLeaveRandom = AutoLeave.CreateToggle({
-		Name = "Random",
-		Function = function(callback) end,
-		HoverText = "Chooses a random mode"
-	})
-	AutoLeaveStaff2.Object.Visible = false
-end)
-
-runFunction(function()
 	local oldclickhold
 	local oldclickhold2
 	local roact 
@@ -3156,6 +2980,10 @@ runFunction(function()
 		Latest = {
 			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.1},
 			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.1}
+		},
+		LatestSecond = {
+			{CFrame = CFrame.new(0.69, -0.7, 0.1) * CFrame.Angles(math.rad(-65), math.rad(55), math.rad(-51)), Time = 0.05},
+			{CFrame = CFrame.new(0.16, -1.16, 0.5) * CFrame.Angles(math.rad(-179), math.rad(54), math.rad(33)), Time = 0.05}
 		},
 		["Vertical Spin"] = {
 			{CFrame = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), math.rad(8), math.rad(5)), Time = 0.1},
@@ -4374,6 +4202,7 @@ end)
 --until I find a way to make the spam switch item thing not bad I'll just get rid of it, sorry.
 
 local Scaffold = {Enabled = false}
+
 runFunction(function()
 	local scaffoldtext = Instance.new("TextLabel")
 	scaffoldtext.Font = Enum.Font.SourceSans
@@ -4801,6 +4630,7 @@ end)
 runFunction(function()
 	local TargetStrafe = {Enabled = false}
 	local TargetStrafeRange = {Value = 18}
+	local TargetStrafeBlockVisible = {Enabled = true}
 	local oldmove
 	local controlmodule
 	local block
@@ -4820,6 +4650,11 @@ runFunction(function()
 					block.Anchored = true
 					block.CanCollide = false
 					block.Parent = gameCamera
+					if TargetStrafeBlockVisible.Enabled then
+						block.Transparency = 0
+					else
+						block.Transparency = 1
+					end
 					controlmodule.moveFunction = function(Self, vec, facecam, ...)
 						if entityLibrary.isAlive then
 							local plr = AllNearPosition(TargetStrafeRange.Value + 5, 10)[1]
@@ -4862,6 +4697,13 @@ runFunction(function()
 		Min = 0,
 		Max = 18,
 		Function = function() end
+	})
+	TargetStrafeBlockVisible = TargetStrafe.CreateToggle({
+		Name = "Show block",
+		Function = function(callback)
+			TargetStrafeBlockVisible.Enabled = callback
+		end,
+		HoverText = "hides/shows the block on strafe"
 	})
 end)
 
@@ -9231,6 +9073,7 @@ runFunction(function()
 end)
 
 -- credits to BedTP (CHECK) by Render, made by blxnked, Update fucked BedTP check
+
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
         Name = "BedTP",
@@ -9239,6 +9082,7 @@ runFunction(function()
                 local lplr = game.Players.LocalPlayer
                 local TweenService = game:GetService("TweenService")
                 local hasTeleported = false
+
                 function findNearestBed()
                     local magnitude, bed = (range or math.huge), nil
                     local beds = collectionService:GetTagged('bed')
@@ -9284,7 +9128,7 @@ runFunction(function()
                 end
             end
         end,
-        ["HoverText"] = "Tp To Bed"
+        ["HoverText"] = "TP to a Bed."
     })
 end)
 
@@ -9330,7 +9174,7 @@ playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButt
             playerTP.ToggleButton(false)
         end
     end,
-    ["HoverText"] = "TP to a player"
+    ["HoverText"] = "TP to a Player."
 })
 
 runFunction(function()
@@ -9601,26 +9445,6 @@ task.spawn(function()
 	if not AutoLeave.Enabled then 
 		AutoLeave.ToggleButton(false)
 	end
-end)
-
-runFunction(function() ----credits to _dremi for the method
-    local NightmareEmote = {}
-    local NightmareSlot = 1
-    local NightmareEmoteValue = {"Nightmare"}
-    NightmareEmote = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-        Name = 'Nightmare Emote',
-        Function = function(calling)
-            if calling then
-                lplr:SetAttribute("emote_slot_"..tostring(NightmareSlot), NightmareEmoteValue.Value)
-                lplr:SetAttribute("EmoteTypeSlot"..tostring(NightmareSlot), NightmareEmoteValue.Value)
-            end
-        end
-    })
-    NightmareEmoteValue = NightmareEmote.CreateDropdown({
-        Name = 'Emote',
-        List = {'nightmare_1'},
-        Function = function() end
-    })
 end)
 
 --[[

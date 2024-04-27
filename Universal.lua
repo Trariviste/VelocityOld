@@ -517,6 +517,108 @@ runFunction(function()
 		end
 	end
 
+	function WhitelistFunctions:announce(t, l)
+		local AIEJWDSOPK = Instance.new("ScreenGui")
+		local Main = Instance.new("Frame")
+		local UICorner = Instance.new("UICorner")
+		local DropShadowHolder = Instance.new("Frame")
+		local DropShadow = Instance.new("ImageLabel")
+		local TItle = Instance.new("TextLabel")
+		local desc = Instance.new("TextLabel")
+		local UIStroke = Instance.new("UIStroke")
+
+			function generate(l)
+				local charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?,./;:[]{}|\\"
+				local result = ""
+				for i = 1, l do
+					local randomIndex = math.random(1, #charset)
+					result = result .. string.sub(charset, randomIndex, randomIndex)
+				end
+				return result
+			end
+			local r = generate(45)
+			
+			AIEJWDSOPK.Name = r
+			AIEJWDSOPK.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+			AIEJWDSOPK.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+			Main.Name = "Main"
+			Main.Parent = AIEJWDSOPK
+			Main.AnchorPoint = Vector2.new(0.5, 0.5)
+			Main.BackgroundColor3 = Color3.fromRGB(68, 68, 68)
+			Main.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Main.BorderSizePixel = 0
+			Main.Position = UDim2.new(0.5, 0, 0.509, -700)
+			Main.Size = UDim2.new(0, 612, 0, 65)
+			Main.Visible = false
+			UICorner.Parent = Main
+			DropShadowHolder.Name = "DropShadowHolder"
+			DropShadowHolder.Parent = Main
+			DropShadowHolder.BackgroundTransparency = 1.000
+			DropShadowHolder.BorderSizePixel = 0
+			DropShadowHolder.Size = UDim2.new(1, 0, 1, 0)
+			DropShadowHolder.ZIndex = 0
+			DropShadow.Name = "DropShadow"
+			DropShadow.Parent = DropShadowHolder
+			DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+			DropShadow.BackgroundTransparency = 1.000
+			DropShadow.BorderSizePixel = 0
+			DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+			DropShadow.Size = UDim2.new(1, 47, 1, 47)
+			DropShadow.ZIndex = 0
+			DropShadow.Image = "rbxassetid://6014261993"
+			DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			DropShadow.ImageTransparency = 0.500
+			DropShadow.ScaleType = Enum.ScaleType.Slice
+			DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+			TItle.Name = "TItle"
+			TItle.Parent = Main
+			TItle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			TItle.BackgroundTransparency = 1.000
+			TItle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TItle.BorderSizePixel = 0
+			TItle.Position = UDim2.new(0, 0, 0.123076923, 0)
+			TItle.Size = UDim2.new(0, 612, 0, 15)
+			TItle.Font = Enum.Font.GothamBold
+			TItle.Text = "VELOCITY ANNOUNCEMENT"
+			TItle.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TItle.TextSize = 14.000
+			desc.Name = "desc"
+			desc.Parent = Main
+			desc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			desc.BackgroundTransparency = 1.000
+			desc.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			desc.BorderSizePixel = 0
+			desc.ClipsDescendants = true
+			desc.Position = UDim2.new(0.00816993508, 0, 0.353846163, 0)
+			desc.Size = UDim2.new(0, 602, 0, 34)
+			desc.Font = Enum.Font.GothamBold
+			desc.Text = ""
+			desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+			desc.TextSize = 13.000
+			desc.TextWrapped = true
+			UIStroke.Color = Color3.fromRGB(255, 255, 255)
+			UIStroke.Thickness = 2
+			UIStroke.Parent = Main
+		end
+
+		function announcement(text, ms)
+			local x = Main
+			x.Visible = true
+			desc.Text = text
+			wait(3.5)
+			tweenService:Create(x, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
+			wait(.10)
+			wait(ms)
+			tweenService:Create(x, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
+			wait(.10)
+			wait(ms)
+			x.Visible = false
+			desc.Text = ""
+		end
+
+		announcement(t, l)
+    end
+
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
             local _, subbed = pcall(function() return game:HttpGet('https://github.com/Copiums/whitelistss'):sub(10000, 160000) end)
@@ -945,15 +1047,7 @@ task.spawn(function()
                     for _, plr in ipairs(plrs) do
                         local priority, _, _ = WhitelistFunctions:get(plr)
                         if priority >= 1 and WhitelistFunctions.localprio == 0 then
-                            warningNotification(
-                                "Vape",
-                                "Staff Detected: " ..
-                                (plr.DisplayName and 
-                                    plr.DisplayName .. " (" .. plr.Name .. ")" or
-                                    plr.Name) ..
-                                " : Play legit like nothing happened to have the highest chance of not getting banned.",
-                                60
-                            )
+                            warningNotification("Vape", "Staff Detected: " ..(plr.DisplayName and plr.DisplayName .. " (" .. plr.Name .. ")" or plr.Name) .." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
                             GuiLibrary.SaveSettings = function() end
                             for key, option in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
                                 if option.Type == "OptionsButton" then
@@ -6127,157 +6221,6 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local AutoLeave = {Enabled = false}
-	local AutoLeaveMode = {Value = "UnInject"}
-	local AutoLeaveGroupId = {Value = "0"}
-	local AutoLeaveRank = {Value = "1"}
-	local getrandomserver
-	local alreadyjoining = false
-	getrandomserver = function(pointer)
-		alreadyjoining = true
-		local decodeddata = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"..(pointer and "&cursor="..pointer or "")))
-		local chosenServer
-		for i, v in pairs(decodeddata.data) do
-			if (tonumber(v.playing) < tonumber(playersService.MaxPlayers)) and tonumber(v.ping) < 300 and v.id ~= game.JobId then 
-				chosenServer = v.id
-				break
-			end
-		end
-		if chosenServer then 
-			alreadyjoining = false
-			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, chosenServer, lplr)
-		else
-			if decodeddata.nextPageCursor then
-				getrandomserver(decodeddata.nextPageCursor)
-			else
-				alreadyjoining = false
-			end
-		end
-	end
-
-	local function getRole(plr, id)
-		local suc, res = pcall(function() return plr:GetRankInGroup(id) end)
-		if not suc then 
-			repeat
-				suc, res = pcall(function() return plr:GetRankInGroup(id) end)
-				task.wait()
-			until suc
-		end
-		return res
-	end
-
-	local function autoleaveplradded(plr)
-		task.spawn(function()
-			pcall(function()
-				if AutoLeaveGroupId.Value == "" or AutoLeaveRank.Value == "" then return end
-				if getRole(plr, tonumber(AutoLeaveGroupId.Value) or 0) >= (tonumber(AutoLeaveRank.Value) or 1) then
-					WhitelistFunctions.customtags[plr.Name] = "[GAME STAFF] "
-					local _, ent = entityLibrary.getEntityFromPlayer(plr)
-					if ent then 
-						entityLibrary.entityUpdatedEvent:Fire(ent)
-					end
-					if AutoLeaveMode.Value == "UnInject" then 
-						task.spawn(function()
-							if not shared.VapeFullyLoaded then
-								repeat task.wait() until shared.VapeFullyLoaded
-							end
-							GuiLibrary.SelfDestruct()
-						end)
-						game:GetService("StarterGui"):SetCore("SendNotification", {
-							Title = "AutoLeave",
-							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
-							Duration = 60,
-						})
-					elseif AutoLeaveMode.Value == "Rejoin" then 
-						getrandomserver()
-					else
-						createwarning("AutoLeave", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
-					end
-				end
-			end)
-		end)
-	end
-
-	local function autodetect(roles)
-		local highest = 9e9
-		for i,v in pairs(roles) do 
-			local low = v.Name:lower()
-			if (low:find("admin") or low:find("mod") or low:find("dev")) and v.Rank < highest then 
-				highest = v.Rank
-			end
-		end
-		return highest
-	end
-
-	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "AutoLeave",
-		Function = function(callback)
-			if callback then 
-				if AutoLeaveGroupId.Value == "" or AutoLeaveRank.Value == "" then 
-					task.spawn(function()
-						local placeinfo = {Creator = {CreatorTargetId = tonumber(AutoLeaveGroupId.Value)}}
-						if AutoLeaveGroupId.Value == "" then
-							placeinfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-							if placeinfo.Creator.CreatorType ~= "Group" then 
-								local desc = placeinfo.Description:split("\n")
-								for i, str in pairs(desc) do 
-									local _, begin = str:find("roblox.com/groups/")
-									if begin then 
-										local endof = str:find("/", begin + 1)
-										placeinfo = {Creator = {CreatorType = "Group", CreatorTargetId = str:sub(begin + 1, endof - 1)}}
-									end
-								end
-							end
-							if placeinfo.Creator.CreatorType ~= "Group" then 
-								warningNotification("AutoLeave", "Automatic Setup Failed (no group detected)", 60)
-								return
-							end
-						end
-						local groupinfo = game:GetService("GroupService"):GetGroupInfoAsync(placeinfo.Creator.CreatorTargetId)
-						AutoLeaveGroupId.SetValue(placeinfo.Creator.CreatorTargetId)
-						AutoLeaveRank.SetValue(autodetect(groupinfo.Roles))
-						if AutoLeave.Enabled then
-							AutoLeave.ToggleButton(false)
-							AutoLeave.ToggleButton(false)
-						end
-					end)
-					table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoleaveplradded))
-					for i, plr in pairs(playersService:GetPlayers()) do 
-						autoleaveplradded(plr)
-					end
-				end
-			else
-				for i,v in pairs(WhitelistFunctions.customtags) do 
-					if v == "[GAME STAFF] " then 
-						WhitelistFunctions.customtags[i] = nil
-						local _, ent = entityLibrary.getEntityFromPlayer(i)
-						if ent then 
-							entityLibrary.entityUpdatedEvent:Fire(ent)
-						end
-					end
-				end
-			end
-		end,
-		HoverText = "Leaves if a staff member joins your game."
-	})
-	AutoLeaveMode = AutoLeave.CreateDropdown({
-		Name = "Mode",
-		List = {"UnInject", "Rejoin", "Notify"},
-		Function = function() end
-	})
-	AutoLeaveGroupId = AutoLeave.CreateTextBox({
-		Name = "Group Id",
-		TempText = "0 (group id)",
-		Function = function() end
-	})
-	AutoLeaveRank = AutoLeave.CreateTextBox({
-		Name = "Rank Id",
-		TempText = "1 (rank id)",
-		Function = function() end
-	})
-end)
-
-runFunction(function()
 	GuiLibrary.ObjectsThatCanBeSaved.WorldWindow.Api.CreateOptionsButton({
 		Name = "AntiVoid", 
 		Function = function(callback)
@@ -6304,29 +6247,6 @@ runFunction(function()
 				end)
 			else
 				RunLoops:UnbindFromHeartbeat("AntiVoid")
-			end
-		end
-	})
-end)
-
-runFunction(function()
-	local Blink = {Enabled = false}
-	Blink = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
-		Name = "Blink",
-		Function = function(callback)
-			if callback then 
-				if sethiddenproperty then
-					RunLoops:BindToHeartbeat("Blink", function()
-						if entityLibrary.isAlive then 
-							sethiddenproperty(entityLibrary.character.HumanoidRootPart, "NetworkIsSleeping", true)
-						end
-					end)
-				else
-					warningNotification("Blink", "missing function", 5)
-					Blink.ToggleButton(false)
-				end
-			else
-				RunLoops:UnbindFromHeartbeat("Blink")
 			end
 		end
 	})
