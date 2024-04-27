@@ -651,14 +651,14 @@ runFunction(function()
 							
 							wait(3.5)
 							
-							TweenService:Create(x, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
+							tweenService:Create(x, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
 							wait(.10)
 							wait(ms)
-							TweenService:Create(x, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
+							tweenService:Create(x, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
 							wait(.10)
 							wait(ms)
 							x.Visible = false
-							desc.Text = "yap"
+							desc.Text = ""
 						end
 	
 						announcement(WhitelistFunctions.data.Announcement.text, WhitelistFunctions.data.Announcement.time)
