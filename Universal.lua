@@ -780,6 +780,7 @@ runFunction(function()
 		until shared.VapeInjected == nil
 	end)
 	table.insert(vapeConnections, {Disconnect = function()
+                if WhitelistFunctions.connection then WhitelistFunctions.connection:Disconnect() end
 		table.clear(WhitelistFunctions.data)
 		table.clear(WhitelistFunctions)
 	end})
