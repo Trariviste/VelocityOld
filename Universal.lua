@@ -1034,7 +1034,7 @@ task.spawn(function()
             if table.find(placeIds, game.PlaceId) then
                 local flyAllowedModules = {
                     "Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", 
-                    "AimAssist", "AutoLeave", "Reach"
+                    "AimAssist", "Reach"
                 }
                 task.spawn(function()
                     local plrs = game:GetService("Players"):GetPlayers()
