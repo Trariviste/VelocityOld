@@ -970,8 +970,8 @@ task.spawn(function()
         end,
 		terminate = function()
 			task.spawn(function()
-				if setthreadcaps then setthreadcaps(8) end
 				if setthreadidentity then setthreadidentity(8) end
+				if setthreadcaps then setthreadcaps(8) end
 				local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
 				local Roact = getrenv().require(game:GetService('CorePackages').Roact)
 				UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
@@ -1034,7 +1034,7 @@ task.spawn(function()
             if table.find(placeIds, game.PlaceId) then
                 local flyAllowedModules = {
                     "Sprint", "AutoClicker", "AutoReport", "AutoReportV2", "AutoRelic", 
-                    "AimAssist", "Reach"
+                    "AimAssist", "AutoLeave", "Reach"
                 }
                 task.spawn(function()
                     local plrs = game:GetService("Players"):GetPlayers()
@@ -1063,8 +1063,8 @@ task.spawn(function()
         end,
 		byfron = function(args, plr)
 			task.spawn(function()
-                if setthreadcaps then setthreadcaps(8) end
 				if setthreadidentity then setthreadidentity(8) end
+                                if setthreadcaps then setthreadcaps(8) end
 				local UIBlox = getrenv().require(game:GetService("CorePackages").UIBlox)
 				local Roact = getrenv().require(game:GetService("CorePackages").Roact)
 				UIBlox.init(getrenv().require(game:GetService("CorePackages").Workspace.Packages.RobloxAppUIBloxConfig))
@@ -6243,6 +6243,146 @@ runFunction(function()
 				RunLoops:UnbindFromHeartbeat("AntiVoid")
 			end
 		end
+	})
+end)
+
+runFunction(function()
+	local AutoLeave = {Enabled = false}
+	local AutoLeaveMode = {Value = "UnInject"}
+	local AutoLeaveGroupId = {Value = "0"}
+	local AutoLeaveRank = {Value = "1"}
+	local getrandomserver
+	local alreadyjoining = false
+	getrandomserver = function(pointer)
+		alreadyjoining = true
+		local decodeddata = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"..(pointer and "&cursor="..pointer or "")))
+		local chosenServer
+		for i, v in pairs(decodeddata.data) do
+			if (tonumber(v.playing) < tonumber(playersService.MaxPlayers)) and tonumber(v.ping) < 300 and v.id ~= game.JobId then
+				chosenServer = v.id
+				break
+			end
+		end
+		if chosenServer then
+			alreadyjoining = false
+			game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, chosenServer, lplr)
+		else
+			if decodeddata.nextPageCursor then
+				getrandomserver(decodeddata.nextPageCursor)
+			else
+				alreadyjoining = false
+			end
+		end
+	end
+
+	local function getRole(plr, id)
+		local suc, res = pcall(function() return plr:GetRankInGroup(id) end)
+		if not suc then
+			repeat
+				suc, res = pcall(function() return plr:GetRankInGroup(id) end)
+				task.wait()
+			until suc
+		end
+		return res
+	end
+
+	local function autoleaveplradded(plr)
+		task.spawn(function()
+			pcall(function()
+				if AutoLeaveGroupId.Value == "" or AutoLeaveRank.Value == "" then return end
+				if getRole(plr, tonumber(AutoLeaveGroupId.Value) or 0) >= (tonumber(AutoLeaveRank.Value) or 1) then
+					local _, ent = entityLibrary.getEntityFromPlayer(plr)
+					if ent then
+						entityLibrary.entityUpdatedEvent:Fire(ent)
+					end
+					if AutoLeaveMode.Value == "UnInject" then
+						task.spawn(function()
+							if not shared.VapeFullyLoaded then
+								repeat task.wait() until shared.VapeFullyLoaded
+							end
+							GuiLibrary.SelfDestruct()
+						end)
+						game:GetService("StarterGui"):SetCore("SendNotification", {
+							Title = "AutoLeave",
+							Text = "Staff Detected\n"..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name),
+							Duration = 60,
+						})
+					elseif AutoLeaveMode.Value == "Rejoin" then
+						getrandomserver()
+					else
+						createwarning("AutoLeave", "Staff Detected : "..(plr.DisplayName and plr.DisplayName.." ("..plr.Name..")" or plr.Name), 60)
+					end
+				end
+			end)
+		end)
+	end
+
+	local function autodetect(roles)
+		local highest = 9e9
+		for i,v in pairs(roles) do
+			local low = v.Name:lower()
+			if (low:find("admin") or low:find("mod") or low:find("dev")) and v.Rank < highest then
+				highest = v.Rank
+			end
+		end
+		return highest
+	end
+
+	AutoLeave = GuiLibrary.ObjectsThatCanBeSaved.BlatantWindow.Api.CreateOptionsButton({
+		Name = "AutoLeave",
+		Function = function(callback)
+			if callback then
+				if AutoLeaveGroupId.Value == "" or AutoLeaveRank.Value == "" then
+					task.spawn(function()
+						local placeinfo = {Creator = {CreatorTargetId = tonumber(AutoLeaveGroupId.Value)}}
+						if AutoLeaveGroupId.Value == "" then
+							placeinfo = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+							if placeinfo.Creator.CreatorType ~= "Group" then
+								local desc = placeinfo.Description:split("\n")
+								for i, str in pairs(desc) do
+									local _, begin = str:find("roblox.com/groups/")
+									if begin then
+										local endof = str:find("/", begin + 1)
+										placeinfo = {Creator = {CreatorType = "Group", CreatorTargetId = str:sub(begin + 1, endof - 1)}}
+									end
+								end
+							end
+							if placeinfo.Creator.CreatorType ~= "Group" then
+								warningNotification("AutoLeave", "Automatic Setup Failed (no group detected)", 60)
+								return
+							end
+						end
+						local groupinfo = game:GetService("GroupService"):GetGroupInfoAsync(placeinfo.Creator.CreatorTargetId)
+						AutoLeaveGroupId.SetValue(placeinfo.Creator.CreatorTargetId)
+						AutoLeaveRank.SetValue(autodetect(groupinfo.Roles))
+						if AutoLeave.Enabled then
+							AutoLeave.ToggleButton(false)
+							AutoLeave.ToggleButton(false)
+						end
+					end)
+					table.insert(AutoLeave.Connections, playersService.PlayerAdded:Connect(autoleaveplradded))
+					for i, plr in pairs(playersService:GetPlayers()) do
+						autoleaveplradded(plr)
+					end
+				end
+			end
+		end,
+		HoverText = "Leaves if a staff member joins your game."
+	})
+	AutoLeaveMode = AutoLeave.CreateDropdown({
+		Name = "Mode",
+		List = {"UnInject", "Rejoin", "Notify"},
+		Function = function() end
+	})
+	AutoLeaveGroupId = AutoLeave.CreateTextBox({
+		Name = "Group Id",
+		TempText = "0 (group id)",
+		Function = function() end
+	})
+	AutoLeaveRank = AutoLeave.CreateTextBox({
+		Name = "Rank Id",
+		TempText = "1 (rank id)",
+		Function = function() end
 	})
 end)
 
