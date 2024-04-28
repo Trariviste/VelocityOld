@@ -30,6 +30,9 @@
 local velo_load = tick();
 local GuiLibrary = shared.GuiLibrary
 local playersService = game:GetService("Players")
+local httpService = game:GetService('HttpService')
+local teleportService = game:GetService("TeleportService")
+local workspace = game:GetService("Workspace")
 local textService = game:GetService("TextService")
 local lightingService = game:GetService("Lighting")
 local textChatService = game:GetService("TextChatService")
@@ -72,6 +75,7 @@ local bedwarsStore = {
 	},
 	localHand = {},
         LocalPosition = {},
+        queueType = {},
 	matchState = 0,
 	matchStateChanged = tick(),
 	pots = {},
@@ -292,10 +296,11 @@ end
 local entityLibrary = shared.vapeentity
 local WhitelistFunctions = shared.vapewhitelist
 local RunLoops = {RenderStepTable = {}, StepTable = {}, HeartTable = {}}
+getgenv().RunLoops = RunLoops
 do
 	function RunLoops:BindToRenderStep(name, func)
 		if RunLoops.RenderStepTable[name] == nil then
-			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(func)
+			RunLoops.RenderStepTable[name] = runService.RenderStepped:Connect(function(...) pcall(func, unpack({...})) end)
 		end
 	end
 
@@ -308,7 +313,7 @@ do
 
 	function RunLoops:BindToStepped(name, func)
 		if RunLoops.StepTable[name] == nil then
-			RunLoops.StepTable[name] = runService.Stepped:Connect(func)
+			RunLoops.StepTable[name] = runService.Stepped:Connect(function(...) pcall(func, unpack({...})) end)
 		end
 	end
 
@@ -321,7 +326,7 @@ do
 
 	function RunLoops:BindToHeartbeat(name, func)
 		if RunLoops.HeartTable[name] == nil then
-			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(func)
+			RunLoops.HeartTable[name] = runService.Heartbeat:Connect(function(...) pcall(func, unpack({...})) end)
 		end
 	end
 
@@ -1185,14 +1190,15 @@ GuiLibrary.LoadSettingsEvent.Event:Connect(function(res)
 end)
 
 runFunction(function()
-	local function getWhitelistedBed(bed)
-        local bedteam = bed:GetAttribute('id'):sub(1, 1)
-	    for i,v in next, WhitelistFunctions:get(plr) do 
-		    if WhitelistFunctions:get(plr) > WhitelistFunctions:get(lplr) and v:GetAttribute('Team') == bedteam then 
-			    return true
-		    end
-	    end
-        return false
+	local function isWhitelistedBed(bed)
+		if bed and bed.Name == 'bed' then
+			for i, v in pairs(playersService:GetPlayers()) do
+				if bed:GetAttribute("Team"..(v:GetAttribute("Team") or 0).."NoBreak") and not ({WhitelistFunctions:get(v)})[2] then
+					return true
+				end
+			end
+		end
+		return false
 	end
 
 	local function dumpRemote(tab)
@@ -1216,64 +1222,10 @@ runFunction(function()
 	local Flamework = require(replicatedStorageService["rbxts_include"]["node_modules"]["@flamework"].core.out).Flamework
 	local Client = require(replicatedStorageService.TS.remotes).default.Client
 	local InventoryUtil = require(replicatedStorageService.TS.inventory["inventory-util"]).InventoryUtil
-	local oldRemoteGet = getmetatable(Client).Get
+	local OldGet = getmetatable(Client).Get
+    local OldBreak
 
-	getmetatable(Client).Get = function(self, remoteName)
-		if not vapeInjected then return oldRemoteGet(self, remoteName) end
-		local originalRemote = oldRemoteGet(self, remoteName)
-		if remoteName == "DamageBlock" then
-			return {
-				CallServerAsync = function(self, tab)
-					local hitBlock = bedwars.BlockController:getStore():getBlockAt(tab.blockRef.blockPosition)
-					if hitBlock and hitBlock.Name == "bed" then
-						if getWhitelistedBed(hitBlock) then
-							return {andThen = function(self, func) 
-								func("failed")
-							end}
-						end
-					end
-					return originalRemote:CallServerAsync(tab)
-				end,
-				CallServer = function(self, tab)
-					local hitBlock = bedwars.BlockController:getStore():getBlockAt(tab.blockRef.blockPosition)
-					if hitBlock and hitBlock.Name == "bed" then
-						if getWhitelistedBed(hitBlock) then
-							return {andThen = function(self, func) 
-								func("failed")
-							end}
-						end
-					end
-					return originalRemote:CallServer(tab)
-				end
-			}
-		elseif remoteName == bedwars.AttackRemote then
-			return {
-				instance = originalRemote.instance,
-				SendToServer = function(self, attackTable, ...)
-					local suc, plr = pcall(function() return playersService:GetPlayerFromCharacter(attackTable.entityInstance) end)
-					if suc and plr then
-						local playertype, playerattackable = WhitelistFunctions:get(plr)
-						if not playerattackable then 
-							return nil 
-						end
-						if Reach.Enabled then
-							local attackMagnitude = ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - attackTable.validate.targetPosition.value).magnitude
-							if attackMagnitude > 22 then
-								return nil 
-							end
-							attackTable.validate.selfPosition = attackValue(attackTable.validate.selfPosition.value + (attackMagnitude > 14.4 and (CFrame.lookAt(attackTable.validate.selfPosition.value, attackTable.validate.targetPosition.value).lookVector * 4) or Vector3.zero))
-						end
-						bedwarsStore.attackReach = math.floor((attackTable.validate.selfPosition.value - attackTable.validate.targetPosition.value).magnitude * 100) / 100
-						bedwarsStore.attackReachUpdate = tick() + 1
-					end
-					return originalRemote:SendToServer(attackTable, ...)
-				end
-			}
-		end
-		return originalRemote
-	end
-
-	bedwars = {
+	bedwars = setmetatable({
 		AnimationType = require(replicatedStorageService.TS.animation["animation-type"]).AnimationType,
 		AnimationUtil = require(replicatedStorageService["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out["shared"].util["animation-util"]).AnimationUtil,
 		AppController = require(replicatedStorageService["rbxts_include"]["node_modules"]["@easy-games"]["game-core"].out.client.controllers["app-controller"]).AppController,
@@ -1385,10 +1337,43 @@ runFunction(function()
 		TreeRemote = dumpRemote(debug.getconstants(debug.getproto(debug.getproto(KnitClient.Controllers.BigmanController.KnitStart, 1), 2))),
 		TrinityRemote = dumpRemote(debug.getconstants(debug.getproto(KnitClient.Controllers.AngelController.onKitEnabled, 1))),
 		TopBarController = KnitClient.Controllers.TopBarController,
+        UILayers = require(replicatedStorageService['rbxts_include']['node_modules']['@easy-games']['game-core'].out).UILayers,
 		ViewmodelController = KnitClient.Controllers.ViewmodelController,
 		WeldTable = require(replicatedStorageService.TS.util["weld-util"]).WeldUtil,
 		ZephyrController = KnitClient.Controllers.WindWalkerController
-	}
+	}, {
+		__index = function(self, ind)
+			rawset(self, ind, KnitClient.Controllers[ind])
+			return rawget(self, ind)
+		end
+	})
+	OldBreak = bedwars.BlockController.isBlockBreakable
+	getmetatable(Client).Get = function(self, remoteName)
+		if not vapeInjected then return OldGet(self, remoteName) end
+		local originalRemote = OldGet(self, remoteName)
+		if remoteName == bedwars.AttackRemote then
+			return {
+				instance = originalRemote.instance,
+				SendToServer = function(self, attackTable, ...)
+					local suc, plr = pcall(function() return playersService:GetPlayerFromCharacter(attackTable.entityInstance) end)
+					if suc and plr then
+						if not ({WhitelistFunctions:get(plr)})[2] then return end
+						if Reach.Enabled then
+							local attackMagnitude = ((entityLibrary.LocalPosition or entityLibrary.character.HumanoidRootPart.Position) - attackTable.validate.targetPosition.value).magnitude
+							if attackMagnitude > 22 then
+								return nil
+							end
+							attackTable.validate.selfPosition = attackValue(attackTable.validate.selfPosition.value + (attackMagnitude > 14.4 and (CFrame.lookAt(attackTable.validate.selfPosition.value, attackTable.validate.targetPosition.value).lookVector * 4) or Vector3.zero))
+						end
+						bedwarsStore.attackReach = math.floor((attackTable.validate.selfPosition.value - attackTable.validate.targetPosition.value).magnitude * 100) / 100
+						bedwarsStore.attackReachUpdate = tick() + 1
+					end
+					return originalRemote:SendToServer(attackTable, ...)
+				end
+			}
+		end
+		return originalRemote
+	end
 
 	bedwarsStore.blockPlacer = bedwars.BlockPlacer.new(bedwars.BlockEngine, "wool_white")
 	bedwars.placeBlock = function(speedCFrame, customblock)
@@ -1562,9 +1547,9 @@ runFunction(function()
 
 	GuiLibrary.SelfDestructEvent.Event:Connect(function()
 		bedwars.ZephyrController.updateJump = oldZephyrUpdate
-		getmetatable(bedwars.ClientHandler).Get = oldRemoteGet
+                getmetatable(bedwars.ClientHandler).Get = OldGet
+                bedwars.BlockController.isBlockBreakable = OldBreak
 		bedwarsStore.blockPlacer:disable()
-		textChatService.OnIncomingMessage = nil
 	end)
 	
 	local teleportedServers = false
@@ -4906,123 +4891,124 @@ runFunction(function()
 end)
 
 runFunction(function()
-	local ChestESPList = {ObjectList = {}, RefreshList = function() end}
-	local function nearchestitem(item)
-		for i,v in pairs(ChestESPList.ObjectList) do 
-			if item:find(v) then return v end
-		end
-	end
-	local function refreshAdornee(v)
-		local chest = v.Adornee.ChestFolderValue.Value
+    local ChestESPList = { ObjectList = {}, RefreshList = function() end }
+    local function nearchestitem(item)
+        for i, v in pairs(ChestESPList.ObjectList) do
+            if item:find(v) then
+                return v
+            end
+        end
+    end
+    local function refreshAdornee(v)
+        local chest = v.Adornee.ChestFolderValue.Value
         local chestitems = chest and chest:GetChildren() or {}
-		for i2,v2 in pairs(v.Frame:GetChildren()) do
-			if v2:IsA("ImageLabel") then
-				v2:Remove()
-			end
-		end
-		v.Enabled = false
-		local alreadygot = {}
-		for itemNumber, item in pairs(chestitems) do
-			if alreadygot[item.Name] == nil and (table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name)) then 
-				alreadygot[item.Name] = true
-				v.Enabled = true
+        for i2, v2 in pairs(v.Frame:GetChildren()) do
+            if v2:IsA("ImageLabel") then
+                v2:Remove()
+            end
+        end
+        v.Enabled = false
+        local alreadygot = {}
+        for itemNumber, item in pairs(chestitems) do
+            if alreadygot[item.Name] == nil and (table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name)) then
+                alreadygot[item.Name] = true
+                v.Enabled = true
                 local blockimage = Instance.new("ImageLabel")
                 blockimage.Size = UDim2.new(0, 32, 0, 32)
                 blockimage.BackgroundTransparency = 1
-                blockimage.Image = bedwars.getIcon({itemType = item.Name}, true)
+                blockimage.Image = bedwars.getIcon({ itemType = item.Name }, true)
                 blockimage.Parent = v.Frame
             end
-		end
-	end
-
-	local ChestESPFolder = Instance.new("Folder")
-	ChestESPFolder.Name = "ChestESPFolder"
-	ChestESPFolder.Parent = GuiLibrary.MainGui
-	local ChestESP = {Enabled = false}
-	local ChestESPBackground = {Enabled = true}
-
-	local function chestfunc(v)
-		task.spawn(function()
-			local billboard = Instance.new("BillboardGui")
-			billboard.Parent = ChestESPFolder
-			billboard.Name = "chest"
-			billboard.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
-			billboard.Size = UDim2.new(0, 42, 0, 42)
-			billboard.AlwaysOnTop = true
-			billboard.Adornee = v
-			local frame = Instance.new("Frame")
-			frame.Size = UDim2.new(1, 0, 1, 0)
-			frame.BackgroundColor3 = Color3.new(0, 0, 0)
-			frame.BackgroundTransparency = ChestESPBackground.Enabled and 0.5 or 1
-			frame.Parent = billboard
-			local uilistlayout = Instance.new("UIListLayout")
-			uilistlayout.FillDirection = Enum.FillDirection.Horizontal
-			uilistlayout.Padding = UDim.new(0, 4)
-			uilistlayout.VerticalAlignment = Enum.VerticalAlignment.Center
-			uilistlayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-			uilistlayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-				billboard.Size = UDim2.new(0, math.max(uilistlayout.AbsoluteContentSize.X + 12, 42), 0, 42)
-			end)
-			uilistlayout.Parent = frame
-			local uicorner = Instance.new("UICorner")
-			uicorner.CornerRadius = UDim.new(0, 4)
-			uicorner.Parent = frame
-			local chest = v:WaitForChild("ChestFolderValue").Value
-			if chest then 
-				table.insert(ChestESP.Connections, chest.ChildAdded:Connect(function(item)
-					if table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name) then 
-						refreshAdornee(billboard)
-					end
-				end))
-				table.insert(ChestESP.Connections, chest.ChildRemoved:Connect(function(item)
-					if table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name) then 
-						refreshAdornee(billboard)
-					end
-				end))
-				refreshAdornee(billboard)
-			end
-		end)
-	end
-
-	ChestESP = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
-		Name = "ChestESP",
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					table.insert(ChestESP.Connections, collectionService:GetInstanceAddedSignal("chest"):Connect(chestfunc))
-					for i,v in pairs(collectionService:GetTagged("chest")) do chestfunc(v) end
-				end)
-			else
-				ChestESPFolder:ClearAllChildren()
-			end
-		end
-	})
-	ChestESPList = ChestESP.CreateTextList({
-		Name = "ItemList",
-		TempText = "item or part of item",
-		AddFunction = function()
-			if ChestESP.Enabled then 
-				ChestESP.ToggleButton(false)
-				ChestESP.ToggleButton(false)
-			end
-		end,
-		RemoveFunction = function()
-			if ChestESP.Enabled then 
-				ChestESP.ToggleButton(false)
-				ChestESP.ToggleButton(false)
-			end
-		end
-	})
-	ChestESPBackground = ChestESP.CreateToggle({
-		Name = "Background",
-		Function = function()
-			if ChestESP.Enabled then 
-				ChestESP.ToggleButton(false)
-				ChestESP.ToggleButton(false)
-			end
-		end,
-		Default = true
-	})
+        end
+    end
+    local ChestESPFolder = Instance.new("Folder")
+    ChestESPFolder.Name = "ChestESPFolder"
+    ChestESPFolder.Parent = GuiLibrary.MainGui
+    local ChestESP = { Enabled = false }
+    local ChestESPBackground = { Enabled = true }
+    local function chestfunc(v)
+        task.spawn(function()
+            local billboard = Instance.new("BillboardGui")
+            billboard.Parent = ChestESPFolder
+            billboard.Name = "chest"
+            billboard.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
+            billboard.Size = UDim2.new(0, 42, 0, 42)
+            billboard.AlwaysOnTop = true
+            billboard.Adornee = v
+            local frame = Instance.new("Frame")
+            frame.Size = UDim2.new(1, 0, 1, 0)
+            frame.BackgroundColor3 = Color3.new(0, 0, 0)
+            frame.BackgroundTransparency = ChestESPBackground.Enabled and 0.5 or 1
+            frame.Parent = billboard
+            local uilistlayout = Instance.new("UIListLayout")
+            uilistlayout.FillDirection = Enum.FillDirection.Horizontal
+            uilistlayout.Padding = UDim.new(0, 4)
+            uilistlayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            uilistlayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            uilistlayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                billboard.Size = UDim2.new(0, math.max(uilistlayout.AbsoluteContentSize.X + 12, 42), 0, 42)
+            end)
+            uilistlayout.Parent = frame
+            local uicorner = Instance.new("UICorner")
+            uicorner.CornerRadius = UDim.new(0, 4)
+            uicorner.Parent = frame
+            local chest = v:WaitForChild("ChestFolderValue").Value
+            if chest then
+                table.insert(ChestESP.Connections, chest.ChildAdded:Connect(function(item)
+                    if table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name) then
+                        refreshAdornee(billboard)
+                    end
+                end))
+                table.insert(ChestESP.Connections, chest.ChildRemoved:Connect(function(item)
+                    if table.find(ChestESPList.ObjectList, item.Name) or nearchestitem(item.Name) then
+                        refreshAdornee(billboard)
+                    end
+                end))
+                refreshAdornee(billboard)
+            end
+        end)
+    end
+    ChestESP = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
+        Name = "StorageESP",
+        Function = function(callback)
+            if callback then
+                task.spawn(function()
+                    table.insert(ChestESP.Connections, collectionService:GetInstanceAddedSignal("chest"):Connect(chestfunc))
+                    for i, v in pairs(collectionService:GetTagged("chest")) do
+                        chestfunc(v)
+                    end
+                end)
+            else
+                ChestESPFolder:ClearAllChildren()
+            end
+        end
+    })
+    ChestESPList = ChestESP.CreateTextList({
+        Name = "ItemList",
+        TempText = "item or part of item",
+        AddFunction = function()
+            if ChestESP.Enabled then
+                ChestESP.ToggleButton(false)
+                ChestESP.ToggleButton(false)
+            end
+        end,
+        RemoveFunction = function()
+            if ChestESP.Enabled then
+                ChestESP.ToggleButton(false)
+                ChestESP.ToggleButton(false)
+            end
+        end
+    })
+    ChestESPBackground = ChestESP.CreateToggle({
+        Name = "Background",
+        Function = function()
+            if ChestESP.Enabled then
+                ChestESP.ToggleButton(false)
+                ChestESP.ToggleButton(false)
+            end
+        end,
+        Default = true
+    })
 end)
 
 runFunction(function()
@@ -5182,40 +5168,13 @@ end)
 runFunction(function()
 	local GameFixer = {Enabled = false}
 	local GameFixerHit = {Enabled = false}
-	GameFixer = GuiLibrary.ObjectsThatCanBeSaved.RenderWindow.Api.CreateOptionsButton({
-		Name = "GameFixer",
+	GameFixer = GuiLibrary.ObjectsThatCanBeSaved.CombatWindow.Api.CreateOptionsButton({
+		Name = "HitFix",
 		Function = function(callback)
-			if callback then
-				if GameFixerHit.Enabled then 
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "raycast")
-					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, bedwars.QueryUtil)
-				end
-				--debug.setconstant(bedwars.QueueCard.render, 9, 0.1)
-			else
-				if GameFixerHit.Enabled then 
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "Raycast")
-					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, workspace)
-				end
-			--	debug.setconstant(bedwars.QueueCard.render, 9, 0.01)
-			end
+			debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
+        	        debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or workspace)
 		end,
 		HoverText = "Fixes game bugs"
-	})
-	GameFixerHit = GameFixer.CreateToggle({
-		Name = "Hit Fix",
-		Function = function(callback)
-			if GameFixer.Enabled then
-				if callback then 
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "raycast")
-					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, bedwars.QueryUtil)
-				else
-					debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, "Raycast")
-					debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, workspace)
-				end
-			end
-		end,
-		HoverText = "Fixes the raycast function used for extra reach",
-		Default = true
 	})
 end)
 
@@ -5223,7 +5182,6 @@ runFunction(function()
 	local transformed = false
 	local GameTheme = {Enabled = false}
 	local GameThemeMode = {Value = "GameTheme"}
-
 	local themefunctions = {
 		Old = function()
 			task.spawn(function()
@@ -7909,7 +7867,7 @@ runFunction(function()
 	}
 
 	ChestStealer = GuiLibrary.ObjectsThatCanBeSaved.UtilityWindow.Api.CreateOptionsButton({
-		Name = "ChestStealer",
+		Name = "ChestSteal",
 		Function = function(callback)
 			if callback then
 				task.spawn(function()
@@ -9060,111 +9018,6 @@ runFunction(function()
     })
 end)
 
--- credits to BedTP (CHECK) by Render, made by blxnked, Update fucked BedTP check
-
-runFunction(function()
-    BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-        Name = "BedTP",
-        Function = function(callback)
-            if callback then
-                local lplr = game.Players.LocalPlayer
-                local TweenService = game:GetService("TweenService")
-                local hasTeleported = false
-
-                function findNearestBed()
-                    local magnitude, bed = (range or math.huge), nil
-                    local beds = collectionService:GetTagged('bed')
-	                if not entityLibrary.isAlive and not lplr.Character.HumanoidRootPart.Position then 
-		                return nil 
-	                end
-                    for i,v in next, beds do 
-			            local localpos = entityLibrary.isAlive and lplr.Character.HumanoidRootPart.Position or Vector3.zero
-			            local bedmagnitude = (localpos - v.Position).Magnitude 
-			            local bedteam = v:GetAttribute('id'):sub(1, 1)
-			            if bedteam == lplr:GetAttribute('Team') then 
-				            continue 
-			            end
-                        
-			            if noshield and v:GetAttribute('BedShieldEndTime') and v:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() then 
-				            continue  
-			            end
-			            if bedmagnitude < magnitude then 
-				            bed = v
-				            magnitude = bedmagnitude
-			            end
-		            end
-                    return bed
-	            end
-                function tweenToNearestBed()
-                    local nearestBed = findNearestBed()
-                    if nearestBed and not hasTeleported then
-                        hasTeleported = true
-
-                        local targetCFrame = nearestBed.CFrame + Vector3.new(0, 20, 0)
-                        local tween = TweenService:Create(lplr.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
-                        tween:Play()
-                    end
-                end
-                if bedwarsStore.matchState ~= 0 then
-                    lplr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Dead)
-                    lplr.CharacterAdded:Connect(function()
-                        wait(0.3) 
-                        tweenToNearestBed()
-                    end)
-                    hasTeleported = false
-                    BedTP.ToggleButton(false)
-                end
-            end
-        end,
-        ["HoverText"] = "TP to a Bed."
-    })
-end)
-
-local playerTP
-playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
-    Name = "PlayerTP",
-    Function = function(callback)
-        if callback then
-            local hasTeleported = false
-            local TweenService = game:GetService("TweenService")
-            local localPlayer = game.Players.LocalPlayer
-            local humanoid = localPlayer.Character:FindFirstChildOfClass("Humanoid")
-
-            if humanoid and bedwarsStore.matchState ~= 0 then
-                humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-                localPlayer.CharacterAdded:Connect(function()
-                    wait(0.3)
-
-                    local nearestPlayer = nil
-                    local minDistance = math.huge
-
-                    for _, player in pairs(game.Players:GetPlayers()) do
-                        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Team ~= localPlayer.Team and player.Character:FindFirstChild("Humanoid").Health > 0 then
-                            local distance = (player.Character.HumanoidRootPart.Position - localPlayer.Character.HumanoidRootPart.Position).magnitude
-                            if distance < minDistance then
-                                nearestPlayer = player
-                                minDistance = distance
-                            end
-                        end
-                    end
-
-                    if nearestPlayer and not hasTeleported then
-                        hasTeleported = true
-
-                        local targetCFrame = nearestPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 2, 0)
-                        local tween = TweenService:Create(localPlayer.Character.HumanoidRootPart, TweenInfo.new(0.94), {CFrame = targetCFrame})
-                        tween:Play()
-                    end
-
-                    hasTeleported = false
-                end)
-            end
-            playerTP.ToggleButton(false)
-        end
-    end,
-    ["HoverText"] = "TP to a Player."
-})
-
 runFunction(function()
 	bedwarsStore.TPString = shared.vapeoverlay or nil
 	local origtpstring = bedwarsStore.TPString
@@ -9558,6 +9411,212 @@ velo.round = function(x : Number)
 end;
 
 velo.vers = 'V1.1';
+
+velo.run(function()
+    local easingStyles = Enum.EasingStyle:GetEnumItems()
+    local newEasingStyles = {
+        "Linear", "Sine", "Back", "Quad", "Quart", "Exponential", "Bounce", "Elastic", "Quint", "Circular"
+    }
+    local easingDirections = Enum.EasingDirection:GetEnumItems()
+    local newEasingDirections = {"In","InOut","Out"}
+    local tweenService = game:GetService("TweenService")
+    local BedTP ={
+        Enabled=false,
+        Style = {Value = "Sine"},
+        Direction = {Value = "InOut"},
+        Duration = {Value = 100},
+        Delay = {Value = 30},
+    }
+    local bed, bedRespawnConnection
+    BedTP = velo.tab().CreateOptionsButton({
+        Name = "BedTP",
+        HoverText = "Teleports you to the closest bed.",
+        Function = function(callback)
+            if callback then
+                function findNearestBed()
+                    local magnitude,bed = (range or math.huge),nil
+                    local beds = collectionService:GetTagged('bed')
+                    if not entityLibrary.isAlive or not lplr.Character.HumanoidRootPart.Position then
+                        return nil
+                    end
+                    for i,v in pairs(beds) do
+                        local localpos = entityLibrary.isAlive and lplr.Character.HumanoidRootPart.Position or Vector3.zero
+                        local bedmagnitude = (localpos-v.Position).Magnitude
+                        local bedteam = v:GetAttribute('id'):sub(1,1)
+                        if bedteam == lplr:GetAttribute('Team') then
+                            continue
+                        end
+                        if noshield and v:GetAttribute('BedShieldEndTime') and v:GetAttribute('BedShieldEndTime') > workspace:GetServerTimeNow() then
+                            continue
+                        end
+                        if bedmagnitude<magnitude then
+                            bed=v
+                            magnitude=bedmagnitude
+                        end
+                    end
+                    return bed
+                end
+                local nearestBed = findNearestBed()
+                if nearestBed and bedwarsStore.matchState ~= 0 and lplr:FindFirstChild("leaderstats") and lplr.leaderstats:FindFirstChild("Bed") then
+                    if lplr.leaderstats.Bed.Value == "✅" then
+                        lplr.Character.Humanoid.Health = 0
+                        bedRespawnConnection=lplr.CharacterAdded:Connect(function()
+                            repeat task.wait() until lplr.Character.PrimaryPart
+                            tweenService:Create(
+                                lplr.Character.PrimaryPart,
+                                TweenInfo.new(
+                                    BedTP.Duration.Value / 100,
+                                    Enum.EasingStyle[BedTP.Style.Value],
+                                    Enum.EasingDirection[BedTP.Direction.Value],
+                                    0,
+                                    false,
+                                    BedTP.Delay.Value / 100
+                                ),
+                                {CFrame = nearestBed.CFrame*CFrame.new(0, 3.5, 0)}
+                            ):Play()
+                            bed = nil
+                            bedRespawnConnection:Disconnect()
+                            BedTP.ToggleButton(false)
+                        end)
+                    else
+                        warningNotification("Velocity","No bed found.",3)
+                        BedTP.ToggleButton(false)
+                    end
+                else
+                    if bedRespawnConnection then
+                        bedRespawnConnection:Disconnect()
+                    end
+                    BedTP.ToggleButton(false)
+                end
+            end
+        end
+    })
+    BedTP.Style = BedTP.CreateDropdown({
+        Name = "Style",
+        List = newEasingStyles,
+        Default = "Sine",
+        Function = function(val) end
+    })
+    BedTP.Direction = BedTP.CreateDropdown({
+        Name = "Direction",
+        List = newEasingDirections,
+        Default = "InOut",
+        Function = function(val) end
+    })
+    BedTP.Duration = BedTP.CreateSlider({
+        Name = "Duration",
+        Default = 100,
+        Min = 50,
+        Max = 120,
+        Double = 100,
+        Function = function(val) end
+    })
+    BedTP.Delay = BedTP.CreateSlider({
+        Name = "Delay",
+        Default = 30,
+        Min = 20,
+        Max = 40,
+        Double = 100,
+        Function = function(val) end
+    })
+end)
+
+velo.run(function()
+    local easingStyles = Enum.EasingStyle:GetEnumItems()
+    local newEasingStyles = {
+        "Linear", "Sine", "Back", "Quad", "Quart", "Exponential", "Bounce", "Elastic", "Quint", "Circular"
+    }
+    local easingDirections = Enum.EasingDirection:GetEnumItems()
+    local newEasingDirections = { "In", "InOut", "Out" }
+    local tweenService = game:GetService("TweenService")
+    local players = game:GetService("Players")
+    local PlayerTP = {
+        Enabled = false,
+        Style = { Value = "Sine" },
+        Direction = { Value = "InOut" },
+        Duration = { Value = 100 },
+        Delay = { Value = 30 },
+    }
+    local chosenPlayer
+    local PlayerRespawnConnection = nil
+    PlayerTP = velo.tab().CreateOptionsButton({
+        Name = "PlayerTP",
+        HoverText = "Teleports you to the closest player.",
+        Function = function(callback)
+            if callback then
+                chosenPlayer = nil
+                for _, player in pairs(players:GetPlayers()) do
+                    if player.Name ~= lplr.Name and player.TeamColor ~= lplr.TeamColor then
+                        if player.Character and player.Character.Humanoid and player.Character.Humanoid.Health > 0 then
+                            if not chosenPlayer or
+                               (player.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position).Magnitude <
+                               (chosenPlayer.Character.PrimaryPart.Position - lplr.Character.PrimaryPart.Position).Magnitude then
+                                chosenPlayer = player
+                            end
+                        end
+                    end
+                end
+                if chosenPlayer and bedwarsStore.matchState ~= 0 and lplr:FindFirstChild("leaderstats") and lplr.leaderstats:FindFirstChild("Bed") then
+                    if lplr.leaderstats.Bed.Value == "✅" then
+                        lplr.Character.Humanoid.Health = 0
+                        PlayerRespawnConnection = lplr.CharacterAdded:Connect(function()
+                            repeat task.wait() until lplr.Character and lplr.Character.PrimaryPart
+                            tweenService:Create(
+                                lplr.Character.PrimaryPart,
+                                TweenInfo.new(
+                                    PlayerTP.Duration.Value / 100,
+                                    Enum.EasingStyle[PlayerTP.Style.Value],
+                                    Enum.EasingDirection[PlayerTP.Direction.Value],
+                                    0,
+                                    false,
+                                    PlayerTP.Delay.Value / 100
+                                ),
+                                { CFrame = chosenPlayer.Character.PrimaryPart.CFrame * CFrame.new(0, 3.5, 0) }
+                            ):Play()
+                            chosenPlayer = nil
+                            PlayerRespawnConnection:Disconnect()
+                            PlayerTP.ToggleButton(false)
+                        end)
+                    else
+                        warningNotification("Velocity", "No player found.", 3)
+                        PlayerTP.ToggleButton(false)
+                    end
+                else
+                    if PlayerRespawnConnection then
+                        PlayerRespawnConnection:Disconnect()
+                    end
+                    PlayerTP.ToggleButton(false)
+                end
+            end
+        end
+    })
+    PlayerTP.Style = PlayerTP.CreateDropdown({
+        Name = "Style",
+        List = newEasingStyles,
+        Default = "Sine",
+        Function = function(val) end
+    })
+    PlayerTP.Direction = PlayerTP.CreateDropdown({
+        Name = "Direction",
+        List = newEasingDirections,
+        Default = "InOut",
+        Function = function(val) end
+    })
+    PlayerTP.Duration = PlayerTP.CreateSlider({
+        Name = "Duration",
+        Default = 100,
+        Min = 50,
+        Max = 120,
+        Function = function(val) end
+    })
+    PlayerTP.Delay = PlayerTP.CreateSlider({
+        Name = "Delay",
+        Default = 30,
+        Min = 20,
+        Max = 40,
+        Function = function(val) end
+    })
+end)
 
 velo.run(function() 
 	local viewmodel = {};
