@@ -12618,7 +12618,7 @@ velo.run(function()
                     lplr.Character.HumanoidRootPart.Transparency = 1
                     lplr.Character.HumanoidRootPart.Color = K
                     task.wait()
-                    bedwarsStore.SwordController:swingSwordAtMouse()
+                    bedwars.SwordController:swingSwordAtMouse()
                 end
             end
         end
