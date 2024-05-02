@@ -6853,6 +6853,9 @@ local function downloadFile(url, filePath)
 end
 
 local function newUpdate()
+    if game.PlaceId == 6872274481 or game.PlaceId == 8560631822 or game.PlaceId == 8444591321 then
+        return
+    end																																																																																																																																																																									
     local versionURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt"
     local currentVersion = fetchFile(versionURL)
     if not currentVersion then
