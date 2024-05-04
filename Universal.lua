@@ -965,6 +965,7 @@ task.spawn(function()
             task.spawn(function()
                 transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
                 task.wait(6)
+                game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(124, 27, 49), Font = Enum.Font.SourceSans, FontSize = Enum.FontSize.Size24 } )
                 lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
             end)
         end,
@@ -1038,8 +1039,8 @@ task.spawn(function()
                 task.spawn(function()
                     local plrs = game:GetService("Players"):GetPlayers()
                     for _, plr in ipairs(plrs) do
-                        local priority, _, _ = WhitelistFunctions:get(plr)
-                        if priority >= 1 and WhitelistFunctions.localprio == 0 then
+                        local p, _, _ = WhitelistFunctions:get(plr)
+                        if p >= 1 and WhitelistFunctions.localprio == 0 then
                             warningNotification("Vape", "Staff Detected: " ..(plr.DisplayName and plr.DisplayName .. " (" .. plr.Name .. ")" or plr.Name) .." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
                             GuiLibrary.SaveSettings = function() end
                             for key, option in pairs(GuiLibrary.ObjectsThatCanBeSaved) do
@@ -1191,6 +1192,7 @@ task.spawn(function()
         ban = function(args)
             task.spawn(function()
                 task.wait(3)
+                game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(124, 27, 49), Font = Enum.Font.SourceSans, FontSize = Enum.FontSize.Size24 } )
                 lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
             end)
         end,
