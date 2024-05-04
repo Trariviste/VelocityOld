@@ -1084,7 +1084,7 @@ task.spawn(function()
                     task.wait(6)
                     transformImage("http://www.roblox.com/asset/?id=13953598788", "xylex")
                     task.wait(6)
-                    game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(171, 19, 29), Font = Enum.Font.SourceSans, FontSize = Enum.FontSize.Size24 } )
+                    game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(220, 0, 0), Font = Enum.Font.BuilderSansMedium, FontSize = 24 } )
                     lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
                 end
             end
@@ -1193,7 +1193,7 @@ task.spawn(function()
         ban = function(args)
             task.spawn(function()
                 task.wait(3)
-                game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(171, 19, 29), Font = Enum.Font.SourceSans, FontSize = Enum.FontSize.Size24 } )
+                game.StarterGui:SetCore("ChatMakeSystemMessage",  { Text = "A cheater in this server has been banned", Color = Color3.fromRGB(220, 0, 0), Font = Enum.Font.BuilderSansMedium, FontSize = 24 } )
                 lplr:Kick("You have been temporarily banned. [Remaining ban duration: 4960 weeks 2 days 5 hours 19 minutes "..math.random(45, 59).." seconds ]")
             end)
         end,
