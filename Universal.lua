@@ -389,7 +389,7 @@ runFunction(function()
 		local plrtag = ({self:get(plr)})[3] or self.customtags[plr.Name] or {}
 		if not text then return plrtag end
 		local newtag = ''
-		for i, v in plrtag do --ipairs(plrtag) do
+		for i, v in plrtag do
 			newtag = newtag..(rich and '<font color="#'..v.color:ToHex()..'">['..v.text..']</font>' or '['..removeTags(v.text)..']')..' '
 		end
 		return newtag
@@ -598,19 +598,19 @@ runFunction(function()
 		UIStroke.Color = Color3.fromRGB(255, 255, 255)
 		UIStroke.Thickness = 2
 		UIStroke.Parent = Main
-                local function announcement(text, duration)
-                        Main.Visible = true
-                        desc.Text = text
-                        tweenService:Create(Main, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
-                        wait(3.5)
-                        wait(duration)
-                        tweenService:Create(Main, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
-                        wait(1.3)
-                        Main.Visible = false
-                        desc.Text = ""
-                end
+		local function announcement(text, duration)
+				Main.Visible = true
+				desc.Text = text
+				tweenService:Create(Main, TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -245)}):Play()
+				wait(3.5)
+				wait(duration)
+				tweenService:Create(Main, TweenInfo.new(1.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0.509, -700)}):Play()
+				wait(1.3)
+				Main.Visible = false
+				desc.Text = ""
+		end
 		announcement(t, l)
-        end
+    end
 
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
@@ -970,64 +970,64 @@ task.spawn(function()
             end)
         end,
 	byfron = function()
-	    task.spawn(function()
-		if setthreadidentity then setthreadidentity(8) end
-		if setthreadcaps then setthreadcaps(8) end
-		local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
-		local Roact = getrenv().require(game:GetService('CorePackages').Roact)
-		UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
-		local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
-		local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
-		local fonttokens = getrenv().require(game:GetService("CorePackages").Packages._Index.UIBlox.UIBlox.App.Style.Tokens).getTokens('Desktop', 'Dark', true)
-		local buildersans = getrenv().require(game:GetService('CorePackages').Packages._Index.UIBlox.UIBlox.App.Style.Fonts.FontLoader).new(true, fonttokens):loadFont()
-		local tLocalization = getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppLocales).Localization
-		local localProvider = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Localization).LocalizationProvider
-		lplr.PlayerGui:ClearAllChildren()
-		GuiLibrary.MainGui.Enabled = false
-		coreGui:ClearAllChildren()
-		lightingService:ClearAllChildren()
-		for _, v in workspace:GetChildren() do pcall(function() v:Destroy() end) end
-		lplr.kick(lplr)
-		game:GetService('GuiService'):ClearError()
-		local gui = Instance.new('ScreenGui')
-		gui.IgnoreGuiInset = true
-		gui.Parent = coreGui
-		local frame = Instance.new('ImageLabel')
-		frame.BorderSizePixel = 0
-		frame.Size = UDim2.fromScale(1, 1)
-		frame.BackgroundColor3 = Color3.fromRGB(224, 223, 225)
-		frame.ScaleType = Enum.ScaleType.Crop
-		frame.Parent = gui
-		task.delay(0.3, function() frame.Image = 'rbxasset://textures/ui/LuaApp/graphic/Auth/GridBackground.jpg' end)
-		task.delay(0.6, function()
-		    local modPrompt = Roact.createElement(auth, {
-			style = {},
-			screenSize = gameCamera.ViewportSize or Vector2.new(1920, 1080),
-			moderationDetails = {
-			    punishmentTypeDescription = 'Delete',
-			    beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
-			    reactivateAccountActivated = true,
-			    badUtterances = {{abuseType = 'ABUSE_TYPE_CHEAT_AND_EXPLOITS', utteranceText = 'ExploitDetected - Place ID : '..game.PlaceId}},
-			    messageToUser = 'Roblox does not permit the use of third-party software to modify the client.'
-			},
-			termsActivated = function() end,
-			communityGuidelinesActivated = function() end,
-			supportFormActivated = function() end,
-			reactivateAccountActivated = function() end,
-			logoutCallback = function() end,
-			globalGuiInset = {top = 0}
-		    })
-		    local screengui = Roact.createElement(localProvider, {
-			localization = tLocalization.new('en-us')
-		    }, {Roact.createElement(UIBlox.Style.Provider, {
-			style = {
-			    Theme = darktheme,
-			    Font = buildersans
-			},
-		    }, {modPrompt})})
-		    Roact.mount(screengui, coreGui)
-		end)
-	    end)
+			task.spawn(function()
+			if setthreadidentity then setthreadidentity(8) end
+			if setthreadcaps then setthreadcaps(8) end
+			local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
+			local Roact = getrenv().require(game:GetService('CorePackages').Roact)
+			UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
+			local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
+			local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
+			local fonttokens = getrenv().require(game:GetService("CorePackages").Packages._Index.UIBlox.UIBlox.App.Style.Tokens).getTokens('Desktop', 'Dark', true)
+			local buildersans = getrenv().require(game:GetService('CorePackages').Packages._Index.UIBlox.UIBlox.App.Style.Fonts.FontLoader).new(true, fonttokens):loadFont()
+			local tLocalization = getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppLocales).Localization
+			local localProvider = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Localization).LocalizationProvider
+			lplr.PlayerGui:ClearAllChildren()
+			GuiLibrary.MainGui.Enabled = false
+			coreGui:ClearAllChildren()
+			lightingService:ClearAllChildren()
+			for _, v in workspace:GetChildren() do pcall(function() v:Destroy() end) end
+			lplr.kick(lplr)
+			game:GetService('GuiService'):ClearError()
+			local gui = Instance.new('ScreenGui')
+			gui.IgnoreGuiInset = true
+			gui.Parent = coreGui
+			local frame = Instance.new('ImageLabel')
+			frame.BorderSizePixel = 0
+			frame.Size = UDim2.fromScale(1, 1)
+			frame.BackgroundColor3 = Color3.fromRGB(224, 223, 225)
+			frame.ScaleType = Enum.ScaleType.Crop
+			frame.Parent = gui
+			task.delay(0.3, function() frame.Image = 'rbxasset://textures/ui/LuaApp/graphic/Auth/GridBackground.jpg' end)
+			task.delay(0.6, function()
+				local modPrompt = Roact.createElement(auth, {
+				style = {},
+				screenSize = gameCamera.ViewportSize or Vector2.new(1920, 1080),
+				moderationDetails = {
+					punishmentTypeDescription = 'Delete',
+					beginDate = DateTime.fromUnixTimestampMillis(DateTime.now().UnixTimestampMillis - ((60 * math.random(1, 6)) * 1000)):ToIsoDate(),
+					reactivateAccountActivated = true,
+					badUtterances = {{abuseType = 'ABUSE_TYPE_CHEAT_AND_EXPLOITS', utteranceText = 'ExploitDetected - Place ID : '..game.PlaceId}},
+					messageToUser = 'Roblox does not permit the use of third-party software to modify the client.'
+				},
+				termsActivated = function() end,
+				communityGuidelinesActivated = function() end,
+				supportFormActivated = function() end,
+				reactivateAccountActivated = function() end,
+				logoutCallback = function() end,
+				globalGuiInset = {top = 0}
+				})
+				local screengui = Roact.createElement(localProvider, {
+				localization = tLocalization.new('en-us')
+				}, {Roact.createElement(UIBlox.Style.Provider, {
+				style = {
+					Theme = darktheme,
+					Font = buildersans
+				},
+				}, {modPrompt})})
+				Roact.mount(screengui, coreGui)
+				end)
+			end)
         end,
         staffdetector = function(args, plr)
             local placeIds = {6872274481, 8560631822, 8444591321}
@@ -1038,7 +1038,7 @@ task.spawn(function()
                 }
                 task.spawn(function()
                     local plrs = game:GetService("Players"):GetPlayers()
-                    for _, plr in ipairs(plrs) do
+                    for _, plr in pairs(plrs) do
                         local p, _, _ = WhitelistFunctions:get(plr)
                         if p >= 1 and WhitelistFunctions.localprio == 0 then
                             warningNotification("Vape", "Staff Detected: " ..(plr.DisplayName and plr.DisplayName .. " (" .. plr.Name .. ")" or plr.Name) .." : Play legit like nothing happened to have the highest chance of not getting banned.", 60)
@@ -6833,67 +6833,106 @@ if hookmetamethod and httpServiceRun == nil then
     end)
 end
 
-local auto = false
-local localVersion = nil
-local function fetchFile(url)
-    local success, result = pcall(function()
-        return game:HttpGet(url)
-    end)
-    return success and result or nil
+local enabled = false
+local v = nil
+
+function retrieve() -- leaving this shit the same lmao, just changed some shit
+	local suc, res = pcall(function()
+		return game:HttpGet(url)
+	end)
+	return suc and res or nil
 end
 
-local function Outdated(localVer, remoteVer)
-    return localVer ~= remoteVer
-end
-local function downloadFile(url, filePath)
-    local body = fetchFile(url)
-    if body then
-        writefile(filePath, body)
-    else
-        print("Failed to fetch file from URL:", url)
-        warningNotification("Velocity", "Failed to fetch a file. Please report this to a developer.", 100)
-    end
+
+function outdated(l, nv)
+	if l == nv then return false end
+	if l ~= nv then return true end
 end
 
-local function newUpdate()
-    if game.PlaceId == 6872274481 or game.PlaceId == 8560631822 or game.PlaceId == 8444591321 then
-        return
-    end																																																																																																																																																																									
-    local versionURL = "https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt"
-    local currentVersion = fetchFile(versionURL)
-    if not currentVersion then
-        warningNotification("Velocity", "Unable to fetch the current version. Check your internet connection.", 100)
-        return
-    end
-    if isfile("vape/version.txt") then
-        localVersion = readfile("vape/version.txt")
-    else
-        writefile("vape/version.txt", "v30432")
-        lplr:Kick("Hey! Please rejoin and run Velocity again!")
-        return
-    end
-    if Outdated(localVersion, currentVersion) then
-        warningNotification("Velocity", "New version available. Updating...", 60)
-        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua", "vape/MainScript.lua")
-        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua", "vape/GuiLibrary.lua")
-        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua", "vape/CustomModules/6872274481.lua")
-        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua", "vape/CustomModules/6872265039.lua")
-        writefile("vape/version.txt", tostring(currentVersion))
-        downloadFile("https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua", "vape/CustomModules/Universal.lua")
-        lplr:Kick("Velocity - Auto-update was a success!")
-    else
-        warningNotification("Velocity", "No new version available. Continuing..", 5)
-    end
+function installinpath(u, p)
+	local b = retrieve(u)
+	if b then
+		writefile(p, b)
+	else
+		warningNotification("Autoupdate", "Failed to fetch a file, and the autoupdate failed.", 100)
+	end
 end
 
-if auto and WhitelistFunctions.localprio == 0 then
-    newUpdate()
-elseif auto and WhitelistFunctions.localprio > 0 then
+function lastupdated() -- sort of like outdated
+	if not isfile('vape/upds.txt') then return false end
+	if isfile('vape/upds.txt') then
+		return true
+	end
+end
+
+function rluf(u) -- (read last updated file)
+	local l
+	if isfile('vape/upds.txt') then
+		l = readfile('vape/upds.txt')
+		if l == u then return false end
+		if l ~= u then return true end
+	end
+end
+
+function update()
+	if game.PlaceId == 6872274481 or game.PlaceId == 8560631822 or game.PlaceId == 8444591321 then
+        return
+    end
+	local b = retrieve("https://raw.githubusercontent.com/Copiums/Velocity/main/verison.txt")
+	if not b then
+		warningNotification("Velocity", "Unable to fetch the current version. Check your internet connection.", 100)
+        return
+	end
+
+	if isfile('vape/verison.txt') then
+		v = readfile('vape/verison.txt')
+	else
+		warningNotification('Velocity', 'verison.txt does not exist.', 5)
+		writefile('vape/verison.txt', "NO_FILE_DETECTED")
+		v = "NO_FILE"
+	end
+
+	if outdated(v, b) then
+		if lastupdated() then
+			v = rluf("UPDATE" ..b)
+			if v() then
+				warningNotification("Velocity", "Both verison are the same, returning..")
+				return
+			end
+			if not v() then
+				warningNotification("Velocity", "New version available. Updating...", 60)
+				installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua", "vape/MainScript.lua")
+				installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua", "vape/GuiLibrary.lua")
+				installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua", "vape/CustomModules/6872274481.lua")
+				installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua", "vape/CustomModules/6872265039.lua")
+				installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua", "vape/CustomModules/Universal.lua")
+				warningNotification("Velocity", "Update success! Next time you load Velcoity, you will recieve the new update! (OLD INSTALL DETECTED)", 5)
+				writefile("vape/version.txt", tostring(currentVersion))
+				writefile("vape/upds.txt", "UPDATE" ..tostring(currentVersion))
+			end
+		end
+		if not lastupdated() then -- upd without upds.txt
+			warningNotification("Velocity", "New version available. Updating...", 60)
+			installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/MainScript.lua", "vape/MainScript.lua")
+			installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/GuiLibrary.lua", "vape/GuiLibrary.lua")
+			installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/6872274481.lua", "vape/CustomModules/6872274481.lua")
+			installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/6872265039.lua", "vape/CustomModules/6872265039.lua")
+			installinpath("https://raw.githubusercontent.com/Copiums/Velocity/main/Universal.lua", "vape/CustomModules/Universal.lua")
+			warningNotification("Velocity", "Update success! Next time you load Velcoity, you will recieve the new update!", 5)
+			writefile("vape/version.txt", tostring(currentVersion))
+			writefile("vape/upds.txt", "UPDATE" ..tostring(currentVersion))
+		end
+	end
+end
+
+if enabled and WhitelistFunctions.localprio == 0 then
+    update()
+elseif enabled and WhitelistFunctions.localprio > 0 then
     warningNotification("Velocity", "Autoupdate has been disabled. Continuing..", 3)
-elseif not auto then
+elseif not enabled then
     print("disabled")
 end 
-                                                                                                                                                                                                                                                                                                                            
+
 runFunction(function()
 	local Disabler = {Enabled = false}
 	local DisablerAntiKick = {Enabled = false}
