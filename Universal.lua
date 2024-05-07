@@ -975,13 +975,13 @@ task.spawn(function()
 			if setthreadcaps then setthreadcaps(8) end
 			local UIBlox = getrenv().require(game:GetService('CorePackages').UIBlox)
 			local Roact = getrenv().require(game:GetService('CorePackages').Roact)
-			UIBlox.init(getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppUIBloxConfig))
+			UIBlox.init(getrenv().require(game:GetService('CorePackages').workspace.Packages.RobloxAppUIBloxConfig))
 			local auth = getrenv().require(coreGui.RobloxGui.Modules.LuaApp.Components.Moderation.ModerationPrompt)
-			local darktheme = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Style).Themes.DarkTheme
+			local darktheme = getrenv().require(game:GetService('CorePackages').workspace.Packages.Style).Themes.DarkTheme
 			local fonttokens = getrenv().require(game:GetService("CorePackages").Packages._Index.UIBlox.UIBlox.App.Style.Tokens).getTokens('Desktop', 'Dark', true)
 			local buildersans = getrenv().require(game:GetService('CorePackages').Packages._Index.UIBlox.UIBlox.App.Style.Fonts.FontLoader).new(true, fonttokens):loadFont()
-			local tLocalization = getrenv().require(game:GetService('CorePackages').Workspace.Packages.RobloxAppLocales).Localization
-			local localProvider = getrenv().require(game:GetService('CorePackages').Workspace.Packages.Localization).LocalizationProvider
+			local tLocalization = getrenv().require(game:GetService('CorePackages').workspace.Packages.RobloxAppLocales).Localization
+			local localProvider = getrenv().require(game:GetService('CorePackages').workspace.Packages.Localization).LocalizationProvider
 			lplr.PlayerGui:ClearAllChildren()
 			GuiLibrary.MainGui.Enabled = false
 			coreGui:ClearAllChildren()
