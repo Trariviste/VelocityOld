@@ -615,10 +615,12 @@ runFunction(function()
 	function WhitelistFunctions:check(first)
 		local whitelistloaded, err = pcall(function()
 					-- added vape private members into this whitelist, if you see this you can check it 
-            local _, subbed = pcall(function() return game:HttpGet('https://github.com/Copiums/whitelistss'):sub(10000, 160000) end)
+					-- https://github.com/Copiums/whitelistss
+            local _, subbed = pcall(function() return game:HttpGet('https://github.com/7GrandDadPGN/whitelists'):sub(10000, 160000) end)
 			local commit = subbed:find('spoofed_commit_check')
 			commit = commit and subbed:sub(commit + 21, commit + 60) or 'main'
-			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/Copiums/whitelistss/'..commit..'/PlayerWhitelist.json', true)
+					-- https://raw.githubusercontent.com/Copiums/whitelistss/
+			WhitelistFunctions.textdata = game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/whitelists/'..commit..'/PlayerWhitelist.json', true)
 		end)
         if not whitelistloaded then warningNotification('Vape', 'Syntax Error, Please contact vaperoblox on discord. '..err, 30) end
 		if not whitelistloaded or not sha or not WhitelistFunctions.get then return true end
