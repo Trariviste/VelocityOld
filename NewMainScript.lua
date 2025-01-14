@@ -25,78 +25,62 @@
         - Xylex/7GrandDad - developer / organizer
 ]]--
 
-local errorPopupShown: boolean = false;
-local setidentity: (any) -> () = syn and syn.set_thread_identity or set_thread_identity or setidentity or setthreadidentity or function() end;
-local getidentity: () -> any = syn and syn.get_thread_identity or get_thread_identity or getidentity or getthreadidentity or function() return 8; end;
 local isfile: (string) -> boolean = isfile or function(file: string): boolean
-    local suc, res = pcall(function() return readfile(file) end);
+    local suc: boolean, res: string? = pcall(function(): string? return readfile(file) end);
     return suc and res ~= nil;
 end;
 local delfile: (string) -> () = delfile or function(file: string): () writefile(file, "") end;
 
-local function displayErrorPopup(text: any, func: () -> (a...))
-    local oldidentity: number = getidentity();
-    setidentity(8);
-    local ErrorPrompt: ErrorPrompt = getrenv().require(game:GetService("CoreGui").RobloxGui.Modules.ErrorPrompt);
-    local prompt: ErrorPromptInstance = ErrorPrompt.new("Default");
-    prompt._hideErrorCode = true;
-    local gui: ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"));
-    prompt:setErrorTitle("Vape");
-    prompt:updateButtons({{
-        Text = "OK",
-        Callback = function(): () 
-            prompt:_close() 
-            if func then func() end
-        end,
-        Primary = true
-    }}, 'Default')
-    prompt:setParent(gui);
-    prompt:_open(text);
-    setidentity(oldidentity);
+local function downloadFile(path: string, func: ((string) -> any)?): string
+	if not isfile(path) then
+		local suc: boolean, res: string? = pcall(function(): string
+			return game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/'..readfile('newvape/profiles/commit.txt')..'/'..select(1, path:gsub('newvape/', '')), true);
+		end);
+		if not suc or res == '404: Not Found' then
+			error(res);
+		end;
+		if path:find('.lua') then
+			res = '--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.\n'..res;
+		end;
+		writefile(path, res);
+	end;
+	return (func or readfile)(path);
 end;
 
-local function vapeGithubRequest(scripturl: string): string
-    if not isfile("vape/"..scripturl) then
-        local suc: boolean, res: string;
-        task.delay(15, function()
-            if not res and not errorPopupShown then 
-                errorPopupShown = true;
-                displayErrorPopup("The connection to GitHub is taking a while. Please be patient.");
-            end;
-        end);
-        suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..readfile("vape/commithash.txt").."/"..scripturl, true) end);
-        if not suc or res == "404: Not Found" then
-            displayErrorPopup("Failed to connect to GitHub: vape/"..scripturl.." : "..res);
-            error(res);
-        end;
-        if scripturl:find(".lua") then res = "--This watermark is used to delete the file if it's cached. Remove it to make the file persist after commits.\n"..res; end;
-        writefile("vape/"..scripturl, res);
+local function wipeFolder(path: string)
+	if not isfolder(path) then 
+        return; 
     end;
-    return readfile("vape/"..scripturl);
+	for _, file: string in listfiles(path) do
+		if file:find('loader') then 
+            continue;
+        end;
+		if isfile(file) and select(1, readfile(file):find('--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.')) == 1 then
+			delfile(file);
+		end;
+	end;
 end;
 
-if not shared.VapeDeveloper then 
-    local commit: string = "main";
-    for i: number, v: string in pairs(game:HttpGet("https://github.com/7GrandDadPGN/VapeV4ForRoblox"):split("\n")) do 
-        if v:find("commit") and v:find("fragment") then 
-            local str: string = v:split("/")[5];
-            commit = str:sub(0, str:find('"') - 1);
-            break;
-        end;
-    end;
-    if commit then
-        if isfolder("vape") then 
-            if ((not isfile("vape/commithash.txt")) or (readfile("vape/commithash.txt") ~= commit or commit == "main")) then
-                writefile("vape/commithash.txt", commit);
-            end;
-        else
-            makefolder("vape");
-            writefile("vape/commithash.txt", commit);
-        end;
-    else
-        displayErrorPopup("Failed to connect to GitHub. Please try using a VPN.");
-        error("Failed to connect to GitHub. Please try using a VPN.");
-    end;
+for _, folder: string in {'newvape', 'newvape/games', 'newvape/profiles', 'newvape/assets', 'newvape/libraries', 'newvape/guis'} do
+	if not isfolder(folder) then
+		makefolder(folder);
+	end;
 end;
 
-return loadstring(vapeGithubRequest("MainScript.lua"))();
+if not shared.VapeDeveloper then
+	local _, subbed: string = pcall(function(): string
+		return game:HttpGet('https://github.com/7GrandDadPGN/VapeV4ForRoblox');
+	end);
+	local commit: string? = subbed:find('currentOid');
+	commit = commit and subbed:sub(commit + 13, commit + 52) or nil;
+	commit = commit and #commit == 40 and commit or 'main';
+	if commit == 'main' or (isfile('newvape/profiles/commit.txt') and readfile('newvape/profiles/commit.txt') or '') ~= commit then
+		wipeFolder('newvape');
+		wipeFolder('newvape/games');
+		wipeFolder('newvape/guis');
+		wipeFolder('newvape/libraries');
+	end;
+	writefile('newvape/profiles/commit.txt', commit);
+end;
+
+return loadstring(downloadFile('newvape/main.lua'), 'main')();
