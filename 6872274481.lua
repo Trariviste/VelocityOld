@@ -33,34 +33,37 @@
 
 ]]--
 
-local velo_load = tick();
-local GuiLibrary = shared.GuiLibrary
-local playersService = game:GetService("Players")
-local httpService = game:GetService('HttpService')
-local teleportService = game:GetService("TeleportService")
-local workspace = game:GetService("Workspace")
-local textService = game:GetService("TextService")
-local lightingService = game:GetService("Lighting")
-local textChatService = game:GetService("TextChatService")
-local inputService = game:GetService("UserInputService")
-local runService = game:GetService("RunService")
-local tweenService = game:GetService("TweenService")
-local collectionService = game:GetService("CollectionService")
-local replicatedStorageService = game:GetService("ReplicatedStorage")
-local gameCamera = workspace.CurrentCamera
-local lplr = playersService.LocalPlayer
-local vapeConnections = {}
-local vapeCachedAssets = {}
+local velo_load: number = tick();
+local cloneref: (obj: any) -> any = cloneref or function(obj)
+    return obj;
+end;
+local GuiLibrary: any = shared.GuiLibrary;
+local playersService: Players = cloneref(game:GetService('Players'))
+local httpService: HttpService = cloneref(game:GetService('HttpService'))
+local teleportService: TeleportService = cloneref(game:GetService("TeleportService"));
+local workspace: Workspace = cloneref(game.GetService(game, "Workspace"));
+local textService: TextService = cloneref(game:GetService("TextService"));
+local lightingService: Lighting = cloneref(game:GetService("Lighting"))
+local textChatService: TextChatService = cloneref(game:GetService('TextChatService'))
+local inputService: InputService = cloneref(game:GetService('UserInputService'))
+local runService: RunService = cloneref(game:GetService('RunService'))
+local tweenService: TweenService = cloneref(game:GetService('TweenService'))
+local collectionService: CollectionService = cloneref(game:GetService('CollectionService'))
+local replicatedStorageService: ReplicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
+local gameCamera: Camera = workspace.CurrentCamera;
+local lplr: Player = playersService.LocalPlayer;
+local vapeConnections: table = {};
+local vapeCachedAssets: table = {};
 local vapeEvents = setmetatable({}, {
 	__index = function(self, index)
 		self[index] = Instance.new("BindableEvent")
 		return self[index]
 	end
-})
-local vapeTargetInfo = shared.VapeTargetInfo
-local vapeInjected = true
-local bedwars = {}
-local bedwarsStore = {
+});
+local vapeTargetInfo: any = shared.VapeTargetInfo;
+local vapeInjected: boolean = true;
+local bedwars: table = {};
+local bedwarsStore: table = {
 	attackReach = 0,
 	attackReachUpdate = tick(),
 	blocks = {},
@@ -106,7 +109,7 @@ local bedwarsStore = {
 	zephyrOrb = 0
 }
 bedwarsStore.blockRaycast.FilterType = Enum.RaycastFilterType.Include
-local AutoLeave = {Enabled = false}
+local AutoLeave: table = {Enabled = false};
 table.insert(vapeConnections, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
 	gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA("Camera")
 end))
@@ -2623,6 +2626,7 @@ runFunction(function()
 	})
 end)
 
+--[[
 runFunction(function()
 	local InfiniteFly = {Enabled = false}
 	local InfiniteFlyMode = {Value = "CFrame"}
@@ -2864,6 +2868,7 @@ runFunction(function()
 		Default = true
 	})
 end)
+]]--
 
 local killauraNearPlayer
 runFunction(function()
