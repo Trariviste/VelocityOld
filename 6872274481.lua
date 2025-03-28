@@ -9415,8 +9415,9 @@ velo.round = function(x : Number)
 	return x % 0.1 >= 0.05 and x + (0.1 - x % 0.1) or x - x % 0.1;
 end;
 
-velo.vers = 'V1.1';
+velo.vers = 'V1.2';
 
+--[[
 velo.run(function()
     local easingStyles = Enum.EasingStyle:GetEnumItems()
     local newEasingStyles = {
@@ -9622,6 +9623,7 @@ velo.run(function()
         Function = function(val) end
     })
 end)
+]]--
 
 velo.run(function() 
 	local viewmodel = {};
@@ -9769,7 +9771,7 @@ velo.run(function()
 end);
 
 --- credits, Render made by blxnked for bed check. Update fucked BedTP
-
+--[[
 runFunction(function()
     BedTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButton({
         Name = "BedTP",
@@ -9873,7 +9875,7 @@ playerTP = GuiLibrary.ObjectsThatCanBeSaved.VelocityWindow.Api.CreateOptionsButt
 })
 
 -- both of these are from old velo. will rewrite them soon.
-
+--[[
 velo.run(function()
     local tp_gen = {};
 	local tp_gen_g = {};
@@ -9990,7 +9992,7 @@ velo.run(function()
 		Default = 2;
 	});
 end);
-
+]]--
 velo.run(function()
 	local custom_armour = {};
 	local custom_armour_c = {};
@@ -12375,6 +12377,7 @@ velo.run(function()
 end)
 
 --copium
+--[[
 velo.run(function()
     local I = {}
     local C = {}
@@ -12457,7 +12460,7 @@ velo.run(function()
         end
     })
 end)
-
+]]--
 velo.run(function()
 	do
 		nan = function(x)
