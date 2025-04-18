@@ -64,7 +64,7 @@ local function vapeGithubRequest(scripturl: string): string
                 displayErrorPopup("The connection to GitHub is taking a while. Please be patient.");
             end;
         end);
-        suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/"..readfile("vape/commithash.txt").."/"..scripturl, true) end);
+        suc, res = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/Copiums/VelocityOld/"..readfile("vape/commithash.txt").."/"..scripturl, true) end);
         if not suc or res == "404: Not Found" then
             displayErrorPopup("Failed to connect to GitHub: vape/"..scripturl.." : "..res);
             error(res);
