@@ -77,7 +77,7 @@ end;
 
 if not shared.VapeDeveloper then 
     local commit: string = "main";
-    for i: number, v: string in pairs(game:HttpGet("https://github.com/7GrandDadPGN/VapeV4ForRoblox"):split("\n")) do 
+    for i: number, v: string in pairs(game:HttpGet("https://github.com/Copiums/VelocityOld"):split("\n")) do 
         if v:find("commit") and v:find("fragment") then 
             local str: string = v:split("/")[5];
             commit = str:sub(0, str:find('"') - 1);
